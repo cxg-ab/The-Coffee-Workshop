@@ -1,6 +1,6 @@
 {%- comment -%}
   Coffee Bean Roast — HD WebP frames (no pack in video).
-  Separate pack image rises from bottom at end; 3/4 visible, bottom cropped.
+  Bean phase: centered canvas. Pour phase: coffee falls behind uploaded pack image.
 {%- endcomment -%}
 
 {%- assign sid = section.id -%}
@@ -21,6 +21,8 @@
     --pack-w: {{ section.settings.pack_width }}%;
     --pack-max-w: {{ section.settings.pack_max_width }}px;
     --pack-visible: {{ section.settings.pack_visible | divided_by: 100.0 }};
+    --pour-h: {{ section.settings.pour_viewport_height }}vh;
+    --pour-overlap: {{ section.settings.pour_overlap }}%;
   }
   @media (max-width: 768px) {
     #beanRoast-{{ sid }} { --scrub-vh: {{ mobile_scrub_vh }}; }
@@ -41,6 +43,14 @@
     height:min(var(--bean-h), var(--bean-max-h), 82vh);
     flex:0 0 auto;
     border:none;outline:none;box-shadow:none;background:transparent;
+    transition:width .4s ease, height .4s ease, bottom .4s ease;
+  }
+  #beanRoast-{{ sid }} .br-stage.is-pour .br-view{
+    position:absolute;left:50%;
+    transform:translateX(-50%);
+    width:min(var(--pack-w), var(--pack-max-w), 88vw);
+    height:min(var(--pour-h), 52vh);
+    margin:0;
   }
   #beanRoast-{{ sid }} .br-canvas{
     width:100%;height:100%;display:block;
@@ -72,7 +82,8 @@
   @media (prefers-reduced-motion: reduce){
     #beanRoast-{{ sid }} .br-track{height:auto}
     #beanRoast-{{ sid }} .br-stage{position:static;height:auto;padding:14vh 0}
-    #beanRoast-{{ sid }} .br-pack-inner{transform:translateY(25%)}
+    #beanRoast-{{ sid }} .br-view{transition:none}
+    #beanRoast-{{ sid }} .br-pack-inner{transform:translateY(15%)}
   }
 </style>
 
@@ -137,6 +148,11 @@
     captions: {{ section.settings.captions_json }},
     packRiseStart: {{ section.settings.pack_rise_start }} / 100,
     packVisible: {{ section.settings.pack_visible }} / 100,
+    pourFrameStart: {{ section.settings.pour_frame_start }},
+    pourVisible: {{ section.settings.pour_visible }} / 100,
+    pourScale: {{ section.settings.pour_scale }} / 100,
+    pourOffsetX: {{ section.settings.pour_offset_x }},
+    pourOverlap: {{ section.settings.pour_overlap }} / 100,
     hasPack: {{ has_pack_image | json }}
   };
 
@@ -146,6 +162,7 @@
       if(!root) return;
 
       var track = root.querySelector('[data-br-track]');
+      var stage = root.querySelector('[data-br-stage]');
       var view = root.querySelector('[data-br-view]');
       var cap = root.querySelector('[data-br-caption]');
       var load = root.querySelector('[data-br-loader]');
@@ -161,7 +178,10 @@
       var ready = false;
       var cur = -1;
       var pending = false;
+      var lastPour = null;
+      var lastProg = 0;
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var pourStartIdx = Math.max(1, Math.min(N - 2, cfg.pourFrameStart - 1));
 
       ctx.imageSmoothingEnabled = true;
       if('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
@@ -180,6 +200,15 @@
         }
         return c;
       }
+      function frameIndex(p){
+        if(!cfg.hasPack || p < cfg.packRiseStart){
+          var t = cfg.hasPack ? p / cfg.packRiseStart : p;
+          return Math.round(t * (pourStartIdx));
+        }
+        var t = (p - cfg.packRiseStart) / (1 - cfg.packRiseStart);
+        var span = (N - 1) - pourStartIdx;
+        return Math.min(N - 1, pourStartIdx + Math.round(t * span));
+      }
 
       function layoutPack(){
         if(!packOuter || !packImg || !packImg.complete) return;
@@ -187,6 +216,15 @@
         var fullH = packImg.offsetHeight || packImg.naturalHeight;
         if(!fullH) return;
         packOuter.style.height = Math.round(fullH * vis) + 'px';
+        layoutPour();
+      }
+
+      function layoutPour(){
+        if(!view || !packOuter || lastPour !== true) return;
+        var packH = packOuter.offsetHeight;
+        if(!packH) return;
+        var overlap = packH * cfg.pourOverlap;
+        view.style.bottom = Math.round(packH - overlap) + 'px';
       }
 
       function size(){
@@ -196,25 +234,38 @@
         cv.height = Math.max(1, Math.round(r.height * dpr));
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         layoutPack();
-        if(ready) paint(cur < 0 ? 0 : cur, true);
+        if(ready) paint(cur < 0 ? 0 : cur, true, lastProg);
       }
 
-      function paint(idx, force){
+      function paint(idx, force, p){
         if(idx === cur && !force) return;
         var im = imgs[idx];
         if(!im || !im.complete || !im.naturalWidth) return;
         cur = idx;
+        lastProg = p;
 
         var r = cv.getBoundingClientRect();
         var cw = r.width;
         var ch = r.height;
         var iw = im.naturalWidth;
         var ih = im.naturalHeight;
-        var scale = Math.min(cw / iw, ch / ih);
-        var dw = iw * scale;
-        var dh = ih * scale;
-        var dx = (cw - dw) * 0.5;
-        var dy = (ch - dh) * 0.5;
+        var inPour = cfg.hasPack && p >= cfg.packRiseStart;
+        var scale, dw, dh, dx, dy;
+
+        if(!inPour){
+          scale = Math.min(cw / iw, ch / ih);
+          dw = iw * scale;
+          dh = ih * scale;
+          dx = (cw - dw) * 0.5;
+          dy = (ch - dh) * 0.5;
+        } else {
+          var vis = Math.max(0.35, cfg.pourVisible);
+          scale = Math.max(cw / iw, (ch / vis) / ih) * cfg.pourScale;
+          dw = iw * scale;
+          dh = ih * scale;
+          dx = (cw - dw) * 0.5 + (cfg.pourOffsetX / 100) * cw;
+          dy = ch - dh;
+        }
 
         ctx.clearRect(0, 0, cw, ch);
         ctx.drawImage(im, dx, dy, dw, dh);
@@ -236,13 +287,21 @@
       function render(){
         pending = false;
         var p = reduce ? 1 : prog();
+        var inPour = cfg.hasPack && p >= cfg.packRiseStart;
 
-        paint(Math.round(p * (N - 1)));
+        if(inPour !== lastPour){
+          lastPour = inPour;
+          stage.classList.toggle('is-pour', inPour);
+          requestAnimationFrame(size);
+        }
+
+        paint(frameIndex(p), false, p);
         updatePack(p);
+        layoutPour();
 
         if(cap){
           cap.textContent = capFor(p);
-          cap.style.opacity = p >= cfg.packRiseStart ? '0' : '1';
+          cap.style.opacity = inPour ? '0' : '1';
         }
       }
 
@@ -322,12 +381,19 @@
       "label": "Frame count",
       "default": 130
     },
+    {
+      "type": "number",
+      "id": "pour_frame_start",
+      "label": "Pour starts at frame",
+      "default": 116,
+      "info": "Frame where coffee begins falling into pack (synced with pack rise)."
+    },
     { "type": "header", "content": "Pack image (upload)" },
     {
       "type": "image_picker",
       "id": "pack_image",
       "label": "Pack image (transparent PNG/WebP)",
-      "info": "Upload pack only — rises from bottom at end of scroll. Bottom 1/4 cropped."
+      "info": "Upload pack with transparent opening at top — coffee pours in behind it."
     },
     {
       "type": "range",
@@ -370,7 +436,60 @@
       "default": 520,
       "unit": "px"
     },
-    { "type": "header", "content": "Bean / pour display" },
+    { "type": "header", "content": "Pour alignment" },
+    {
+      "type": "range",
+      "id": "pour_viewport_height",
+      "label": "Pour window height",
+      "min": 28,
+      "max": 60,
+      "step": 1,
+      "default": 42,
+      "unit": "vh"
+    },
+    {
+      "type": "range",
+      "id": "pour_visible",
+      "label": "Pour crop (frame focus)",
+      "min": 35,
+      "max": 70,
+      "step": 1,
+      "default": 52,
+      "unit": "%",
+      "info": "Shows lower portion of frame where coffee stream falls."
+    },
+    {
+      "type": "range",
+      "id": "pour_scale",
+      "label": "Pour zoom",
+      "min": 85,
+      "max": 130,
+      "step": 1,
+      "default": 100,
+      "unit": "%"
+    },
+    {
+      "type": "range",
+      "id": "pour_overlap",
+      "label": "Canvas overlap into pack",
+      "min": 0,
+      "max": 35,
+      "step": 1,
+      "default": 12,
+      "unit": "%",
+      "info": "How far coffee canvas overlaps pack opening."
+    },
+    {
+      "type": "range",
+      "id": "pour_offset_x",
+      "label": "Pour horizontal nudge",
+      "min": -20,
+      "max": 20,
+      "step": 1,
+      "default": 0,
+      "unit": "%"
+    },
+    { "type": "header", "content": "Bean display" },
     {
       "type": "range",
       "id": "bean_width",
