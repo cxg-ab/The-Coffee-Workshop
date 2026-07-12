@@ -48,13 +48,13 @@
   }
   #beanRoast-{{ sid }} .br-stage.is-pour .br-view{
     position:absolute;left:50%;
-    transform:translateX(-50%) translateY(var(--pour-y, -28%));
+    transform:translateX(-50%) translateY(var(--pour-y, 0%));
     width:min(var(--pack-w), var(--pack-max-w), 88vw);
     height:min(var(--pour-h), 52vh);
     margin:0;
-    opacity:0;
+    opacity:1;
     pointer-events:none;
-    will-change:transform,opacity;
+    will-change:transform;
   }
   #beanRoast-{{ sid }} .br-stage.is-pour.is-pouring .br-view{
     opacity:1;
@@ -132,28 +132,23 @@
 </section>
 
 {%- assign roast_end = section.settings.bean_roast_end -%}
-{%- assign pour_single = section.settings.pour_single_frame -%}
+{%- assign total_frames = section.settings.frame_count -%}
 
 <script>
 (function(){
   var frames = [
   {%- if section.settings.frame_source == 'assets' -%}
-    {%- for i in (1..roast_end) -%}
+    {%- for i in (1..total_frames) -%}
       {%- capture p -%}{%- if i < 10 -%}00{{ i }}{%- elsif i < 100 -%}0{{ i }}{%- else -%}{{ i }}{%- endif -%}{%- endcapture -%}
       {%- capture fname -%}bean_{{ p }}.webp{%- endcapture -%}
-      "{{ fname | asset_url }}",
+      "{{ fname | asset_url }}"{% unless forloop.last %},{% endunless %}
     {%- endfor -%}
-    {%- capture pp -%}{%- if pour_single < 10 -%}00{{ pour_single }}{%- elsif pour_single < 100 -%}0{{ pour_single }}{%- else -%}{{ pour_single }}{%- endif -%}{%- endcapture -%}
-    {%- capture pfname -%}bean_{{ pp }}.webp{%- endcapture -%}
-    "{{ pfname | asset_url }}"
   {%- else -%}
     {%- assign base = section.settings.custom_base | strip -%}
-    {%- for i in (1..roast_end) -%}
+    {%- for i in (1..total_frames) -%}
       {%- capture p -%}{%- if i < 10 -%}00{{ i }}{%- elsif i < 100 -%}0{{ i }}{%- else -%}{{ i }}{%- endif -%}{%- endcapture -%}
-      "{{ base }}bean_{{ p }}.webp",
+      "{{ base }}bean_{{ p }}.webp"{% unless forloop.last %},{% endunless %}
     {%- endfor -%}
-    {%- capture pp -%}{%- if pour_single < 10 -%}00{{ pour_single }}{%- elsif pour_single < 100 -%}0{{ pour_single }}{%- else -%}{{ pour_single }}{%- endif -%}{%- endcapture -%}
-    "{{ base }}bean_{{ pp }}.webp"
   {%- endif -%}
   ];
 
@@ -164,7 +159,6 @@
     packRiseStart: {{ section.settings.pack_rise_start }} / 100,
     packVisible: {{ section.settings.pack_visible }} / 100,
     beanRoastEnd: {{ roast_end }},
-    pourSingleFrame: {{ pour_single }},
     pourFall: {{ section.settings.pour_fall_distance }} / 100,
     pourVisible: {{ section.settings.pour_visible }} / 100,
     pourScale: {{ section.settings.pour_scale }} / 100,
@@ -314,14 +308,14 @@
         var p = reduce ? 1 : prog();
         var inPour = cfg.hasPack && p >= cfg.packRiseStart;
         var pourProgress = inPour ? clamp((p - cfg.packRiseStart) / (1 - cfg.packRiseStart)) : 0;
-        var showPourCanvas = inPour && pourProgress > 0.1;
 
         if(inPour !== lastPour){
           lastPour = inPour;
           stage.classList.toggle('is-pour', inPour);
+          stage.classList.toggle('is-pouring', inPour);
+          cur = -1;
           requestAnimationFrame(size);
         }
-        stage.classList.toggle('is-pouring', showPourCanvas);
 
         paint(frameIndex(p), false, p);
         updatePack(p);
@@ -407,23 +401,16 @@
     {
       "type": "number",
       "id": "frame_count",
-      "label": "Frame count (legacy)",
-      "default": 116,
-      "info": "Not used for loading. Roast frames + single pour frame are loaded automatically."
+      "label": "Total frames",
+      "default": 111,
+      "info": "Contiguous frames: roast + 1 pour. No gaps. Match bean-frames-report.json."
     },
     {
       "type": "number",
       "id": "bean_roast_end",
       "label": "Roast ends at frame",
       "default": 110,
-      "info": "Last scroll frame for centered bean roast. Frames after this are not loaded."
-    },
-    {
-      "type": "number",
-      "id": "pour_single_frame",
-      "label": "Single pour frame",
-      "default": 116,
-      "info": "One pour image only. No multi-frame pour scrub. Coffee falls via scroll motion into pack."
+      "info": "Last roast frame. Frame (this + 1) is the single pour image."
     },
     { "type": "header", "content": "Pack image (upload)" },
     {

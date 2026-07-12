@@ -227,6 +227,17 @@ def main() -> None:
     ap.add_argument("--target-frames", type=int, default=0, help="Evenly sample to this count (0 = keep all usable)")
     ap.add_argument("--start-time", type=float, default=0, help="Start extraction at this second")
     ap.add_argument("--end-time", type=float, default=0, help="Stop extraction at this second (0 = full video)")
+    ap.add_argument(
+        "--clean-export",
+        action="store_true",
+        help="Export contiguous roast frames + one pour frame (bean_001..bean_N, no gaps)",
+    )
+    ap.add_argument(
+        "--pour-source-frame",
+        type=int,
+        default=0,
+        help="1-based source frame for single pour image in clean export (0 = auto)",
+    )
     args = ap.parse_args()
 
     if not args.video.exists():
@@ -322,13 +333,29 @@ def main() -> None:
 
     bean_roast_end = detect_bean_roast_end(kept, pour_frame_start)
     pour_skip_frames = detect_pour_skip_frames(kept, pour_frame_start)
-    pour_playback_frames = [
-        i + 1 for i in range(pour_frame_start - 1, n) if (i + 1) not in pour_skip_frames
-    ]
 
-    bean_frame_count = bean_roast_end
-    pour_frame_count = len(pour_playback_frames)
-    gap_frame_count = max(0, pour_frame_start - bean_roast_end - 1)
+    if args.clean_export:
+        pour_src = args.pour_source_frame if args.pour_source_frame > 0 else pour_frame_start
+        pour_src = max(1, min(len(kept), pour_src))
+        roast_frames = kept[:bean_roast_end]
+        pour_frame = kept[pour_src - 1]
+        kept = roast_frames + [pour_frame]
+        n = len(kept)
+        pour_frame_start = n
+        bean_roast_end = n - 1
+        pour_skip_frames = []
+        pour_playback_frames = [n]
+        bean_frame_count = bean_roast_end
+        pour_frame_count = 1
+        gap_frame_count = 0
+        print(f"Clean export: {bean_roast_end} roast + 1 pour = {n} contiguous frames")
+    else:
+        pour_playback_frames = [
+            i + 1 for i in range(pour_frame_start - 1, n) if (i + 1) not in pour_skip_frames
+        ]
+        bean_frame_count = bean_roast_end
+        pour_frame_count = len(pour_playback_frames)
+        gap_frame_count = max(0, pour_frame_start - bean_roast_end - 1)
 
     args.out.mkdir(parents=True, exist_ok=True)
     for old in args.out.glob("bean_*.webp"):
@@ -348,11 +375,13 @@ def main() -> None:
         "output_size": args.size,
         "pour_frame_start": pour_frame_start,
         "bean_roast_end": bean_roast_end,
+        "pour_single_frame": n if args.clean_export else pour_frame_start,
         "bean_frame_count": bean_frame_count,
         "pour_frame_count": pour_frame_count,
         "pour_skip_frames": pour_skip_frames,
         "pour_playback_frames": pour_playback_frames,
         "gap_frame_count": gap_frame_count,
+        "clean_export": args.clean_export,
         "recommended_frame_count": n,
         "recommended_scrub_vh": max(280, min(400, int(n * 2.5))),
     }
