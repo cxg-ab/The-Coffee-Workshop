@@ -1,11 +1,15 @@
 {%- comment -%}
-  Coffee Bean Roast — HD WebP scroll sequence.
-  Bean phase: centered. Pack phase: bottom-anchored, top half visible, bottom cropped.
+  Coffee Bean Roast — HD WebP frames (no pack in video).
+  Separate pack image rises from bottom at end; 3/4 visible, bottom cropped.
 {%- endcomment -%}
 
 {%- assign sid = section.id -%}
 {%- assign count = section.settings.frame_count -%}
 {%- assign mobile_scrub_vh = section.settings.scrub_vh | times: 0.5 | round -%}
+{%- assign has_pack_image = false -%}
+{%- if section.settings.pack_image != blank -%}
+  {%- assign has_pack_image = true -%}
+{%- endif -%}
 
 <style>
   #beanRoast-{{ sid }}{
@@ -14,8 +18,9 @@
     --bean-h: {{ section.settings.bean_height }}vh;
     --bean-max-w: {{ section.settings.bean_max_width }}px;
     --bean-max-h: {{ section.settings.bean_max_height }}px;
-    --pack-h: {{ section.settings.pack_viewport_height }}vh;
-    --pack-bottom: {{ section.settings.pack_bottom_offset }}vh;
+    --pack-w: {{ section.settings.pack_width }}%;
+    --pack-max-w: {{ section.settings.pack_max_width }}px;
+    --pack-visible: {{ section.settings.pack_visible | divided_by: 100.0 }};
   }
   @media (max-width: 768px) {
     #beanRoast-{{ sid }} { --scrub-vh: {{ mobile_scrub_vh }}; }
@@ -26,28 +31,16 @@
     display:flex;align-items:center;justify-content:center;
     overflow:hidden;
   }
-  #beanRoast-{{ sid }} .br-stage.is-pack{
-    align-items:flex-end;
-    justify-content:center;
-    padding-bottom:var(--pack-bottom);
-  }
   #beanRoast-{{ sid }} .br-head{
     position:absolute;left:0;right:0;top:8vh;text-align:center;padding:0 24px;
-    pointer-events:none;z-index:2;
+    pointer-events:none;z-index:4;
   }
   #beanRoast-{{ sid }} .br-view{
-    position:relative;
+    position:relative;z-index:2;
     width:min(var(--bean-w), var(--bean-max-w), 96vw);
     height:min(var(--bean-h), var(--bean-max-h), 82vh);
     flex:0 0 auto;
-    overflow:hidden;
     border:none;outline:none;box-shadow:none;background:transparent;
-    transition:height .35s ease, width .35s ease;
-  }
-  #beanRoast-{{ sid }} .br-stage.is-pack .br-view{
-    height:min(var(--pack-h), 58vh);
-    width:min(var(--bean-w), var(--bean-max-w), 92vw);
-    margin-bottom:0;
   }
   #beanRoast-{{ sid }} .br-canvas{
     width:100%;height:100%;display:block;
@@ -60,13 +53,26 @@
   #beanRoast-{{ sid }} .br-caption{
     position:absolute;left:0;right:0;bottom:7vh;text-align:center;
     font-size:.75rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
-    color:rgba(28,25,23,.55);pointer-events:none;z-index:2;
+    color:rgba(28,25,23,.55);pointer-events:none;z-index:4;
   }
-  #beanRoast-{{ sid }} .br-stage.is-pack .br-caption{bottom:calc(var(--pack-h) + var(--pack-bottom) + 2vh)}
+  #beanRoast-{{ sid }} .br-pack-outer{
+    position:absolute;left:50%;bottom:0;z-index:3;
+    width:min(var(--pack-w), var(--pack-max-w), 88vw);
+    overflow:hidden;pointer-events:none;
+    transform:translateX(-50%);
+  }
+  #beanRoast-{{ sid }} .br-pack-inner{
+    will-change:transform;
+    transform:translateY(110%);
+  }
+  #beanRoast-{{ sid }} .br-pack-inner img{
+    width:100%;height:auto;display:block;
+    border:none;outline:none;box-shadow:none;background:transparent;
+  }
   @media (prefers-reduced-motion: reduce){
     #beanRoast-{{ sid }} .br-track{height:auto}
     #beanRoast-{{ sid }} .br-stage{position:static;height:auto;padding:14vh 0}
-    #beanRoast-{{ sid }} .br-view{transition:none}
+    #beanRoast-{{ sid }} .br-pack-inner{transform:translateY(25%)}
   }
 </style>
 
@@ -84,6 +90,21 @@
         <canvas class="br-canvas" data-br-canvas aria-hidden="true"></canvas>
         <div class="br-loader text-brand font-semibold tracking-widest text-xs uppercase opacity-50" data-br-loader>Loading 0%</div>
       </div>
+
+      {%- if section.settings.pack_image != blank -%}
+      <div class="br-pack-outer" data-br-pack-outer>
+        <div class="br-pack-inner" data-br-pack>
+          <img
+            src="{{ section.settings.pack_image | image_url: width: 1200 }}"
+            alt="{{ section.settings.pack_image.alt | default: 'Coffee pack' | escape }}"
+            width="{{ section.settings.pack_image.width }}"
+            height="{{ section.settings.pack_image.height }}"
+            loading="lazy"
+            decoding="async"
+          >
+        </div>
+      </div>
+      {%- endif -%}
 
       {% if section.settings.show_caption %}
         <div class="br-caption" data-br-caption>Green</div>
@@ -114,9 +135,9 @@
     root: document.getElementById('beanRoast-{{ sid }}'),
     frames: frames,
     captions: {{ section.settings.captions_json }},
-    packStart: {{ section.settings.pack_start }} / 100,
+    packRiseStart: {{ section.settings.pack_rise_start }} / 100,
     packVisible: {{ section.settings.pack_visible }} / 100,
-    packScale: {{ section.settings.pack_scale }} / 100
+    hasPack: {{ has_pack_image | json }}
   };
 
   if(!window.__beanRoastClean){
@@ -125,10 +146,12 @@
       if(!root) return;
 
       var track = root.querySelector('[data-br-track]');
-      var stage = root.querySelector('[data-br-stage]');
       var view = root.querySelector('[data-br-view]');
       var cap = root.querySelector('[data-br-caption]');
       var load = root.querySelector('[data-br-loader]');
+      var packOuter = root.querySelector('[data-br-pack-outer]');
+      var pack = root.querySelector('[data-br-pack]');
+      var packImg = pack ? pack.querySelector('img') : null;
       var cv = root.querySelector('[data-br-canvas]');
       var ctx = cv.getContext('2d', { alpha: true });
 
@@ -138,7 +161,6 @@
       var ready = false;
       var cur = -1;
       var pending = false;
-      var lastPack = null;
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
       ctx.imageSmoothingEnabled = true;
@@ -159,69 +181,68 @@
         return c;
       }
 
+      function layoutPack(){
+        if(!packOuter || !packImg || !packImg.complete) return;
+        var vis = Math.max(0.5, cfg.packVisible);
+        var fullH = packImg.offsetHeight || packImg.naturalHeight;
+        if(!fullH) return;
+        packOuter.style.height = Math.round(fullH * vis) + 'px';
+      }
+
       function size(){
         var dpr = Math.min(devicePixelRatio || 1, 3);
         var r = cv.getBoundingClientRect();
         cv.width = Math.max(1, Math.round(r.width * dpr));
         cv.height = Math.max(1, Math.round(r.height * dpr));
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        if(ready) paint(cur < 0 ? 0 : cur, true, lastProg);
+        layoutPack();
+        if(ready) paint(cur < 0 ? 0 : cur, true);
       }
 
-      var lastProg = 0;
-
-      function paint(idx, force, p){
+      function paint(idx, force){
         if(idx === cur && !force) return;
         var im = imgs[idx];
         if(!im || !im.complete || !im.naturalWidth) return;
         cur = idx;
-        lastProg = p;
 
         var r = cv.getBoundingClientRect();
         var cw = r.width;
         var ch = r.height;
         var iw = im.naturalWidth;
         var ih = im.naturalHeight;
-        var inPack = p >= cfg.packStart;
-        var scale, dw, dh, dx, dy;
-
-        if(!inPack){
-          scale = Math.min(cw / iw, ch / ih);
-          dw = iw * scale;
-          dh = ih * scale;
-          dx = (cw - dw) * 0.5;
-          dy = (ch - dh) * 0.5;
-        } else {
-          /* Pack pinned to bottom: show top portion, crop lower half below viewport */
-          var vis = Math.max(0.35, cfg.packVisible);
-          var extra = cfg.packScale;
-          scale = Math.max(cw / iw, (ch / vis) / ih) * extra;
-          dw = iw * scale;
-          dh = ih * scale;
-          dx = (cw - dw) * 0.5;
-          dy = ch - dh;
-        }
+        var scale = Math.min(cw / iw, ch / ih);
+        var dw = iw * scale;
+        var dh = ih * scale;
+        var dx = (cw - dw) * 0.5;
+        var dy = (ch - dh) * 0.5;
 
         ctx.clearRect(0, 0, cw, ch);
         ctx.drawImage(im, dx, dy, dw, dh);
       }
 
+      function updatePack(p){
+        if(!pack) return;
+        var pr = clamp((p - cfg.packRiseStart) / (1 - cfg.packRiseStart));
+        var e = ease(pr);
+        var vis = Math.max(0.5, cfg.packVisible);
+        var hidden = 1 - vis;
+        var startY = 110;
+        var endY = hidden * 100;
+        var y = startY - e * (startY - endY);
+        pack.style.transform = 'translateY(' + y.toFixed(2) + '%)';
+        pack.style.opacity = pr > 0.001 ? '1' : '0';
+      }
+
       function render(){
         pending = false;
         var p = reduce ? 1 : prog();
-        var inPack = p >= cfg.packStart;
 
-        if(inPack !== lastPack){
-          lastPack = inPack;
-          stage.classList.toggle('is-pack', inPack);
-          requestAnimationFrame(size);
-        }
-
-        paint(Math.round(p * (N - 1)), false, p);
+        paint(Math.round(p * (N - 1)));
+        updatePack(p);
 
         if(cap){
           cap.textContent = capFor(p);
-          cap.style.opacity = inPack ? '0' : '1';
+          cap.style.opacity = p >= cfg.packRiseStart ? '0' : '1';
         }
       }
 
@@ -250,6 +271,10 @@
             imgs[i] = im;
           })(i);
         }
+        if(packImg){
+          if(packImg.complete) layoutPack();
+          else packImg.addEventListener('load', function(){ layoutPack(); render(); });
+        }
       }
 
       var io = new IntersectionObserver(function(en){
@@ -274,7 +299,7 @@
   "tag": "section",
   "class": "section-coffee-bean-roast",
   "settings": [
-    { "type": "header", "content": "Frames" },
+    { "type": "header", "content": "Frames (bean + coffee pour, no pack)" },
     {
       "type": "select",
       "id": "frame_source",
@@ -295,9 +320,57 @@
       "type": "number",
       "id": "frame_count",
       "label": "Frame count",
-      "default": 241
+      "default": 130
     },
-    { "type": "header", "content": "Bean phase (display)" },
+    { "type": "header", "content": "Pack image (upload)" },
+    {
+      "type": "image_picker",
+      "id": "pack_image",
+      "label": "Pack image (transparent PNG/WebP)",
+      "info": "Upload pack only — rises from bottom at end of scroll. Bottom 1/4 cropped."
+    },
+    {
+      "type": "range",
+      "id": "pack_rise_start",
+      "label": "Pack rise starts (% scroll)",
+      "min": 55,
+      "max": 90,
+      "step": 1,
+      "default": 72,
+      "unit": "%"
+    },
+    {
+      "type": "range",
+      "id": "pack_visible",
+      "label": "Pack height shown",
+      "min": 60,
+      "max": 85,
+      "step": 1,
+      "default": 75,
+      "unit": "%",
+      "info": "75% = three-quarters visible, bottom quarter hidden."
+    },
+    {
+      "type": "range",
+      "id": "pack_width",
+      "label": "Pack width",
+      "min": 35,
+      "max": 90,
+      "step": 1,
+      "default": 52,
+      "unit": "%"
+    },
+    {
+      "type": "range",
+      "id": "pack_max_width",
+      "label": "Pack max width",
+      "min": 280,
+      "max": 800,
+      "step": 20,
+      "default": 520,
+      "unit": "px"
+    },
+    { "type": "header", "content": "Bean / pour display" },
     {
       "type": "range",
       "id": "bean_width",
@@ -337,60 +410,6 @@
       "step": 20,
       "default": 1000,
       "unit": "px"
-    },
-    { "type": "header", "content": "Pack phase (bottom crop)" },
-    {
-      "type": "range",
-      "id": "pack_start",
-      "label": "Pack phase starts (% scroll)",
-      "min": 35,
-      "max": 65,
-      "step": 1,
-      "default": 50,
-      "unit": "%",
-      "info": "When bag appears; pack pins to bottom from here."
-    },
-    {
-      "type": "range",
-      "id": "pack_viewport_height",
-      "label": "Pack window height",
-      "min": 28,
-      "max": 70,
-      "step": 1,
-      "default": 48,
-      "unit": "vh",
-      "info": "Visible area — lower half of pack is cropped below."
-    },
-    {
-      "type": "range",
-      "id": "pack_visible",
-      "label": "Pack height shown",
-      "min": 40,
-      "max": 70,
-      "step": 1,
-      "default": 52,
-      "unit": "%",
-      "info": "Top portion of pack visible; rest hidden below."
-    },
-    {
-      "type": "range",
-      "id": "pack_scale",
-      "label": "Pack scale",
-      "min": 90,
-      "max": 130,
-      "step": 1,
-      "default": 108,
-      "unit": "%"
-    },
-    {
-      "type": "range",
-      "id": "pack_bottom_offset",
-      "label": "Pack distance from bottom",
-      "min": 0,
-      "max": 12,
-      "step": 1,
-      "default": 0,
-      "unit": "vh"
     },
     { "type": "header", "content": "Motion" },
     {

@@ -52,7 +52,7 @@ Connected Shopify store for **The Coffee Workshop Co.**, a UAE specialty coffee 
 - **Flag:** `settings.animations_enabled` (default: true)
 - **Signature interactions:**
   - Hero: Arabic decorative background, 3D orb visual, split heading lines
-  - Coffee bean roast: 133-frame scroll-scrub animation (green → roasted)
+  - Coffee bean roast: 130-frame scroll-scrub animation (green → roasted → coffee pour); pack image uploaded separately, rises from bottom at end
   - Origin sticky: pinned origin cards (Ethiopia, Panama, Yemen, Colombia, Kenya)
   - Page transitions, cart drawer, footer reveal
 - **Bilingual:** RTL when `request.locale.iso_code == 'ar'`; hero embeds Arabic word ماستر in heading

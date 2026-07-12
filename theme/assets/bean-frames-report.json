@@ -1,10 +1,10 @@
 {
   "source": "/workspace/theme/assets/Mp4bean.mp4",
-  "raw_frames": 241,
-  "output_frames": 241,
+  "raw_frames": 130,
+  "output_frames": 130,
   "skipped_blank": 0,
   "skipped_duplicate": 0,
-  "output_size": 720,
-  "recommended_frame_count": 241,
-  "recommended_scrub_vh": 400
+  "output_size": 1440,
+  "recommended_frame_count": 130,
+  "recommended_scrub_vh": 325
 }
