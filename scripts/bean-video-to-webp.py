@@ -111,7 +111,7 @@ def main() -> None:
     ap.add_argument("--out", type=Path, default=Path("theme/assets"), help="Output directory")
     ap.add_argument("--size", type=int, default=720, help="Output square size in px")
     ap.add_argument("--min-frames", type=int, default=90, help="Minimum frames to keep")
-    ap.add_argument("--max-frames", type=int, default=160, help="Maximum frames to keep")
+    ap.add_argument("--max-frames", type=int, default=300, help="Maximum frames to keep")
     ap.add_argument("--dedupe", action="store_true", help="Skip near-duplicate consecutive frames")
     ap.add_argument("--target-frames", type=int, default=0, help="Evenly sample to this count (0 = keep all usable)")
     ap.add_argument("--start-time", type=float, default=0, help="Start extraction at this second")
