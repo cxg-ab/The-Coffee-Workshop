@@ -4,7 +4,11 @@
   "output_frames": 130,
   "skipped_blank": 0,
   "skipped_duplicate": 0,
+  "trimmed_duplicate_start": 0,
   "output_size": 1440,
+  "pour_frame_start": 116,
+  "bean_frame_count": 115,
+  "pour_frame_count": 15,
   "recommended_frame_count": 130,
   "recommended_scrub_vh": 325
 }

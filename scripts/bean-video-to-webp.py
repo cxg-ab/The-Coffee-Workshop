@@ -82,11 +82,78 @@ def frame_signature(im: Image.Image, size: int = 32) -> list[int]:
     return list(thumb.getdata())
 
 
-def is_near_duplicate(a: list[int], b: list[int], tol: float = 2.5) -> bool:
+def signature_diff(a: list[int], b: list[int]) -> float:
     if len(a) != len(b):
-        return False
-    diff = sum(abs(x - y) for x, y in zip(a, b)) / len(a)
-    return diff < tol
+        return float("inf")
+    return sum(abs(x - y) for x, y in zip(a, b)) / len(a)
+
+
+def is_near_duplicate(a: list[int], b: list[int], tol: float = 0.85) -> bool:
+    """True only for near-identical consecutive frames (not slow animation steps)."""
+    return signature_diff(a, b) < tol
+
+
+def content_bottom_ratio(im: Image.Image, sample: int = 8) -> float:
+    rgba = im.convert("RGBA")
+    px = rgba.load()
+    w, h = rgba.size
+    max_y = 0
+    found = False
+    for y in range(h):
+        if any(px[x, y][3] > 40 for x in range(0, w, sample)):
+            found = True
+            max_y = max(max_y, y)
+    return max_y / h if found else 0.0
+
+
+def detect_pour_start(frames: list[Image.Image]) -> int:
+    """Return 1-based frame where coffee pour begins (first sustained bottom extension)."""
+    n = len(frames)
+    if n < 20:
+        return max(2, n // 2)
+
+    bottoms = [content_bottom_ratio(im) for im in frames]
+    roast_from = min(40, max(10, n // 5))
+    roast_to = min(n - 10, max(roast_from + 20, int(n * 0.82)))
+    roast_window = bottoms[roast_from:roast_to]
+    if not roast_window:
+        return max(2, int(n * 0.88))
+
+    baseline = sorted(roast_window)[len(roast_window) // 2]
+    search_from = max(roast_to - 5, 15)
+
+    for i in range(search_from, n - 2):
+        jump = bottoms[i] - bottoms[i - 1]
+        if jump < 0.03:
+            continue
+        if bottoms[i - 1] > baseline + 0.015:
+            continue
+        if bottoms[i + 1] < bottoms[i] - 0.03:
+            continue
+        return i + 1
+
+    best_i, best_jump = search_from, 0.0
+    for i in range(search_from + 1, min(n - 1, int(n * 0.92))):
+        jump = bottoms[i] - bottoms[i - 1]
+        if jump > best_jump:
+            best_jump = jump
+            best_i = i
+    if best_jump >= 0.025:
+        return best_i + 1
+    return max(2, int(n * 0.88))
+
+
+def trim_duplicate_start(frames: list[Image.Image], sigs: list[list[int]], tol: float) -> tuple[list[Image.Image], list[list[int]], int]:
+    """Remove only a leading run of truly identical frames."""
+    if len(frames) < 2:
+        return frames, sigs, 0
+
+    trimmed = 0
+    while len(frames) > 2 and is_near_duplicate(sigs[0], sigs[1], tol):
+        frames.pop(0)
+        sigs.pop(0)
+        trimmed += 1
+    return frames, sigs, trimmed
 
 
 def process_frame(path: Path, out_size: int, square_source: bool) -> Image.Image | None:
@@ -115,7 +182,13 @@ def main() -> None:
     ap.add_argument("--size", type=int, default=1440, help="Output square size in px (0 = native)")
     ap.add_argument("--min-frames", type=int, default=90, help="Minimum frames to keep")
     ap.add_argument("--max-frames", type=int, default=300, help="Maximum frames to keep")
-    ap.add_argument("--dedupe", action="store_true", help="Skip near-duplicate consecutive frames")
+    ap.add_argument("--dedupe", action="store_true", help="Skip near-identical consecutive frames")
+    ap.add_argument(
+        "--dedupe-tol",
+        type=float,
+        default=0.85,
+        help="Max avg 32x32 luma diff for duplicate (default 0.85; animation steps are ~0.9+)",
+    )
     ap.add_argument("--target-frames", type=int, default=0, help="Evenly sample to this count (0 = keep all usable)")
     ap.add_argument("--start-time", type=float, default=0, help="Start extraction at this second")
     ap.add_argument("--end-time", type=float, default=0, help="Stop extraction at this second (0 = full video)")
@@ -162,11 +235,16 @@ def main() -> None:
             skipped_blank += 1
             continue
         sig = frame_signature(im)
-        if args.dedupe and sigs and is_near_duplicate(sig, sigs[-1]):
+        if args.dedupe and sigs and is_near_duplicate(sig, sigs[-1], args.dedupe_tol):
             skipped_dup += 1
             continue
         sigs.append(sig)
         kept.append(im)
+
+    trimmed_start = 0
+    if kept:
+        kept, sigs, trimmed_start = trim_duplicate_start(kept, sigs, args.dedupe_tol)
+        skipped_dup += trimmed_start
 
     # Trim ends if still blank-heavy (safety)
     while kept and sum(1 for y in range(0, kept[0].height, 12) for x in range(0, kept[0].width, 12) if kept[0].getpixel((x, y))[3] > 30) < 80:
@@ -194,6 +272,22 @@ def main() -> None:
     if n < args.min_frames:
         print(f"Warning: only {n} usable frames (min {args.min_frames})", file=sys.stderr)
 
+    if args.dedupe and skipped_dup > len(raw_files) * 0.1:
+        print(
+            f"Warning: dedupe removed {skipped_dup} frames (>10%). "
+            f"Tolerance {args.dedupe_tol} may be too high for this video.",
+            file=sys.stderr,
+        )
+
+    pour_frame_start = detect_pour_start(kept)
+    if pour_frame_start >= n:
+        pour_frame_start = max(2, n - 1)
+    if pour_frame_start < 2:
+        pour_frame_start = 2
+
+    bean_frame_count = pour_frame_start - 1
+    pour_frame_count = n - bean_frame_count
+
     args.out.mkdir(parents=True, exist_ok=True)
     for old in args.out.glob("bean_*.webp"):
         old.unlink()
@@ -208,7 +302,11 @@ def main() -> None:
         "output_frames": n,
         "skipped_blank": skipped_blank,
         "skipped_duplicate": skipped_dup,
+        "trimmed_duplicate_start": trimmed_start,
         "output_size": args.size,
+        "pour_frame_start": pour_frame_start,
+        "bean_frame_count": bean_frame_count,
+        "pour_frame_count": pour_frame_count,
         "recommended_frame_count": n,
         "recommended_scrub_vh": max(280, min(400, int(n * 2.5))),
     }

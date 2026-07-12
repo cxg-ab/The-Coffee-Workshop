@@ -181,7 +181,9 @@
       var lastPour = null;
       var lastProg = 0;
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      var pourStartIdx = Math.max(1, Math.min(N - 2, cfg.pourFrameStart - 1));
+      var pourStart = Math.max(2, Math.min(N, cfg.pourFrameStart));
+      var pourStartIdx = pourStart - 1;
+      var beanEndIdx = pourStartIdx - 1;
 
       ctx.imageSmoothingEnabled = true;
       if('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
@@ -203,11 +205,13 @@
       function frameIndex(p){
         if(!cfg.hasPack || p < cfg.packRiseStart){
           var t = cfg.hasPack ? p / cfg.packRiseStart : p;
-          return Math.round(t * (pourStartIdx));
+          if(beanEndIdx <= 0) return 0;
+          return Math.min(beanEndIdx, Math.floor(t * (beanEndIdx + 1)));
         }
         var t = (p - cfg.packRiseStart) / (1 - cfg.packRiseStart);
         var span = (N - 1) - pourStartIdx;
-        return Math.min(N - 1, pourStartIdx + Math.round(t * span));
+        if(span <= 0) return pourStartIdx;
+        return Math.min(N - 1, pourStartIdx + Math.floor(t * (span + 1)));
       }
 
       function layoutPack(){
@@ -386,7 +390,7 @@
       "id": "pour_frame_start",
       "label": "Pour starts at frame",
       "default": 116,
-      "info": "Frame where coffee begins falling into pack (synced with pack rise)."
+      "info": "1-based frame where pour begins. Must match bean-frames-report.json pour_frame_start. Bean uses frames 1..(this-1); pour uses this..frame_count."
     },
     { "type": "header", "content": "Pack image (upload)" },
     {
