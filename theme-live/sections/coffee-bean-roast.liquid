@@ -1,6 +1,6 @@
 {%- comment -%}
-  Coffee Bean Roast — HD transparent WebP scroll sequence.
-  No container outline; free width/height resize; crisp alpha compositing.
+  Coffee Bean Roast — HD WebP scroll sequence.
+  Bean phase: centered. Pack phase: bottom-anchored, top half visible, bottom cropped.
 {%- endcomment -%}
 
 {%- assign sid = section.id -%}
@@ -14,6 +14,8 @@
     --bean-h: {{ section.settings.bean_height }}vh;
     --bean-max-w: {{ section.settings.bean_max_width }}px;
     --bean-max-h: {{ section.settings.bean_max_height }}px;
+    --pack-h: {{ section.settings.pack_viewport_height }}vh;
+    --pack-bottom: {{ section.settings.pack_bottom_offset }}vh;
   }
   @media (max-width: 768px) {
     #beanRoast-{{ sid }} { --scrub-vh: {{ mobile_scrub_vh }}; }
@@ -22,7 +24,12 @@
   #beanRoast-{{ sid }} .br-stage{
     position:sticky;top:0;height:100vh;
     display:flex;align-items:center;justify-content:center;
-    overflow:visible;
+    overflow:hidden;
+  }
+  #beanRoast-{{ sid }} .br-stage.is-pack{
+    align-items:flex-end;
+    justify-content:center;
+    padding-bottom:var(--pack-bottom);
   }
   #beanRoast-{{ sid }} .br-head{
     position:absolute;left:0;right:0;top:8vh;text-align:center;padding:0 24px;
@@ -33,7 +40,14 @@
     width:min(var(--bean-w), var(--bean-max-w), 96vw);
     height:min(var(--bean-h), var(--bean-max-h), 82vh);
     flex:0 0 auto;
+    overflow:hidden;
     border:none;outline:none;box-shadow:none;background:transparent;
+    transition:height .35s ease, width .35s ease;
+  }
+  #beanRoast-{{ sid }} .br-stage.is-pack .br-view{
+    height:min(var(--pack-h), 58vh);
+    width:min(var(--bean-w), var(--bean-max-w), 92vw);
+    margin-bottom:0;
   }
   #beanRoast-{{ sid }} .br-canvas{
     width:100%;height:100%;display:block;
@@ -48,15 +62,17 @@
     font-size:.75rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
     color:rgba(28,25,23,.55);pointer-events:none;z-index:2;
   }
+  #beanRoast-{{ sid }} .br-stage.is-pack .br-caption{bottom:calc(var(--pack-h) + var(--pack-bottom) + 2vh)}
   @media (prefers-reduced-motion: reduce){
     #beanRoast-{{ sid }} .br-track{height:auto}
     #beanRoast-{{ sid }} .br-stage{position:static;height:auto;padding:14vh 0}
+    #beanRoast-{{ sid }} .br-view{transition:none}
   }
 </style>
 
 <section id="beanRoast-{{ sid }}" class="coffee-bean-roast bg-[#E6D095]">
   <div class="br-track" data-br-track>
-    <div class="br-stage">
+    <div class="br-stage" data-br-stage>
       {%- if section.settings.heading != blank or section.settings.subheading != blank -%}
       <div class="br-head">
         {% if section.settings.heading != blank %}<h2 class="font-display font-bold text-4xl lg:text-6xl text-ink leading-[1.05] tracking-tight">{{ section.settings.heading }}</h2>{% endif %}
@@ -97,7 +113,10 @@
   var cfg = {
     root: document.getElementById('beanRoast-{{ sid }}'),
     frames: frames,
-    captions: {{ section.settings.captions_json }}
+    captions: {{ section.settings.captions_json }},
+    packStart: {{ section.settings.pack_start }} / 100,
+    packVisible: {{ section.settings.pack_visible }} / 100,
+    packScale: {{ section.settings.pack_scale }} / 100
   };
 
   if(!window.__beanRoastClean){
@@ -106,6 +125,7 @@
       if(!root) return;
 
       var track = root.querySelector('[data-br-track]');
+      var stage = root.querySelector('[data-br-stage]');
       var view = root.querySelector('[data-br-view]');
       var cap = root.querySelector('[data-br-caption]');
       var load = root.querySelector('[data-br-loader]');
@@ -118,12 +138,14 @@
       var ready = false;
       var cur = -1;
       var pending = false;
+      var lastPack = null;
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
       ctx.imageSmoothingEnabled = true;
       if('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
 
       function clamp(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
+      function ease(t){ return t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2; }
       function prog(){
         var r = track.getBoundingClientRect();
         var tot = r.height - innerHeight;
@@ -143,25 +165,42 @@
         cv.width = Math.max(1, Math.round(r.width * dpr));
         cv.height = Math.max(1, Math.round(r.height * dpr));
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        if(ready) paint(cur < 0 ? 0 : cur, true);
+        if(ready) paint(cur < 0 ? 0 : cur, true, lastProg);
       }
 
-      function paint(idx, force){
+      var lastProg = 0;
+
+      function paint(idx, force, p){
         if(idx === cur && !force) return;
         var im = imgs[idx];
         if(!im || !im.complete || !im.naturalWidth) return;
         cur = idx;
+        lastProg = p;
 
         var r = cv.getBoundingClientRect();
         var cw = r.width;
         var ch = r.height;
         var iw = im.naturalWidth;
         var ih = im.naturalHeight;
-        var scale = Math.min(cw / iw, ch / ih);
-        var dw = iw * scale;
-        var dh = ih * scale;
-        var dx = (cw - dw) * 0.5;
-        var dy = (ch - dh) * 0.5;
+        var inPack = p >= cfg.packStart;
+        var scale, dw, dh, dx, dy;
+
+        if(!inPack){
+          scale = Math.min(cw / iw, ch / ih);
+          dw = iw * scale;
+          dh = ih * scale;
+          dx = (cw - dw) * 0.5;
+          dy = (ch - dh) * 0.5;
+        } else {
+          /* Pack pinned to bottom: show top portion, crop lower half below viewport */
+          var vis = Math.max(0.35, cfg.packVisible);
+          var extra = cfg.packScale;
+          scale = Math.max(cw / iw, (ch / vis) / ih) * extra;
+          dw = iw * scale;
+          dh = ih * scale;
+          dx = (cw - dw) * 0.5;
+          dy = ch - dh;
+        }
 
         ctx.clearRect(0, 0, cw, ch);
         ctx.drawImage(im, dx, dy, dw, dh);
@@ -170,10 +209,19 @@
       function render(){
         pending = false;
         var p = reduce ? 1 : prog();
-        paint(Math.round(p * (N - 1)));
+        var inPack = p >= cfg.packStart;
+
+        if(inPack !== lastPack){
+          lastPack = inPack;
+          stage.classList.toggle('is-pack', inPack);
+          requestAnimationFrame(size);
+        }
+
+        paint(Math.round(p * (N - 1)), false, p);
+
         if(cap){
           cap.textContent = capFor(p);
-          cap.style.opacity = '1';
+          cap.style.opacity = inPack ? '0' : '1';
         }
       }
 
@@ -241,7 +289,6 @@
       "type": "text",
       "id": "custom_base",
       "label": "Custom base URL",
-      "info": "Only for Custom URL. Must end with a slash.",
       "default": "https://your-cdn.com/bean-frames/"
     },
     {
@@ -250,7 +297,7 @@
       "label": "Frame count",
       "default": 241
     },
-    { "type": "header", "content": "Display size (free resize)" },
+    { "type": "header", "content": "Bean phase (display)" },
     {
       "type": "range",
       "id": "bean_width",
@@ -290,6 +337,60 @@
       "step": 20,
       "default": 1000,
       "unit": "px"
+    },
+    { "type": "header", "content": "Pack phase (bottom crop)" },
+    {
+      "type": "range",
+      "id": "pack_start",
+      "label": "Pack phase starts (% scroll)",
+      "min": 35,
+      "max": 65,
+      "step": 1,
+      "default": 50,
+      "unit": "%",
+      "info": "When bag appears; pack pins to bottom from here."
+    },
+    {
+      "type": "range",
+      "id": "pack_viewport_height",
+      "label": "Pack window height",
+      "min": 28,
+      "max": 70,
+      "step": 1,
+      "default": 48,
+      "unit": "vh",
+      "info": "Visible area — lower half of pack is cropped below."
+    },
+    {
+      "type": "range",
+      "id": "pack_visible",
+      "label": "Pack height shown",
+      "min": 40,
+      "max": 70,
+      "step": 1,
+      "default": 52,
+      "unit": "%",
+      "info": "Top portion of pack visible; rest hidden below."
+    },
+    {
+      "type": "range",
+      "id": "pack_scale",
+      "label": "Pack scale",
+      "min": 90,
+      "max": 130,
+      "step": 1,
+      "default": 108,
+      "unit": "%"
+    },
+    {
+      "type": "range",
+      "id": "pack_bottom_offset",
+      "label": "Pack distance from bottom",
+      "min": 0,
+      "max": 12,
+      "step": 1,
+      "default": 0,
+      "unit": "vh"
     },
     { "type": "header", "content": "Motion" },
     {
