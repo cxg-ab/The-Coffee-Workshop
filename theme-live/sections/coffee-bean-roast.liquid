@@ -170,7 +170,10 @@
       var pending = false;
       var lastPack = null;
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var mobileMq = window.matchMedia('(max-width: 768px)');
       var stopIdx = Math.max(0, Math.min(N - 1, cfg.frameStop - 1));
+
+      function isMobile(){ return mobileMq.matches; }
 
       ctx.imageSmoothingEnabled = true;
       if('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
@@ -351,8 +354,8 @@
       "type": "number",
       "id": "frame_stop",
       "label": "Stop frames at",
-      "default": 145,
-      "info": "Last roast frame before pack rises (1–203). Recommended: 145. Pour content starts ~frame 165 — keep stop below that."
+      "default": 158,
+      "info": "Last roast frame before pack rises (1–203). Recommended: 158. Pour content starts ~frame 165 — keep stop below that."
     },
     { "type": "header", "content": "Pack image (upload)" },
     {

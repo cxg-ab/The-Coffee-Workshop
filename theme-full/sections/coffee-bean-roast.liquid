@@ -25,6 +25,15 @@
   }
   @media (max-width: 768px) {
     #beanRoast-{{ sid }} { --scrub-vh: {{ mobile_scrub_vh }}; }
+    #beanRoast-{{ sid }} .br-stage{
+      align-items:center;
+      justify-content:center;
+    }
+    #beanRoast-{{ sid }} .br-view{
+      width:min(var(--bean-w), 96vw);
+      height:min(var(--bean-h), 78vh);
+      margin:0 auto;
+    }
   }
   #beanRoast-{{ sid }} .br-track{position:relative;height:calc(var(--scrub-vh) * 1vh)}
   #beanRoast-{{ sid }} .br-stage{
@@ -170,7 +179,10 @@
       var pending = false;
       var lastPack = null;
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var mobileMq = window.matchMedia('(max-width: 768px)');
       var stopIdx = Math.max(0, Math.min(N - 1, cfg.frameStop - 1));
+
+      function isMobile(){ return mobileMq.matches; }
 
       ctx.imageSmoothingEnabled = true;
       if('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
@@ -229,7 +241,7 @@
         var dw = iw * scale;
         var dh = ih * scale;
         var dx = (cw - dw) * 0.5;
-        var dy = ch - dh;
+        var dy = isMobile() ? (ch - dh) * 0.5 : ch - dh;
 
         ctx.clearRect(0, 0, cw, ch);
         ctx.drawImage(im, dx, dy, dw, dh);
