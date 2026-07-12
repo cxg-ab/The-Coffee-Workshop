@@ -1,0 +1,135 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "general": {
+    "meta": {
+      "tagged": "Tagged \"{{ tags }}\"",
+      "page": "Page {{ page }}"
+    },
+    "continue_shopping": "Continue shopping",
+    "search": "Search",
+    "404": {
+      "title": "Page not found",
+      "subtext": "The page you're looking for doesn't exist or has moved.",
+      "link": "Back to home"
+    }
+  },
+  "accessibility": {
+    "skip_to_content": "Skip to content",
+    "close": "Close",
+    "menu": "Menu",
+    "loading": "Loading"
+  },
+  "header": {
+    "shop_beans": "Shop beans",
+    "single_origin": "Single Origin",
+    "micro_lot": "Micro-Lot",
+    "exotic": "Exotic",
+    "capsules_drip": "Capsules & Drip",
+    "accessories": "Accessories",
+    "subscriptions": "Subscriptions",
+    "about": "About",
+    "faq": "FAQ",
+    "cart": "Cart",
+    "account": "Account",
+    "open_menu": "Open menu",
+    "close_menu": "Close menu"
+  },
+  "footer": {
+    "tagline": "Specialty Coffee — locally roasted in Ras Al Khaimah since 2018",
+    "shop": "Shop",
+    "support": "Support",
+    "legal": "Legal",
+    "privacy": "Privacy policy",
+    "refund": "Refund policy",
+    "shipping": "Shipping policy",
+    "terms": "Terms of service",
+    "newsletter_title": "Stay in the loop",
+    "newsletter_text": "New limited batches, brewing tips, and subscriber offers.",
+    "newsletter_placeholder": "Your email",
+    "newsletter_submit": "Subscribe",
+    "contact": "Contact",
+    "copyright": "© {{ year }} The Coffee Workshop Co. All rights reserved."
+  },
+  "cart": {
+    "title": "Your cart",
+    "empty": "Your cart is empty",
+    "subtotal": "Subtotal",
+    "checkout": "Checkout",
+    "view_cart": "View cart",
+    "free_shipping_remaining": "Add {{ amount }} more for free UAE shipping",
+    "free_shipping_qualified": "You've unlocked free UAE shipping"
+  },
+  "collections": {
+    "shop": "Shop",
+    "beans": "Beans",
+    "accessories": "Accessories",
+    "filter": "Filter",
+    "sort": "Sort",
+    "products_count": "{{ count }} products",
+    "empty": "No products in this collection yet."
+  },
+  "products": {
+    "add_to_cart": "Add to cart",
+    "sold_out": "Sold out",
+    "limited_batch": "Limited batch",
+    "subscribe": "Subscribe & save 10%",
+    "flavor_notes": "Flavor notes",
+    "process": "Process",
+    "roast_level": "Roast level",
+    "origin": "Origin",
+    "variant": "Option",
+    "from": "From",
+    "no_image": "No image"
+  },
+  "search": {
+    "no_results": "No products found. Try a different search."
+  },
+  "faq": {
+    "eyebrow": "Support",
+    "heading": "Frequently asked questions"
+  },
+  "subscriptions": {
+    "eyebrow": "Subscribe",
+    "heading": "Coffee subscriptions",
+    "intro": "Fresh specialty coffee delivered on your schedule.",
+    "single_title": "Single bean",
+    "single_text": "Choose one coffee you love. Same bean, every delivery.",
+    "rotating_title": "Rotating selection",
+    "rotating_text": "We curate the best of our current micro-lots each cycle.",
+    "save": "Save 10%",
+    "cta": "Get started"
+  },
+  "templates": {
+    "search": {
+      "title": "Search"
+    }
+  },
+  "announcement": {
+    "default": "Free UAE shipping on orders over AED 300 · Specialty coffee roasted in Ras Al Khaimah since 2018"
+  },
+  "about": {
+    "eyebrow": "About us",
+    "heading": "The Coffee Workshop",
+    "lead": "Founded in 2018, The Coffee Workshop is a team of outstanding coffee professionals with deep expertise in serving and roasting green coffee beans.",
+    "mission": "We strive to provide the greatest coffee-drinking experience possible — discovering, sampling, confirming, and reserving bean kinds from micro lots, with correct shipment and storage.",
+    "roasting": "Our roasted coffee is prepared in small batches on our roaster, maintaining consistency from batch to batch. Master roasters bring out the best qualities of each origin.",
+    "promise": "We promise professionalism, clarity, and to act in the interests of our clients and partners — delivering the best beans and high-quality equipment across the UAE."
+  },
+  "visit": {
+    "eyebrow": "Visit us",
+    "heading": "The workshop in RAK",
+    "phone": "Phone",
+    "email": "Email",
+    "web": "Web",
+    "address": "Address",
+    "directions": "Get directions"
+  }
+}
