@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 try:
-    from PIL import Image, ImageEnhance
+    from PIL import Image, ImageEnhance, ImageFilter
 except ImportError:
     print("Install Pillow: pip install Pillow", file=sys.stderr)
     sys.exit(1)
@@ -72,6 +72,17 @@ def scrub_bg_fringe(im: Image.Image) -> Image.Image:
             if spread < 30 and mn > 132:
                 px[x, y] = (0, 0, 0, 0)
     return rgba
+
+
+def sharpen_bean(im: Image.Image) -> Image.Image:
+    """Crisp edges after upscale for retina / large displays."""
+    return im.filter(ImageFilter.UnsharpMask(radius=1.1, percent=150, threshold=2))
+
+
+def upscale_bean(im: Image.Image, out_size: int) -> Image.Image:
+    if out_size <= 0 or im.width >= out_size:
+        return im
+    return sharpen_bean(im.resize((out_size, out_size), Image.LANCZOS))
 
 
 def boost_bean(im: Image.Image, saturation: float = 1.38, contrast: float = 1.18, brightness: float = 0.94) -> Image.Image:
@@ -231,9 +242,7 @@ def process_frame(path: Path, out_size: int, square_source: bool) -> Image.Image
     raw = Image.open(path)
     keyed = scrub_bg_fringe(boost_bean(key_out(raw)))
     if square_source:
-        if out_size and (keyed.width != out_size or keyed.height != out_size):
-            return keyed.resize((out_size, out_size), Image.LANCZOS)
-        return keyed
+        return upscale_bean(keyed, out_size) if out_size else keyed
     bbox = opaque_bbox(keyed)
     if not bbox:
         return None
@@ -243,14 +252,14 @@ def process_frame(path: Path, out_size: int, square_source: bool) -> Image.Image
     ox = (side - crop.width) // 2
     oy = (side - crop.height) // 2
     square.paste(crop, (ox, oy), crop)
-    return square.resize((out_size, out_size), Image.LANCZOS)
+    return upscale_bean(square, out_size) if out_size else square
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Video → transparent WebP bean frames")
     ap.add_argument("video", type=Path, help="Input video (mp4, mov, webm)")
     ap.add_argument("--out", type=Path, default=Path("theme/assets"), help="Output directory")
-    ap.add_argument("--size", type=int, default=1440, help="Output square size in px (0 = native)")
+    ap.add_argument("--size", type=int, default=2160, help="Output square size in px (0 = native, default 2160 HD)")
     ap.add_argument("--min-frames", type=int, default=90, help="Minimum frames to keep")
     ap.add_argument("--max-frames", type=int, default=300, help="Maximum frames to keep")
     ap.add_argument("--dedupe", action="store_true", help="Skip near-identical consecutive frames")

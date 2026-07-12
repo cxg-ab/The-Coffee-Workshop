@@ -50,7 +50,7 @@
   #beanRoast-{{ sid }} .br-canvas{
     width:100%;height:100%;display:block;
     background:transparent;border:none;outline:none;box-shadow:none;
-    filter:saturate(1.08) contrast(1.06);
+    filter:none;
   }
   #beanRoast-{{ sid }} .br-loader{
     position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
@@ -205,7 +205,7 @@
       }
 
       function size(){
-        var dpr = Math.min(devicePixelRatio || 1, 3);
+        var dpr = Math.min(devicePixelRatio || 1, 4);
         var r = cv.getBoundingClientRect();
         cv.width = Math.max(1, Math.round(r.width * dpr));
         cv.height = Math.max(1, Math.round(r.height * dpr));
@@ -351,8 +351,8 @@
       "type": "number",
       "id": "frame_stop",
       "label": "Stop frames at",
-      "default": 145,
-      "info": "Last roast frame before pack rises (1–203). Recommended: 145. Pour content starts ~frame 165 — keep stop below that."
+      "default": 158,
+      "info": "Last roast frame before pack rises (1–203). Recommended: 158. Pour content starts ~frame 165 — keep stop below that."
     },
     { "type": "header", "content": "Pack image (upload)" },
     {
