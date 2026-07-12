@@ -23,6 +23,7 @@
     --pack-visible: {{ section.settings.pack_visible | divided_by: 100.0 }};
     --pour-h: {{ section.settings.pour_viewport_height }}vh;
     --pour-overlap: {{ section.settings.pour_overlap }}%;
+    --pour-fall: {{ section.settings.pour_fall_distance }}%;
   }
   @media (max-width: 768px) {
     #beanRoast-{{ sid }} { --scrub-vh: {{ mobile_scrub_vh }}; }
@@ -47,12 +48,13 @@
   }
   #beanRoast-{{ sid }} .br-stage.is-pour .br-view{
     position:absolute;left:50%;
-    transform:translateX(-50%);
+    transform:translateX(-50%) translateY(var(--pour-y, -28%));
     width:min(var(--pack-w), var(--pack-max-w), 88vw);
     height:min(var(--pour-h), 52vh);
     margin:0;
     opacity:0;
     pointer-events:none;
+    will-change:transform,opacity;
   }
   #beanRoast-{{ sid }} .br-stage.is-pour.is-pouring .br-view{
     opacity:1;
@@ -129,21 +131,29 @@
   </div>
 </section>
 
+{%- assign roast_end = section.settings.bean_roast_end -%}
+{%- assign pour_single = section.settings.pour_single_frame -%}
+
 <script>
 (function(){
   var frames = [
   {%- if section.settings.frame_source == 'assets' -%}
-    {%- for i in (1..count) -%}
+    {%- for i in (1..roast_end) -%}
       {%- capture p -%}{%- if i < 10 -%}00{{ i }}{%- elsif i < 100 -%}0{{ i }}{%- else -%}{{ i }}{%- endif -%}{%- endcapture -%}
       {%- capture fname -%}bean_{{ p }}.webp{%- endcapture -%}
-      "{{ fname | asset_url }}"{% unless forloop.last %},{% endunless %}
+      "{{ fname | asset_url }}",
     {%- endfor -%}
+    {%- capture pp -%}{%- if pour_single < 10 -%}00{{ pour_single }}{%- elsif pour_single < 100 -%}0{{ pour_single }}{%- else -%}{{ pour_single }}{%- endif -%}{%- endcapture -%}
+    {%- capture pfname -%}bean_{{ pp }}.webp{%- endcapture -%}
+    "{{ pfname | asset_url }}"
   {%- else -%}
     {%- assign base = section.settings.custom_base | strip -%}
-    {%- for i in (1..count) -%}
+    {%- for i in (1..roast_end) -%}
       {%- capture p -%}{%- if i < 10 -%}00{{ i }}{%- elsif i < 100 -%}0{{ i }}{%- else -%}{{ i }}{%- endif -%}{%- endcapture -%}
-      "{{ base }}bean_{{ p }}.webp"{% unless forloop.last %},{% endunless %}
+      "{{ base }}bean_{{ p }}.webp",
     {%- endfor -%}
+    {%- capture pp -%}{%- if pour_single < 10 -%}00{{ pour_single }}{%- elsif pour_single < 100 -%}0{{ pour_single }}{%- else -%}{{ pour_single }}{%- endif -%}{%- endcapture -%}
+    "{{ base }}bean_{{ pp }}.webp"
   {%- endif -%}
   ];
 
@@ -153,9 +163,9 @@
     captions: {{ section.settings.captions_json }},
     packRiseStart: {{ section.settings.pack_rise_start }} / 100,
     packVisible: {{ section.settings.pack_visible }} / 100,
-    pourFrameStart: {{ section.settings.pour_frame_start }},
-    beanRoastEnd: {{ section.settings.bean_roast_end }},
-    pourSkipFrames: {% if section.settings.pour_skip_frames != blank %}{{ section.settings.pour_skip_frames }}{% else %}[123]{% endif %},
+    beanRoastEnd: {{ roast_end }},
+    pourSingleFrame: {{ pour_single }},
+    pourFall: {{ section.settings.pour_fall_distance }} / 100,
     pourVisible: {{ section.settings.pour_visible }} / 100,
     pourScale: {{ section.settings.pour_scale }} / 100,
     pourOffsetX: {{ section.settings.pour_offset_x }},
@@ -188,21 +198,8 @@
       var lastPour = null;
       var lastProg = 0;
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      var pourStart = Math.max(2, Math.min(N, cfg.pourFrameStart));
-      var pourStartIdx = pourStart - 1;
-      var beanRoastEnd = Math.max(1, Math.min(pourStart - 1, cfg.beanRoastEnd || pourStart - 1));
-      var beanRoastEndIdx = beanRoastEnd - 1;
-      var pourSkip = [];
-      try {
-        var skipRaw = cfg.pourSkipFrames;
-        if(typeof skipRaw === 'string') skipRaw = JSON.parse(skipRaw || '[]');
-        if(Array.isArray(skipRaw)) pourSkip = skipRaw.map(function(v){ return parseInt(v, 10); }).filter(function(v){ return !isNaN(v); });
-      } catch(e){ pourSkip = []; }
-      var pourSeq = [];
-      for(var pi = pourStartIdx; pi < N; pi++){
-        if(pourSkip.indexOf(pi + 1) === -1) pourSeq.push(pi);
-      }
-      if(!pourSeq.length) pourSeq.push(pourStartIdx);
+      var beanRoastEndIdx = Math.max(0, cfg.beanRoastEnd - 1);
+      var pourSingleIdx = frames.length - 1;
 
       ctx.imageSmoothingEnabled = true;
       if('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
@@ -227,9 +224,15 @@
           if(beanRoastEndIdx <= 0) return 0;
           return Math.min(beanRoastEndIdx, Math.floor(t * (beanRoastEndIdx + 1)));
         }
-        var t = (p - cfg.packRiseStart) / (1 - cfg.packRiseStart);
-        var slot = Math.min(pourSeq.length - 1, Math.floor(t * pourSeq.length));
-        return pourSeq[slot];
+        return pourSingleIdx;
+      }
+
+      function updatePourFall(pr){
+        if(!view) return;
+        var e = ease(clamp(pr));
+        var start = -Math.max(0.12, cfg.pourFall) * 100;
+        var y = start * (1 - e);
+        view.style.setProperty('--pour-y', y.toFixed(2) + '%');
       }
 
       function layoutPack(){
@@ -322,6 +325,7 @@
 
         paint(frameIndex(p), false, p);
         updatePack(p);
+        updatePourFall(pourProgress);
         layoutPour();
 
         if(cap){
@@ -383,7 +387,7 @@
   "tag": "section",
   "class": "section-coffee-bean-roast",
   "settings": [
-    { "type": "header", "content": "Frames (bean + coffee pour, no pack)" },
+    { "type": "header", "content": "Frames (bean roast + single pour frame)" },
     {
       "type": "select",
       "id": "frame_source",
@@ -403,29 +407,23 @@
     {
       "type": "number",
       "id": "frame_count",
-      "label": "Frame count",
-      "default": 130
-    },
-    {
-      "type": "number",
-      "id": "pour_frame_start",
-      "label": "Pour starts at frame",
+      "label": "Frame count (legacy)",
       "default": 116,
-      "info": "1-based first pour frame. Plays once behind pack only. Match bean-frames-report.json."
+      "info": "Not used for loading. Roast frames + single pour frame are loaded automatically."
     },
     {
       "type": "number",
       "id": "bean_roast_end",
       "label": "Roast ends at frame",
       "default": 110,
-      "info": "1-based last centered roast frame. Frames after this are skipped until pour starts (prevents duplicate pour preview)."
+      "info": "Last scroll frame for centered bean roast. Frames after this are not loaded."
     },
     {
-      "type": "textarea",
-      "id": "pour_skip_frames",
-      "label": "Pour skip frames (JSON)",
-      "default": "[123]",
-      "info": "1-based frames to skip during pour (duplicate/regression beats). Example: [123]"
+      "type": "number",
+      "id": "pour_single_frame",
+      "label": "Single pour frame",
+      "default": 116,
+      "info": "One pour image only. No multi-frame pour scrub. Coffee falls via scroll motion into pack."
     },
     { "type": "header", "content": "Pack image (upload)" },
     {
@@ -506,6 +504,17 @@
       "step": 1,
       "default": 100,
       "unit": "%"
+    },
+    {
+      "type": "range",
+      "id": "pour_fall_distance",
+      "label": "Pour fall distance",
+      "min": 10,
+      "max": 45,
+      "step": 1,
+      "default": 28,
+      "unit": "%",
+      "info": "How far the single pour frame drops into the pack during scroll."
     },
     {
       "type": "range",
