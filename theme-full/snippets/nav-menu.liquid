@@ -29,8 +29,8 @@
         endif
       -%}
 
-      {%- if is_shop_beans_link and link.links == blank -%}
-        {% render 'shop-beans-nav-item', link_class: link_class, parent_url: link.url, parent_title: link.title %}
+      {%- if is_shop_beans_link -%}
+        {% render 'shop-beans-nav-item', link_class: link_class %}
       {%- elsif link.links != blank -%}
         <li class="tcw-dropdown-trigger relative" data-mobile-dropdown>
           <div class="flex items-center justify-between">
