@@ -51,6 +51,11 @@
     width:min(var(--pack-w), var(--pack-max-w), 88vw);
     height:min(var(--pour-h), 52vh);
     margin:0;
+    opacity:0;
+    pointer-events:none;
+  }
+  #beanRoast-{{ sid }} .br-stage.is-pour.is-pouring .br-view{
+    opacity:1;
   }
   #beanRoast-{{ sid }} .br-canvas{
     width:100%;height:100%;display:block;
@@ -149,6 +154,8 @@
     packRiseStart: {{ section.settings.pack_rise_start }} / 100,
     packVisible: {{ section.settings.pack_visible }} / 100,
     pourFrameStart: {{ section.settings.pour_frame_start }},
+    beanRoastEnd: {{ section.settings.bean_roast_end }},
+    pourSkipFrames: {% if section.settings.pour_skip_frames != blank %}{{ section.settings.pour_skip_frames }}{% else %}[123]{% endif %},
     pourVisible: {{ section.settings.pour_visible }} / 100,
     pourScale: {{ section.settings.pour_scale }} / 100,
     pourOffsetX: {{ section.settings.pour_offset_x }},
@@ -183,7 +190,19 @@
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       var pourStart = Math.max(2, Math.min(N, cfg.pourFrameStart));
       var pourStartIdx = pourStart - 1;
-      var beanEndIdx = pourStartIdx - 1;
+      var beanRoastEnd = Math.max(1, Math.min(pourStart - 1, cfg.beanRoastEnd || pourStart - 1));
+      var beanRoastEndIdx = beanRoastEnd - 1;
+      var pourSkip = [];
+      try {
+        var skipRaw = cfg.pourSkipFrames;
+        if(typeof skipRaw === 'string') skipRaw = JSON.parse(skipRaw || '[]');
+        if(Array.isArray(skipRaw)) pourSkip = skipRaw.map(function(v){ return parseInt(v, 10); }).filter(function(v){ return !isNaN(v); });
+      } catch(e){ pourSkip = []; }
+      var pourSeq = [];
+      for(var pi = pourStartIdx; pi < N; pi++){
+        if(pourSkip.indexOf(pi + 1) === -1) pourSeq.push(pi);
+      }
+      if(!pourSeq.length) pourSeq.push(pourStartIdx);
 
       ctx.imageSmoothingEnabled = true;
       if('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
@@ -205,13 +224,12 @@
       function frameIndex(p){
         if(!cfg.hasPack || p < cfg.packRiseStart){
           var t = cfg.hasPack ? p / cfg.packRiseStart : p;
-          if(beanEndIdx <= 0) return 0;
-          return Math.min(beanEndIdx, Math.floor(t * (beanEndIdx + 1)));
+          if(beanRoastEndIdx <= 0) return 0;
+          return Math.min(beanRoastEndIdx, Math.floor(t * (beanRoastEndIdx + 1)));
         }
         var t = (p - cfg.packRiseStart) / (1 - cfg.packRiseStart);
-        var span = (N - 1) - pourStartIdx;
-        if(span <= 0) return pourStartIdx;
-        return Math.min(N - 1, pourStartIdx + Math.floor(t * (span + 1)));
+        var slot = Math.min(pourSeq.length - 1, Math.floor(t * pourSeq.length));
+        return pourSeq[slot];
       }
 
       function layoutPack(){
@@ -292,12 +310,15 @@
         pending = false;
         var p = reduce ? 1 : prog();
         var inPour = cfg.hasPack && p >= cfg.packRiseStart;
+        var pourProgress = inPour ? clamp((p - cfg.packRiseStart) / (1 - cfg.packRiseStart)) : 0;
+        var showPourCanvas = inPour && pourProgress > 0.1;
 
         if(inPour !== lastPour){
           lastPour = inPour;
           stage.classList.toggle('is-pour', inPour);
           requestAnimationFrame(size);
         }
+        stage.classList.toggle('is-pouring', showPourCanvas);
 
         paint(frameIndex(p), false, p);
         updatePack(p);
@@ -390,7 +411,21 @@
       "id": "pour_frame_start",
       "label": "Pour starts at frame",
       "default": 116,
-      "info": "1-based frame where pour begins. Must match bean-frames-report.json pour_frame_start. Bean uses frames 1..(this-1); pour uses this..frame_count."
+      "info": "1-based first pour frame. Plays once behind pack only. Match bean-frames-report.json."
+    },
+    {
+      "type": "number",
+      "id": "bean_roast_end",
+      "label": "Roast ends at frame",
+      "default": 110,
+      "info": "1-based last centered roast frame. Frames after this are skipped until pour starts (prevents duplicate pour preview)."
+    },
+    {
+      "type": "textarea",
+      "id": "pour_skip_frames",
+      "label": "Pour skip frames (JSON)",
+      "default": "[123]",
+      "info": "1-based frames to skip during pour (duplicate/regression beats). Example: [123]"
     },
     { "type": "header", "content": "Pack image (upload)" },
     {

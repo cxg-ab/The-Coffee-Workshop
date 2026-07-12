@@ -106,6 +106,41 @@ def content_bottom_ratio(im: Image.Image, sample: int = 8) -> float:
     return max_y / h if found else 0.0
 
 
+def detect_bean_roast_end(frames: list[Image.Image], pour_start: int) -> int:
+    """Return 1-based last roast-only frame (before pour preview in centered view)."""
+    n = len(frames)
+    pour_start = max(2, min(n, pour_start))
+    search_to = max(10, pour_start - 1)
+    search_from = max(5, search_to - 20)
+
+    def bottom_ext(i: int) -> int:
+        rgba = frames[i].convert("RGBA")
+        px = rgba.load()
+        w, h = rgba.size
+        y0 = int(h * 0.65)
+        return sum(1 for y in range(y0, h) for x in range(0, w, 8) if px[x, y][3] > 40)
+
+    best = search_from + 1
+    for i in range(search_from, search_to):
+        if bottom_ext(i) < 2200 and content_bottom_ratio(frames[i]) < 0.71:
+            best = i + 1
+    # Keep a gap before pour so pre-pour preview frames are never shown in centered view.
+    max_roast = max(2, pour_start - 6)
+    return max(2, min(best, max_roast))
+
+
+def detect_pour_skip_frames(frames: list[Image.Image], pour_start: int) -> list[int]:
+    """Return 1-based pour frames to skip (backward jumps / duplicate pour beats)."""
+    n = len(frames)
+    start = max(1, pour_start - 1)
+    skip: list[int] = []
+    bottoms = [content_bottom_ratio(im) for im in frames]
+    for i in range(start + 1, n):
+        if bottoms[i] < bottoms[i - 1] - 0.04:
+            skip.append(i + 1)
+    return skip
+
+
 def detect_pour_start(frames: list[Image.Image]) -> int:
     """Return 1-based frame where coffee pour begins (first sustained bottom extension)."""
     n = len(frames)
@@ -285,8 +320,15 @@ def main() -> None:
     if pour_frame_start < 2:
         pour_frame_start = 2
 
-    bean_frame_count = pour_frame_start - 1
-    pour_frame_count = n - bean_frame_count
+    bean_roast_end = detect_bean_roast_end(kept, pour_frame_start)
+    pour_skip_frames = detect_pour_skip_frames(kept, pour_frame_start)
+    pour_playback_frames = [
+        i + 1 for i in range(pour_frame_start - 1, n) if (i + 1) not in pour_skip_frames
+    ]
+
+    bean_frame_count = bean_roast_end
+    pour_frame_count = len(pour_playback_frames)
+    gap_frame_count = max(0, pour_frame_start - bean_roast_end - 1)
 
     args.out.mkdir(parents=True, exist_ok=True)
     for old in args.out.glob("bean_*.webp"):
@@ -305,8 +347,12 @@ def main() -> None:
         "trimmed_duplicate_start": trimmed_start,
         "output_size": args.size,
         "pour_frame_start": pour_frame_start,
+        "bean_roast_end": bean_roast_end,
         "bean_frame_count": bean_frame_count,
         "pour_frame_count": pour_frame_count,
+        "pour_skip_frames": pour_skip_frames,
+        "pour_playback_frames": pour_playback_frames,
+        "gap_frame_count": gap_frame_count,
         "recommended_frame_count": n,
         "recommended_scrub_vh": max(280, min(400, int(n * 2.5))),
     }
