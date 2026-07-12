@@ -26,8 +26,8 @@
       "settings": {
         "frame_source": "assets",
         "custom_base": "https://your-cdn.com/bean-frames/",
-        "frame_count": 202,
-        "frame_stop": 157,
+        "frame_count": 203,
+        "frame_stop": 145,
         "pack_image": "shopify://shop_images/IMG_2209.png",
         "pack_rise_start": 78,
         "pack_visible": 75,

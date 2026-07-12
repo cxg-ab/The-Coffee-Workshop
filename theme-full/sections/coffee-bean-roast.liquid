@@ -50,6 +50,7 @@
   #beanRoast-{{ sid }} .br-canvas{
     width:100%;height:100%;display:block;
     background:transparent;border:none;outline:none;box-shadow:none;
+    filter:saturate(1.08) contrast(1.06);
   }
   #beanRoast-{{ sid }} .br-loader{
     position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
@@ -343,15 +344,15 @@
       "type": "number",
       "id": "frame_count",
       "label": "Total frames (max)",
-      "default": 202,
-      "info": "All exported frames in theme assets (bean_001 to bean_N). Current export: 202."
+      "default": 203,
+      "info": "All exported frames in theme assets (bean_001 to bean_N). Current export: 203."
     },
     {
       "type": "number",
       "id": "frame_stop",
       "label": "Stop frames at",
-      "default": 157,
-      "info": "Last roast frame before pack rises (1–202). Recommended: 157. Pour content starts ~frame 177 — keep stop below that."
+      "default": 145,
+      "info": "Last roast frame before pack rises (1–203). Recommended: 145. Pour content starts ~frame 165 — keep stop below that."
     },
     { "type": "header", "content": "Pack image (upload)" },
     {

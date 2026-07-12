@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 try:
-    from PIL import Image
+    from PIL import Image, ImageEnhance
 except ImportError:
     print("Install Pillow: pip install Pillow", file=sys.stderr)
     sys.exit(1)
@@ -29,28 +29,64 @@ def run(cmd: list[str]) -> None:
 
 
 def key_out(im: Image.Image) -> Image.Image:
-    """Hard-key checkerboard/white studio bg — crisp alpha, no bg bleed."""
+    """Hard-key checkerboard/white studio bg — crisp alpha, no gray bleed."""
     rgba = im.convert("RGBA")
     px = rgba.load()
     w, h = rgba.size
     for y in range(h):
         for x in range(w):
-            r, g, b, a = px[x, y]
+            r, g, b, _a = px[x, y]
             spread = max(r, g, b) - min(r, g, b)
+            mn = min(r, g, b)
             mx = max(r, g, b)
 
-            # Checkerboard tiles: neutral gray (~192) and white (~255)
-            if spread < 32 and mx > 168 and min(r, g, b) > 155:
+            # Checkerboard / studio gray / white tiles
+            if spread < 42 and mx > 138 and mn > 118:
                 alpha = 0
-            elif spread < 20 and mx > 240:
+            elif spread < 24 and mx > 228:
                 alpha = 0
-            elif spread < 45 and r > 200 and g > 200 and b > 200:
+            elif spread < 58 and r > 188 and g > 188 and b > 188:
+                alpha = 0
+            # Residual neutral studio fringe
+            elif spread < 28 and mn > 150:
                 alpha = 0
             else:
                 alpha = 255
 
             px[x, y] = (r, g, b, alpha)
     return rgba
+
+
+def scrub_bg_fringe(im: Image.Image) -> Image.Image:
+    """Remove keyed-but-gray pixels that read as background halo."""
+    rgba = im.convert("RGBA")
+    px = rgba.load()
+    w, h = rgba.size
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            if a == 0:
+                continue
+            spread = max(r, g, b) - min(r, g, b)
+            mn = min(r, g, b)
+            if spread < 30 and mn > 132:
+                px[x, y] = (0, 0, 0, 0)
+    return rgba
+
+
+def boost_bean(im: Image.Image, saturation: float = 1.38, contrast: float = 1.18, brightness: float = 0.94) -> Image.Image:
+    """Boost bean color intensity while preserving transparency."""
+    rgba = im.convert("RGBA")
+    alpha = rgba.split()[3]
+    rgb = Image.new("RGB", rgba.size, (0, 0, 0))
+    rgb.paste(rgba, mask=alpha)
+    rgb = ImageEnhance.Color(rgb).enhance(saturation)
+    rgb = ImageEnhance.Contrast(rgb).enhance(contrast)
+    rgb = ImageEnhance.Brightness(rgb).enhance(brightness)
+    out = Image.new("RGBA", rgba.size)
+    out.paste(rgb, (0, 0))
+    out.putalpha(alpha)
+    return out
 
 
 def opaque_bbox(im: Image.Image, threshold: int = 24) -> tuple[int, int, int, int] | None:
@@ -193,7 +229,7 @@ def trim_duplicate_start(frames: list[Image.Image], sigs: list[list[int]], tol: 
 
 def process_frame(path: Path, out_size: int, square_source: bool) -> Image.Image | None:
     raw = Image.open(path)
-    keyed = key_out(raw)
+    keyed = scrub_bg_fringe(boost_bean(key_out(raw)))
     if square_source:
         if out_size and (keyed.width != out_size or keyed.height != out_size):
             return keyed.resize((out_size, out_size), Image.LANCZOS)
