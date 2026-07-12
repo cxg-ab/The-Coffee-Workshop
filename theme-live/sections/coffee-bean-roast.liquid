@@ -1,16 +1,11 @@
 {%- comment -%}
-  Coffee Bean Roast — full frame export (scroll scrub).
-  All frames load (bean_001..bean_N). Stop frame setting chooses last roast frame.
-  Pack image rises at pack_rise_start; canvas hidden during pack phase.
+  Coffee Bean Roast — scroll scrub frames (bean_001..bean_N).
+  Stop frame setting chooses last frame shown during scroll.
 {%- endcomment -%}
 
 {%- assign sid = section.id -%}
 {%- assign total_frames = section.settings.frame_count -%}
 {%- assign mobile_scrub_vh = section.settings.scrub_vh | times: 0.5 | round -%}
-{%- assign has_pack_image = false -%}
-{%- if section.settings.pack_image != blank -%}
-  {%- assign has_pack_image = true -%}
-{%- endif -%}
 
 <style>
   #beanRoast-{{ sid }}{
@@ -19,9 +14,6 @@
     --bean-h: {{ section.settings.bean_height }}vh;
     --bean-max-w: {{ section.settings.bean_max_width }}px;
     --bean-max-h: {{ section.settings.bean_max_height }}px;
-    --pack-w: {{ section.settings.pack_width }}%;
-    --pack-max-w: {{ section.settings.pack_max_width }}px;
-    --pack-visible: {{ section.settings.pack_visible | divided_by: 100.0 }};
   }
   @media (max-width: 768px) {
     #beanRoast-{{ sid }} { --scrub-vh: {{ mobile_scrub_vh }}; }
@@ -61,10 +53,6 @@
     flex:0 0 auto;
     border:none;outline:none;box-shadow:none;background:transparent;
   }
-  #beanRoast-{{ sid }} .br-stage.is-pack .br-view{
-    visibility:hidden;
-    pointer-events:none;
-  }
   #beanRoast-{{ sid }} .br-canvas{
     width:100%;height:100%;display:block;
     background:transparent;border:none;outline:none;box-shadow:none;
@@ -79,24 +67,9 @@
     font-size:.75rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
     color:rgba(28,25,23,.55);pointer-events:none;z-index:4;
   }
-  #beanRoast-{{ sid }} .br-pack-outer{
-    position:absolute;left:50%;bottom:0;z-index:3;
-    width:min(var(--pack-w), var(--pack-max-w), 88vw);
-    overflow:hidden;pointer-events:none;
-    transform:translateX(-50%);
-  }
-  #beanRoast-{{ sid }} .br-pack-inner{
-    will-change:transform;
-    transform:translateY(110%);
-  }
-  #beanRoast-{{ sid }} .br-pack-inner img{
-    width:100%;height:auto;display:block;
-    border:none;outline:none;box-shadow:none;background:transparent;
-  }
   @media (prefers-reduced-motion: reduce){
     #beanRoast-{{ sid }} .br-track{height:auto}
     #beanRoast-{{ sid }} .br-stage{position:static;height:auto;padding:14vh 0}
-    #beanRoast-{{ sid }} .br-pack-inner{transform:translateY(15%)}
   }
 </style>
 
@@ -114,21 +87,6 @@
         <canvas class="br-canvas" data-br-canvas aria-hidden="true"></canvas>
         <div class="br-loader text-brand font-semibold tracking-widest text-xs uppercase opacity-50" data-br-loader>Loading 0%</div>
       </div>
-
-      {%- if section.settings.pack_image != blank -%}
-      <div class="br-pack-outer" data-br-pack-outer>
-        <div class="br-pack-inner" data-br-pack>
-          <img
-            src="{{ section.settings.pack_image | image_url: width: 1200 }}"
-            alt="{{ section.settings.pack_image.alt | default: 'Coffee pack' | escape }}"
-            width="{{ section.settings.pack_image.width }}"
-            height="{{ section.settings.pack_image.height }}"
-            loading="lazy"
-            decoding="async"
-          >
-        </div>
-      </div>
-      {%- endif -%}
 
       {% if section.settings.show_caption %}
         <div class="br-caption" data-br-caption>Green</div>
@@ -159,10 +117,7 @@
     root: document.getElementById('beanRoast-{{ sid }}'),
     frames: frames,
     captions: {{ section.settings.captions_json }},
-    packRiseStart: {{ section.settings.pack_rise_start }} / 100,
-    packVisible: {{ section.settings.pack_visible }} / 100,
-    frameStop: {{ section.settings.frame_stop }},
-    hasPack: {{ has_pack_image | json }}
+    frameStop: {{ section.settings.frame_stop }}
   };
 
   if(!window.__beanRoastClean){
@@ -171,12 +126,8 @@
       if(!root) return;
 
       var track = root.querySelector('[data-br-track]');
-      var stage = root.querySelector('[data-br-stage]');
       var cap = root.querySelector('[data-br-caption]');
       var load = root.querySelector('[data-br-loader]');
-      var packOuter = root.querySelector('[data-br-pack-outer]');
-      var pack = root.querySelector('[data-br-pack]');
-      var packImg = pack ? pack.querySelector('img') : null;
       var cv = root.querySelector('[data-br-canvas]');
       var ctx = cv.getContext('2d', { alpha: true });
 
@@ -187,7 +138,6 @@
       var ready = false;
       var cur = -1;
       var pending = false;
-      var lastPack = null;
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       var mobileMq = window.matchMedia('(max-width: 768px)');
       var stopIdx = Math.max(0, Math.min(N - 1, cfg.frameStop - 1));
@@ -217,7 +167,6 @@
       if('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
 
       function clamp(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
-      function ease(t){ return t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2; }
       function prog(){
         var r = track.getBoundingClientRect();
         var tot = r.height - innerHeight;
@@ -231,18 +180,8 @@
         return c;
       }
       function roastIndex(p){
-        var end = cfg.hasPack ? cfg.packRiseStart : 1;
-        var t = cfg.hasPack ? p / end : p;
         if(stopIdx <= 0) return 0;
-        return Math.min(stopIdx, Math.floor(t * (stopIdx + 1)));
-      }
-
-      function layoutPack(){
-        if(!packOuter || !packImg || !packImg.complete) return;
-        var vis = Math.max(0.5, cfg.packVisible);
-        var fullH = packImg.offsetHeight || packImg.naturalHeight;
-        if(!fullH) return;
-        packOuter.style.height = Math.round(fullH * vis) + 'px';
+        return Math.min(stopIdx, Math.floor(p * (stopIdx + 1)));
       }
 
       function size(){
@@ -251,7 +190,6 @@
         cv.width = Math.max(1, Math.round(r.width * dpr));
         cv.height = Math.max(1, Math.round(r.height * dpr));
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        layoutPack();
         if(ready && cur >= 0) paint(cur, true);
       }
 
@@ -290,39 +228,11 @@
         ctx.drawImage(im, dx, dy, dw, dh);
       }
 
-      function updatePack(p){
-        if(!pack) return;
-        var pr = clamp((p - cfg.packRiseStart) / (1 - cfg.packRiseStart));
-        var e = ease(pr);
-        var vis = Math.max(0.5, cfg.packVisible);
-        var hidden = 1 - vis;
-        var startY = 110;
-        var endY = hidden * 100;
-        var y = startY - e * (startY - endY);
-        pack.style.transform = 'translateY(' + y.toFixed(2) + '%)';
-        pack.style.opacity = pr > 0.001 ? '1' : '0';
-      }
-
       function render(){
         pending = false;
         var p = reduce ? 1 : prog();
-        var inPack = cfg.hasPack && p >= cfg.packRiseStart;
-
-        if(inPack !== lastPack){
-          lastPack = inPack;
-          stage.classList.toggle('is-pack', inPack);
-        }
-
-        if(!inPack){
-          paint(roastIndex(p), false);
-        }
-
-        updatePack(p);
-
-        if(cap){
-          cap.textContent = capFor(p);
-          cap.style.opacity = inPack ? '0' : '1';
-        }
+        paint(roastIndex(p), false);
+        if(cap) cap.textContent = capFor(p);
       }
 
       function onScroll(){
@@ -380,11 +290,6 @@
         }
 
         pump();
-
-        if(packImg){
-          if(packImg.complete) layoutPack();
-          else packImg.addEventListener('load', function(){ layoutPack(); render(); });
-        }
       }
 
       var io = new IntersectionObserver(function(en){
@@ -438,55 +343,7 @@
       "id": "frame_stop",
       "label": "Stop frames at",
       "default": 158,
-      "info": "Last roast frame before pack rises (1–203). Recommended: 158. Pour content starts ~frame 165 — keep stop below that."
-    },
-    { "type": "header", "content": "Pack image (upload)" },
-    {
-      "type": "image_picker",
-      "id": "pack_image",
-      "label": "Pack image (transparent PNG/WebP)",
-      "info": "Rises after frame stop point. No frames play during pack phase."
-    },
-    {
-      "type": "range",
-      "id": "pack_rise_start",
-      "label": "Pack rise starts (% scroll)",
-      "min": 55,
-      "max": 90,
-      "step": 1,
-      "default": 78,
-      "unit": "%"
-    },
-    {
-      "type": "range",
-      "id": "pack_visible",
-      "label": "Pack height shown",
-      "min": 60,
-      "max": 85,
-      "step": 1,
-      "default": 75,
-      "unit": "%",
-      "info": "75% = three-quarters visible, bottom quarter hidden."
-    },
-    {
-      "type": "range",
-      "id": "pack_width",
-      "label": "Pack width",
-      "min": 35,
-      "max": 90,
-      "step": 1,
-      "default": 52,
-      "unit": "%"
-    },
-    {
-      "type": "range",
-      "id": "pack_max_width",
-      "label": "Pack max width",
-      "min": 280,
-      "max": 800,
-      "step": 20,
-      "default": 520,
-      "unit": "px"
+      "info": "Last frame to show during scroll (1–203). Recommended: 158."
     },
     { "type": "header", "content": "Bean display" },
     {
