@@ -3,34 +3,38 @@
   if menu_handle != blank
     assign menu = linklists[menu_handle]
   endif
-  assign shop_beans_label_lc = 'header.shop_beans' | t | downcase
+  assign shop_beans_label_lc = 'header.shop_beans' | t | downcase | strip
 -%}
 
 {%- if menu != blank and menu.links.size > 0 -%}
-  {%- assign has_shop_beans_in_menu = false -%}
-  {%- for link in menu.links -%}
-    {%- assign link_title_lc = link.title | downcase -%}
-    {%- if link.url contains '/collections/beans' or link_title_lc == shop_beans_label_lc -%}
-      {%- assign has_shop_beans_in_menu = true -%}
-      {%- break -%}
-    {%- endif -%}
-  {%- endfor -%}
-
+  {%- assign shop_beans_rendered = false -%}
   <ul class="{{ list_class }}" role="list">
-    {%- unless has_shop_beans_in_menu -%}
-      {% render 'shop-beans-nav-item', link_class: link_class %}
-    {%- endunless -%}
     {%- for link in menu.links -%}
       {%- liquid
-        assign link_title_lc = link.title | downcase
+        assign link_title_lc = link.title | downcase | strip
         assign is_shop_beans_link = false
-        if link.url contains '/collections/beans' or link_title_lc == shop_beans_label_lc
+        if link.url contains '/collections/beans'
           assign is_shop_beans_link = true
+        elsif link_title_lc == shop_beans_label_lc
+          assign is_shop_beans_link = true
+        elsif link_title_lc contains 'shop' and link_title_lc contains 'bean'
+          assign is_shop_beans_link = true
+        endif
+
+        if is_shop_beans_link == false and link.links != blank
+          for sublink in link.links
+            if sublink.url contains '/collections/single-origin' or sublink.url contains '/collections/micro-lot' or sublink.url contains '/collections/exotic' or sublink.url contains '/collections/capsules-drip'
+              assign is_shop_beans_link = true
+            endif
+          endfor
         endif
       -%}
 
       {%- if is_shop_beans_link -%}
-        {% render 'shop-beans-nav-item', link_class: link_class %}
+        {%- unless shop_beans_rendered -%}
+          {% render 'shop-beans-nav-item', link_class: link_class %}
+          {%- assign shop_beans_rendered = true -%}
+        {%- endunless -%}
       {%- elsif link.links != blank -%}
         <li class="tcw-dropdown-trigger relative" data-mobile-dropdown>
           <div class="flex items-center justify-between">
@@ -54,12 +58,8 @@
             {%- for sublink in link.links -%}
               <li class="tcw-dropdown-item" style="transition-delay: {{ forloop.index | times: 50 }}ms;">
                 <a href="{{ sublink.url }}" class="group relative flex items-center justify-between px-2 py-2 lg:px-6 lg:py-3.5 text-[12px] font-bold tracking-[0.15em] uppercase text-[#1C1917]/80 lg:text-[#1C1917]/70 transition-all duration-300 hover:text-[#C5A059] lg:rounded-lg overflow-hidden">
-                  <!-- Dynamic background swipe -->
                   <span class="absolute inset-0 w-0 bg-gradient-to-r from-[#C5A059]/10 to-transparent transition-all duration-500 ease-out group-hover:w-full rounded-lg z-0"></span>
-
                   <span class="relative z-10 transition-transform duration-300 lg:group-hover:translate-x-2 lg:group-hover:scale-105 origin-left {% if sublink.active %} text-[#C5A059]{% endif %}">{{ sublink.title }}</span>
-                  
-                  <!-- Modern Long Arrow -->
                   <svg class="w-5 h-5 opacity-0 -translate-x-4 transition-all duration-500 group-hover:opacity-100 group-hover:translate-x-0 text-[#C5A059] hidden lg:block relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
@@ -80,6 +80,10 @@
         </li>
       {%- endif -%}
     {%- endfor -%}
+
+    {%- unless shop_beans_rendered -%}
+      {% render 'shop-beans-nav-item', link_class: link_class %}
+    {%- endunless -%}
   </ul>
 {%- elsif fallback == 'shop' -%}
   <ul class="{{ list_class }}" role="list">
