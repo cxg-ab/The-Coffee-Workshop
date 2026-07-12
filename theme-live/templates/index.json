@@ -24,16 +24,13 @@
     "coffee_bean_roast": {
       "type": "coffee-bean-roast",
       "settings": {
-        "side_heading": "Reserve your micro-lot",
-        "side_text": "Freshly roasted to your preference. Shop our curated selection of micro-lot beans.",
-        "side_btn_label": "Shop Now",
-        "side_btn_link": "",
-        "frame_count": 144,
-        "sheet_cols": 18,
-        "sheet_rows": 8,
+        "frame_source": "assets",
+        "custom_base": "https://your-cdn.com/bean-frames/",
+        "frame_count": 133,
         "scrub_vh": 350,
         "bean_size": 380,
-        "reveal_at": 90,
+        "show_caption": true,
+        "captions_json": "[[0,\"Green\"],[0.30,\"Drying\"],[0.55,\"First crack\"],[0.80,\"Developing\"],[0.92,\"Roasted\"]]",
         "heading": "Roasted to order",
         "subheading": "Watch it develop as you scroll"
       }

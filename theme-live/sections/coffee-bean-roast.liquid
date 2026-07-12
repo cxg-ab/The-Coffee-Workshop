@@ -1,22 +1,19 @@
 {%- comment -%}
-  Coffee Bean Roast — spritesheet scroll animation
-  Bean only (background keyed out), centered for full scroll, new scroll HUD.
+  Coffee Bean Roast — single centered bean, transparent WebP sequence.
+  Clean scroll scrub: one bean in the middle, full roast to last frame.
 {%- endcomment -%}
 
 {%- assign sid = section.id -%}
+{%- assign count = section.settings.frame_count -%}
 {%- assign mobile_scrub_vh = section.settings.scrub_vh | times: 0.5 | round -%}
 
 <style>
   #beanRoast-{{ sid }}{
     --scrub-vh: {{ section.settings.scrub_vh }};
     --bean-max: {{ section.settings.bean_size }}px;
-    --brand: #8B5E3C;
-    --brand-dark: #6B4428;
-    --ink: #1C1917;
-    --ring-size: min(72vmin, 520px);
   }
   @media (max-width: 768px) {
-    #beanRoast-{{ sid }} { --scrub-vh: {{ mobile_scrub_vh }}; --ring-size: min(82vmin, 420px); }
+    #beanRoast-{{ sid }} { --scrub-vh: {{ mobile_scrub_vh }}; }
   }
   #beanRoast-{{ sid }} .br-track{position:relative;height:calc(var(--scrub-vh) * 1vh)}
   #beanRoast-{{ sid }} .br-stage{
@@ -26,108 +23,26 @@
   }
   #beanRoast-{{ sid }} .br-head{
     position:absolute;left:0;right:0;top:10vh;text-align:center;padding:0 24px;
-    pointer-events:none;z-index:4;
-  }
-  #beanRoast-{{ sid }} .br-core{
-    position:relative;display:flex;align-items:center;justify-content:center;
-    width:var(--ring-size);height:var(--ring-size);
-  }
-  #beanRoast-{{ sid }} .br-heat{
-    position:absolute;inset:8%;border-radius:50%;pointer-events:none;
-    background:radial-gradient(circle at 50% 52%,
-      rgba(255,140,50,.42) 0%, rgba(214,64,18,.22) 42%, rgba(60,20,6,0) 72%);
-    filter:blur(18px);opacity:0;transform:scale(.85);
-    will-change:opacity,transform;
-  }
-  #beanRoast-{{ sid }} .br-ring{
-    position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;
-    transform:rotate(-90deg);
-  }
-  #beanRoast-{{ sid }} .br-ring-track{
-    fill:none;stroke:rgba(28,25,23,.12);stroke-width:2;
-  }
-  #beanRoast-{{ sid }} .br-ring-fill{
-    fill:none;stroke:var(--brand);stroke-width:2.5;stroke-linecap:round;
-    transition:stroke-dashoffset .08s linear;
+    pointer-events:none;z-index:2;
   }
   #beanRoast-{{ sid }} .br-wrap{
-    position:relative;width:min(52vmin,var(--bean-max));aspect-ratio:1;z-index:3;
-    will-change:filter;
+    position:relative;width:min(58vmin,var(--bean-max));aspect-ratio:1;
+    display:flex;align-items:center;justify-content:center;
   }
   #beanRoast-{{ sid }} .br-canvas{
     width:100%;height:100%;display:block;background:transparent;
   }
   #beanRoast-{{ sid }} .br-loader{
-    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:1;
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   }
-  #beanRoast-{{ sid }} .br-hud{
-    position:absolute;left:0;right:0;bottom:0;padding:0 24px 6vh;
-    display:flex;flex-direction:column;align-items:center;gap:1.25rem;
-    pointer-events:none;z-index:4;
+  #beanRoast-{{ sid }} .br-caption{
+    position:absolute;left:0;right:0;bottom:9vh;text-align:center;
+    font-size:.75rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+    color:rgba(28,25,23,.55);pointer-events:none;z-index:2;
   }
-  #beanRoast-{{ sid }} .br-stage-readout{
-    text-align:center;min-height:4.5rem;
-  }
-  #beanRoast-{{ sid }} .br-stage-name{
-    font-family:var(--font-display, 'Playfair Display', serif);
-    font-size:clamp(1.5rem, 3.5vw, 2.25rem);
-    font-weight:700;color:var(--ink);letter-spacing:-.02em;line-height:1.1;
-    transition:opacity .25s ease;
-  }
-  #beanRoast-{{ sid }} .br-stage-desc{
-    margin-top:.5rem;font-size:.875rem;color:rgba(28,25,23,.62);
-    letter-spacing:.04em;text-transform:uppercase;
-  }
-  #beanRoast-{{ sid }} .br-timeline{
-    display:flex;align-items:center;gap:0;width:min(520px, 92vw);
-  }
-  #beanRoast-{{ sid }} .br-tick{
-    flex:1;display:flex;flex-direction:column;align-items:center;gap:.5rem;position:relative;
-  }
-  #beanRoast-{{ sid }} .br-tick::before{
-    content:'';position:absolute;top:5px;left:-50%;right:50%;height:2px;
-    background:rgba(28,25,23,.14);z-index:0;
-  }
-  #beanRoast-{{ sid }} .br-tick:first-child::before{display:none}
-  #beanRoast-{{ sid }} .br-dot{
-    width:10px;height:10px;border-radius:50%;background:#fff;
-    border:2px solid rgba(28,25,23,.22);position:relative;z-index:1;
-    transition:border-color .2s ease, transform .2s ease, background .2s ease;
-  }
-  #beanRoast-{{ sid }} .br-tick.is-active .br-dot{
-    border-color:var(--brand);background:var(--brand);transform:scale(1.15);
-  }
-  #beanRoast-{{ sid }} .br-tick.is-done .br-dot{
-    border-color:var(--brand);background:var(--brand);
-  }
-  #beanRoast-{{ sid }} .br-tick-label{
-    font-size:.625rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
-    color:rgba(28,25,23,.45);white-space:nowrap;
-  }
-  #beanRoast-{{ sid }} .br-tick.is-active .br-tick-label,
-  #beanRoast-{{ sid }} .br-tick.is-done .br-tick-label{color:var(--brand-dark)}
-  #beanRoast-{{ sid }} .br-meta{
-    display:flex;align-items:center;gap:1.5rem;
-    font-size:.75rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
-    color:rgba(28,25,23,.5);
-  }
-  #beanRoast-{{ sid }} .br-meta strong{color:var(--brand-dark);font-weight:700}
-  #beanRoast-{{ sid }} .br-finish{
-    text-align:center;max-width:28rem;opacity:0;transform:translateY(16px);
-    will-change:opacity,transform;pointer-events:none;
-  }
-  #beanRoast-{{ sid }} .br-finish.is-visible{pointer-events:auto}
-  #beanRoast-{{ sid }} .br-finish h3{
-    font-family:var(--font-display, 'Playfair Display', serif);
-    font-size:clamp(1.25rem, 2.5vw, 1.75rem);font-weight:700;color:var(--ink);
-  }
-  #beanRoast-{{ sid }} .br-finish p{margin-top:.75rem;font-size:.9375rem;color:rgba(28,25,23,.7)}
-  #beanRoast-{{ sid }} .br-finish .btn-primary{margin-top:1.25rem}
   @media (prefers-reduced-motion: reduce){
     #beanRoast-{{ sid }} .br-track{height:auto}
-    #beanRoast-{{ sid }} .br-stage{position:static;height:auto;padding:12vh 0 8vh}
-    #beanRoast-{{ sid }} .br-finish{opacity:1;transform:none;pointer-events:auto}
-    #beanRoast-{{ sid }} .br-ring-fill{stroke-dashoffset:0!important}
+    #beanRoast-{{ sid }} .br-stage{position:static;height:auto;padding:14vh 0}
   }
 </style>
 
@@ -141,102 +56,61 @@
       </div>
       {%- endif -%}
 
-      <div class="br-core" data-br-core>
-        <div class="br-heat" data-br-heat aria-hidden="true"></div>
-        <svg class="br-ring" viewBox="0 0 100 100" aria-hidden="true">
-          <circle class="br-ring-track" cx="50" cy="50" r="46"/>
-          <circle class="br-ring-fill" data-br-ring cx="50" cy="50" r="46"
-            stroke-dasharray="289.03" stroke-dashoffset="289.03"/>
-        </svg>
-        <div class="br-wrap" data-br-wrap>
-          <canvas class="br-canvas" data-br-canvas aria-hidden="true"></canvas>
-          <div class="br-loader text-brand font-semibold tracking-widest text-xs uppercase opacity-50" data-br-loader>Loading 0%</div>
-        </div>
+      <div class="br-wrap" data-br-wrap>
+        <canvas class="br-canvas" data-br-canvas aria-hidden="true"></canvas>
+        <div class="br-loader text-brand font-semibold tracking-widest text-xs uppercase opacity-50" data-br-loader>Loading 0%</div>
       </div>
 
-      <div class="br-hud" data-br-hud>
-        <div class="br-stage-readout">
-          <div class="br-stage-name" data-br-stage-name>Green</div>
-          <div class="br-stage-desc" data-br-stage-desc>Raw, dense, grassy aroma</div>
-        </div>
-
-        <div class="br-timeline" data-br-timeline aria-hidden="true">
-          <div class="br-tick" data-br-tick="0"><span class="br-dot"></span><span class="br-tick-label">Green</span></div>
-          <div class="br-tick" data-br-tick="0.30"><span class="br-dot"></span><span class="br-tick-label">Drying</span></div>
-          <div class="br-tick" data-br-tick="0.55"><span class="br-dot"></span><span class="br-tick-label">Crack</span></div>
-          <div class="br-tick" data-br-tick="0.80"><span class="br-dot"></span><span class="br-tick-label">Develop</span></div>
-          <div class="br-tick" data-br-tick="0.92"><span class="br-dot"></span><span class="br-tick-label">Roasted</span></div>
-        </div>
-
-        <div class="br-meta">
-          <span>Temp <strong data-br-temp>180°</strong></span>
-          <span>Progress <strong data-br-pct>0%</strong></span>
-        </div>
-
-        <div class="br-finish" data-br-finish>
-          {% if section.settings.side_heading != blank %}<h3>{{ section.settings.side_heading }}</h3>{% endif %}
-          {% if section.settings.side_text != blank %}<p>{{ section.settings.side_text }}</p>{% endif %}
-          {% if section.settings.side_btn_label != blank and section.settings.side_btn_link != blank %}
-            <a href="{{ section.settings.side_btn_link }}" class="btn-primary">{{ section.settings.side_btn_label }}</a>
-          {% endif %}
-        </div>
-      </div>
+      {% if section.settings.show_caption %}
+        <div class="br-caption" data-br-caption>Green</div>
+      {% endif %}
     </div>
   </div>
 </section>
 
 <script>
 (function(){
-  var stages = [
-    { at: 0,    name: 'Green',      desc: 'Raw, dense, grassy aroma' },
-    { at: 0.30, name: 'Drying',     desc: 'Moisture leaves, color shifts' },
-    { at: 0.55, name: 'First crack', desc: 'Expansion, audible crack begins' },
-    { at: 0.80, name: 'Developing', desc: 'Oils rise, body builds' },
-    { at: 0.92, name: 'Roasted',    desc: 'Full aroma, ready to brew' }
+  var frames = [
+  {%- if section.settings.frame_source == 'assets' -%}
+    {%- for i in (1..count) -%}
+      {%- capture p -%}{%- if i < 10 -%}00{{ i }}{%- elsif i < 100 -%}0{{ i }}{%- else -%}{{ i }}{%- endif -%}{%- endcapture -%}
+      {%- capture fname -%}bean_{{ p }}.webp{%- endcapture -%}
+      "{{ fname | asset_url }}"{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  {%- else -%}
+    {%- assign base = section.settings.custom_base | strip -%}
+    {%- for i in (1..count) -%}
+      {%- capture p -%}{%- if i < 10 -%}00{{ i }}{%- elsif i < 100 -%}0{{ i }}{%- else -%}{{ i }}{%- endif -%}{%- endcapture -%}
+      "{{ base }}bean_{{ p }}.webp"{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  {%- endif -%}
   ];
 
   var cfg = {
     root: document.getElementById('beanRoast-{{ sid }}'),
-    sheetUrl: {{ 'bean-roast-sheet.jpg' | asset_url | json }},
-    sheetCols: {{ section.settings.sheet_cols }},
-    sheetRows: {{ section.settings.sheet_rows }},
-    frameCount: {{ section.settings.frame_count }},
-    finishAt: {{ section.settings.reveal_at }} / 100,
-    ringLen: 289.03
+    frames: frames,
+    captions: {{ section.settings.captions_json }}
   };
 
-  if(!window.__beanRoastV2){
-    window.__beanRoastV2 = function(cfg){
+  if(!window.__beanRoastClean){
+    window.__beanRoastClean = function(cfg){
       var root = cfg.root;
       if(!root) return;
 
       var track = root.querySelector('[data-br-track]');
       var wrap = root.querySelector('[data-br-wrap]');
-      var heat = root.querySelector('[data-br-heat]');
-      var ring = root.querySelector('[data-br-ring]');
+      var cap = root.querySelector('[data-br-caption]');
       var load = root.querySelector('[data-br-loader]');
-      var finish = root.querySelector('[data-br-finish]');
-      var stageName = root.querySelector('[data-br-stage-name]');
-      var stageDesc = root.querySelector('[data-br-stage-desc]');
-      var tempEl = root.querySelector('[data-br-temp]');
-      var pctEl = root.querySelector('[data-br-pct]');
-      var ticks = root.querySelectorAll('[data-br-tick]');
       var cv = root.querySelector('[data-br-canvas]');
       var ctx = cv.getContext('2d', { alpha: true });
 
-      var off = document.createElement('canvas');
-      var offCtx = off.getContext('2d', { alpha: true });
-
-      var N = cfg.frameCount;
-      var startFrame = 2;
-      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var N = cfg.frames.length;
+      var imgs = new Array(N);
+      var done = 0;
       var ready = false;
       var cur = -1;
       var pending = false;
-      var sheet = null;
-      var cellW = 0;
-      var cellH = 0;
-      var lastStage = -1;
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
       function clamp(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
       function ease(t){ return t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2; }
@@ -245,15 +119,12 @@
         var tot = r.height - innerHeight;
         return tot <= 0 ? 0 : clamp(-r.top / tot);
       }
-      function stageFor(p){
-        var idx = 0;
-        for(var i = 0; i < stages.length; i++){
-          if(p >= stages[i].at) idx = i;
+      function capFor(p){
+        var c = cfg.captions.length ? cfg.captions[0][1] : '';
+        for(var i = 0; i < cfg.captions.length; i++){
+          if(p >= cfg.captions[i][0]) c = cfg.captions[i][1];
         }
-        return idx;
-      }
-      function tempFor(p){
-        return Math.round(180 + p * 40);
+        return c;
       }
 
       function size(){
@@ -265,106 +136,30 @@
         if(ready) paint(cur < 0 ? 0 : cur, true);
       }
 
-      function keyOutFrame(w, h){
-        var img = offCtx.getImageData(0, 0, w, h);
-        var d = img.data;
-        for(var i = 0; i < d.length; i += 4){
-          var r = d[i], g = d[i + 1], b = d[i + 2];
-          var lum = 0.299 * r + 0.587 * g + 0.114 * b;
-          var spread = Math.max(r, g, b) - Math.min(r, g, b);
-          var alpha = 255;
-
-          if(lum > 228 && spread < 55){
-            alpha = Math.max(0, 255 - (lum - 215) * 14);
-          } else if(lum < 42 && spread < 65){
-            alpha = Math.max(0, (lum - 8) * 6);
-          } else if(spread < 38 && lum > 85 && lum < 215){
-            alpha = Math.max(0, Math.min(255, (lum - 85) * 2.5));
-          }
-
-          d[i + 3] = Math.min(d[i + 3], alpha);
-        }
-        offCtx.putImageData(img, 0, 0);
-      }
-
-      function drawBean(idx){
-        var col = idx % cfg.sheetCols;
-        var row = Math.floor(idx / cfg.sheetCols);
-        var sw = cellW;
-        var sh = cellH;
-
-        off.width = sw;
-        off.height = sh;
-        offCtx.clearRect(0, 0, sw, sh);
-        offCtx.drawImage(sheet, col * sw, row * sh, sw, sh, 0, 0, sw, sh);
-        keyOutFrame(sw, sh);
-
-        var r = cv.getBoundingClientRect();
-        var scale = Math.min(r.width / sw, r.height / sh) * 0.92;
-        var dw = sw * scale;
-        var dh = sh * scale;
-        var dx = (r.width - dw) * 0.5;
-        var dy = (r.height - dh) * 0.5;
-
-        ctx.clearRect(0, 0, r.width, r.height);
-        ctx.drawImage(off, dx, dy, dw, dh);
-      }
-
       function paint(idx, force){
         if(idx === cur && !force) return;
-        if(!sheet || !sheet.complete) return;
+        var im = imgs[idx];
+        if(!im || !im.complete) return;
         cur = idx;
-        drawBean(idx);
-      }
-
-      function updateHud(p){
-        var e = ease(p);
-        var si = stageFor(p);
-
-        if(si !== lastStage){
-          lastStage = si;
-          if(stageName) stageName.textContent = stages[si].name;
-          if(stageDesc) stageDesc.textContent = stages[si].desc;
-        }
-
-        if(ring){
-          ring.style.strokeDashoffset = (cfg.ringLen * (1 - p)).toFixed(2);
-        }
-        if(heat){
-          heat.style.opacity = (0.15 + 0.75 * e).toFixed(3);
-          heat.style.transform = 'scale(' + (0.85 + 0.2 * e) + ')';
-        }
-        if(tempEl) tempEl.textContent = tempFor(p) + '°';
-        if(pctEl) pctEl.textContent = Math.round(p * 100) + '%';
-
-        for(var t = 0; t < ticks.length; t++){
-          var at = parseFloat(ticks[t].getAttribute('data-br-tick'));
-          ticks[t].classList.toggle('is-done', p > at + 0.02);
-          ticks[t].classList.toggle('is-active', stageFor(p) === t);
-        }
-
-        var finishAt = cfg.finishAt || 0.9;
-        var pFinish = clamp((p - finishAt) / (1 - finishAt));
-        var eFinish = ease(pFinish);
-        if(finish){
-          finish.style.opacity = eFinish.toFixed(3);
-          finish.style.transform = 'translateY(' + (16 - 16 * eFinish) + 'px)';
-          finish.classList.toggle('is-visible', eFinish > 0.4);
-        }
-
-        /* Bean stays centered — only shadow and subtle warmth */
-        wrap.style.transform = 'none';
-        wrap.style.filter = 'drop-shadow(0 ' + (14 + 20 * e) + 'px ' + (18 + 16 * e) + 'px rgba(40,18,6,' + (0.12 + 0.26 * e) + '))';
+        var r = cv.getBoundingClientRect();
+        ctx.clearRect(0, 0, r.width, r.height);
+        ctx.drawImage(im, 0, 0, r.width, r.height);
       }
 
       function render(){
         pending = false;
         var p = reduce ? 1 : prog();
-        var usable = Math.max(N - 1 - startFrame, 1);
-        var frameIdx = startFrame + Math.round(p * usable);
+        var e = ease(p);
 
-        paint(frameIdx);
-        updateHud(p);
+        paint(Math.round(p * (N - 1)));
+
+        wrap.style.transform = 'none';
+        wrap.style.filter = 'drop-shadow(0 ' + (12 + 14 * e) + 'px ' + (16 + 12 * e) + 'px rgba(40,18,6,' + (0.10 + 0.22 * e) + '))';
+
+        if(cap){
+          cap.textContent = capFor(p);
+          cap.style.opacity = '1';
+        }
       }
 
       function onScroll(){
@@ -374,22 +169,24 @@
       }
 
       function preload(){
-        if(load) load.textContent = 'Loading roast…';
-        sheet = new Image();
-        sheet.decoding = 'async';
-        sheet.crossOrigin = 'anonymous';
-        sheet.onload = function(){
-          cellW = sheet.naturalWidth / cfg.sheetCols;
-          cellH = sheet.naturalHeight / cfg.sheetRows;
-          ready = true;
-          if(load) load.style.display = 'none';
-          size();
-          render();
-        };
-        sheet.onerror = function(){
-          if(load) load.textContent = 'Unable to load roast';
-        };
-        sheet.src = cfg.sheetUrl;
+        for(var i = 0; i < N; i++){
+          (function(i){
+            var im = new Image();
+            im.decoding = 'async';
+            im.onload = im.onerror = function(){
+              done++;
+              if(load) load.textContent = 'Loading ' + Math.round(done / N * 100) + '%';
+              if(done >= N){
+                ready = true;
+                if(load) load.style.display = 'none';
+                size();
+                render();
+              }
+            };
+            im.src = cfg.frames[i];
+            imgs[i] = im;
+          })(i);
+        }
       }
 
       var io = new IntersectionObserver(function(en){
@@ -403,8 +200,8 @@
     };
   }
 
-  if(document.readyState !== 'loading') window.__beanRoastV2(cfg);
-  else document.addEventListener('DOMContentLoaded', function(){ window.__beanRoastV2(cfg); });
+  if(document.readyState !== 'loading') window.__beanRoastClean(cfg);
+  else document.addEventListener('DOMContentLoaded', function(){ window.__beanRoastClean(cfg); });
 })();
 </script>
 
@@ -414,21 +211,31 @@
   "tag": "section",
   "class": "section-coffee-bean-roast",
   "settings": [
-    { "type": "header", "content": "Finish CTA (end of scroll)" },
-    { "type": "text", "id": "side_heading", "label": "CTA heading", "default": "Reserve your micro-lot" },
-    { "type": "textarea", "id": "side_text", "label": "CTA text", "default": "Freshly roasted to your preference. Shop our curated selection of micro-lot beans." },
-    { "type": "text", "id": "side_btn_label", "label": "Button label", "default": "Shop Now" },
-    { "type": "url", "id": "side_btn_link", "label": "Button link" },
-    { "type": "header", "content": "Animation (spritesheet)" },
+    { "type": "header", "content": "Frames" },
+    {
+      "type": "select",
+      "id": "frame_source",
+      "label": "Frame source",
+      "options": [
+        { "value": "assets", "label": "Theme assets (/assets folder)" },
+        { "value": "custom", "label": "Custom URL (Shopify Files / CDN)" }
+      ],
+      "default": "assets"
+    },
+    {
+      "type": "text",
+      "id": "custom_base",
+      "label": "Custom base URL",
+      "info": "Only for Custom URL. Must end with a slash.",
+      "default": "https://your-cdn.com/bean-frames/"
+    },
     {
       "type": "number",
       "id": "frame_count",
       "label": "Frame count",
-      "default": 144,
-      "info": "bean-roast-sheet.jpg uses 144 frames (18×8)."
+      "default": 133,
+      "info": "bean_001.webp through bean_133.webp"
     },
-    { "type": "number", "id": "sheet_cols", "label": "Spritesheet columns", "default": 18 },
-    { "type": "number", "id": "sheet_rows", "label": "Spritesheet rows", "default": 8 },
     { "type": "header", "content": "Motion" },
     {
       "type": "range",
@@ -450,15 +257,12 @@
       "default": 380,
       "unit": "px"
     },
+    { "type": "checkbox", "id": "show_caption", "label": "Show stage label", "default": true },
     {
-      "type": "range",
-      "id": "reveal_at",
-      "label": "CTA appears (% scroll)",
-      "min": 80,
-      "max": 98,
-      "step": 1,
-      "default": 90,
-      "unit": "%"
+      "type": "textarea",
+      "id": "captions_json",
+      "label": "Stage labels",
+      "default": "[[0,\"Green\"],[0.30,\"Drying\"],[0.55,\"First Crack\"],[0.80,\"Developing\"],[0.92,\"Roasted\"]]"
     },
     { "type": "header", "content": "Text" },
     { "type": "text", "id": "heading", "label": "Heading", "default": "Roasted to order" },
