@@ -1,40 +1,320 @@
 {%- comment -%}
-  Coffee Bean Roast — clean placeholder.
-  All frames removed. Upload fresh frames and set frame_count when ready.
+  Coffee Bean Roast — full frame export (scroll scrub).
+  All frames load (bean_001..bean_N). Stop frame setting chooses last roast frame.
+  Pack image rises at pack_rise_start; canvas hidden during pack phase.
 {%- endcomment -%}
 
 {%- assign sid = section.id -%}
+{%- assign total_frames = section.settings.frame_count -%}
+{%- assign mobile_scrub_vh = section.settings.scrub_vh | times: 0.5 | round -%}
+{%- assign has_pack_image = false -%}
+{%- if section.settings.pack_image != blank -%}
+  {%- assign has_pack_image = true -%}
+{%- endif -%}
 
 <style>
+  #beanRoast-{{ sid }}{
+    --scrub-vh: {{ section.settings.scrub_vh }};
+    --bean-w: {{ section.settings.bean_width }}%;
+    --bean-h: {{ section.settings.bean_height }}vh;
+    --bean-max-w: {{ section.settings.bean_max_width }}px;
+    --bean-max-h: {{ section.settings.bean_max_height }}px;
+    --pack-w: {{ section.settings.pack_width }}%;
+    --pack-max-w: {{ section.settings.pack_max_width }}px;
+    --pack-visible: {{ section.settings.pack_visible | divided_by: 100.0 }};
+  }
+  @media (max-width: 768px) {
+    #beanRoast-{{ sid }} { --scrub-vh: {{ mobile_scrub_vh }}; }
+  }
+  #beanRoast-{{ sid }} .br-track{position:relative;height:calc(var(--scrub-vh) * 1vh)}
   #beanRoast-{{ sid }} .br-stage{
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
+    position:sticky;top:0;height:100vh;
+    display:flex;align-items:flex-end;justify-content:center;
+    overflow:hidden;
   }
   #beanRoast-{{ sid }} .br-head{
-    text-align: center;
-    padding: 0 24px;
-    max-width: 48rem;
-    margin: 0 auto;
+    position:absolute;left:0;right:0;top:8vh;text-align:center;padding:0 24px;
+    pointer-events:none;z-index:4;
+  }
+  #beanRoast-{{ sid }} .br-view{
+    position:relative;z-index:2;
+    width:min(var(--bean-w), var(--bean-max-w), 96vw);
+    height:min(var(--bean-h), var(--bean-max-h), 90vh);
+    flex:0 0 auto;
+    border:none;outline:none;box-shadow:none;background:transparent;
+  }
+  #beanRoast-{{ sid }} .br-stage.is-pack .br-view{
+    visibility:hidden;
+    pointer-events:none;
+  }
+  #beanRoast-{{ sid }} .br-canvas{
+    width:100%;height:100%;display:block;
+    background:transparent;border:none;outline:none;box-shadow:none;
+  }
+  #beanRoast-{{ sid }} .br-loader{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    pointer-events:none;
+  }
+  #beanRoast-{{ sid }} .br-caption{
+    position:absolute;left:0;right:0;bottom:7vh;text-align:center;
+    font-size:.75rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+    color:rgba(28,25,23,.55);pointer-events:none;z-index:4;
+  }
+  #beanRoast-{{ sid }} .br-pack-outer{
+    position:absolute;left:50%;bottom:0;z-index:3;
+    width:min(var(--pack-w), var(--pack-max-w), 88vw);
+    overflow:hidden;pointer-events:none;
+    transform:translateX(-50%);
+  }
+  #beanRoast-{{ sid }} .br-pack-inner{
+    will-change:transform;
+    transform:translateY(110%);
+  }
+  #beanRoast-{{ sid }} .br-pack-inner img{
+    width:100%;height:auto;display:block;
+    border:none;outline:none;box-shadow:none;background:transparent;
+  }
+  @media (prefers-reduced-motion: reduce){
+    #beanRoast-{{ sid }} .br-track{height:auto}
+    #beanRoast-{{ sid }} .br-stage{position:static;height:auto;padding:14vh 0}
+    #beanRoast-{{ sid }} .br-pack-inner{transform:translateY(15%)}
   }
 </style>
 
 <section id="beanRoast-{{ sid }}" class="coffee-bean-roast bg-[#E6D095]">
-  <div class="br-stage" data-br-stage>
-    {%- if section.settings.heading != blank or section.settings.subheading != blank -%}
+  <div class="br-track" data-br-track>
+    <div class="br-stage" data-br-stage>
+      {%- if section.settings.heading != blank or section.settings.subheading != blank -%}
       <div class="br-head">
-        {% if section.settings.heading != blank %}
-          <h2 class="font-display font-bold text-4xl lg:text-6xl text-ink leading-[1.05] tracking-tight">{{ section.settings.heading }}</h2>
-        {% endif %}
-        {% if section.settings.subheading != blank %}
-          <p class="prose-brand mt-4">{{ section.settings.subheading }}</p>
-        {% endif %}
+        {% if section.settings.heading != blank %}<h2 class="font-display font-bold text-4xl lg:text-6xl text-ink leading-[1.05] tracking-tight">{{ section.settings.heading }}</h2>{% endif %}
+        {% if section.settings.subheading != blank %}<p class="prose-brand mt-4">{{ section.settings.subheading }}</p>{% endif %}
       </div>
-    {%- endif -%}
+      {%- endif -%}
+
+      <div class="br-view" data-br-view>
+        <canvas class="br-canvas" data-br-canvas aria-hidden="true"></canvas>
+        <div class="br-loader text-brand font-semibold tracking-widest text-xs uppercase opacity-50" data-br-loader>Loading 0%</div>
+      </div>
+
+      {%- if section.settings.pack_image != blank -%}
+      <div class="br-pack-outer" data-br-pack-outer>
+        <div class="br-pack-inner" data-br-pack>
+          <img
+            src="{{ section.settings.pack_image | image_url: width: 1200 }}"
+            alt="{{ section.settings.pack_image.alt | default: 'Coffee pack' | escape }}"
+            width="{{ section.settings.pack_image.width }}"
+            height="{{ section.settings.pack_image.height }}"
+            loading="lazy"
+            decoding="async"
+          >
+        </div>
+      </div>
+      {%- endif -%}
+
+      {% if section.settings.show_caption %}
+        <div class="br-caption" data-br-caption>Green</div>
+      {% endif %}
+    </div>
   </div>
 </section>
+
+<script>
+(function(){
+  var frames = [
+  {%- if section.settings.frame_source == 'assets' -%}
+    {%- for i in (1..total_frames) -%}
+      {%- capture p -%}{%- if i < 10 -%}00{{ i }}{%- elsif i < 100 -%}0{{ i }}{%- else -%}{{ i }}{%- endif -%}{%- endcapture -%}
+      {%- capture fname -%}bean_{{ p }}.webp{%- endcapture -%}
+      "{{ fname | asset_url }}"{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  {%- else -%}
+    {%- assign base = section.settings.custom_base | strip -%}
+    {%- for i in (1..total_frames) -%}
+      {%- capture p -%}{%- if i < 10 -%}00{{ i }}{%- elsif i < 100 -%}0{{ i }}{%- else -%}{{ i }}{%- endif -%}{%- endcapture -%}
+      "{{ base }}bean_{{ p }}.webp"{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  {%- endif -%}
+  ];
+
+  var cfg = {
+    root: document.getElementById('beanRoast-{{ sid }}'),
+    frames: frames,
+    captions: {{ section.settings.captions_json }},
+    packRiseStart: {{ section.settings.pack_rise_start }} / 100,
+    packVisible: {{ section.settings.pack_visible }} / 100,
+    frameStop: {{ section.settings.frame_stop }},
+    hasPack: {{ has_pack_image | json }}
+  };
+
+  if(!window.__beanRoastClean){
+    window.__beanRoastClean = function(cfg){
+      var root = cfg.root;
+      if(!root) return;
+
+      var track = root.querySelector('[data-br-track]');
+      var stage = root.querySelector('[data-br-stage]');
+      var cap = root.querySelector('[data-br-caption]');
+      var load = root.querySelector('[data-br-loader]');
+      var packOuter = root.querySelector('[data-br-pack-outer]');
+      var pack = root.querySelector('[data-br-pack]');
+      var packImg = pack ? pack.querySelector('img') : null;
+      var cv = root.querySelector('[data-br-canvas]');
+      var ctx = cv.getContext('2d', { alpha: true });
+
+      var N = cfg.frames.length;
+      var imgs = new Array(N);
+      var done = 0;
+      var ready = false;
+      var cur = -1;
+      var pending = false;
+      var lastPack = null;
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var stopIdx = Math.max(0, Math.min(N - 1, cfg.frameStop - 1));
+
+      ctx.imageSmoothingEnabled = true;
+      if('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
+
+      function clamp(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
+      function ease(t){ return t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2; }
+      function prog(){
+        var r = track.getBoundingClientRect();
+        var tot = r.height - innerHeight;
+        return tot <= 0 ? 0 : clamp(-r.top / tot);
+      }
+      function capFor(p){
+        var c = cfg.captions.length ? cfg.captions[0][1] : '';
+        for(var i = 0; i < cfg.captions.length; i++){
+          if(p >= cfg.captions[i][0]) c = cfg.captions[i][1];
+        }
+        return c;
+      }
+      function roastIndex(p){
+        var end = cfg.hasPack ? cfg.packRiseStart : 1;
+        var t = cfg.hasPack ? p / end : p;
+        if(stopIdx <= 0) return 0;
+        return Math.min(stopIdx, Math.floor(t * (stopIdx + 1)));
+      }
+
+      function layoutPack(){
+        if(!packOuter || !packImg || !packImg.complete) return;
+        var vis = Math.max(0.5, cfg.packVisible);
+        var fullH = packImg.offsetHeight || packImg.naturalHeight;
+        if(!fullH) return;
+        packOuter.style.height = Math.round(fullH * vis) + 'px';
+      }
+
+      function size(){
+        var dpr = Math.min(devicePixelRatio || 1, 3);
+        var r = cv.getBoundingClientRect();
+        cv.width = Math.max(1, Math.round(r.width * dpr));
+        cv.height = Math.max(1, Math.round(r.height * dpr));
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        layoutPack();
+        if(ready && cur >= 0) paint(cur, true);
+      }
+
+      function paint(idx, force){
+        if(idx === cur && !force) return;
+        var im = imgs[idx];
+        if(!im || !im.complete || !im.naturalWidth) return;
+        cur = idx;
+
+        var r = cv.getBoundingClientRect();
+        var cw = r.width;
+        var ch = r.height;
+        var iw = im.naturalWidth;
+        var ih = im.naturalHeight;
+        var scale = Math.min(cw / iw, ch / ih);
+        var dw = iw * scale;
+        var dh = ih * scale;
+        var dx = (cw - dw) * 0.5;
+        var dy = ch - dh;
+
+        ctx.clearRect(0, 0, cw, ch);
+        ctx.drawImage(im, dx, dy, dw, dh);
+      }
+
+      function updatePack(p){
+        if(!pack) return;
+        var pr = clamp((p - cfg.packRiseStart) / (1 - cfg.packRiseStart));
+        var e = ease(pr);
+        var vis = Math.max(0.5, cfg.packVisible);
+        var hidden = 1 - vis;
+        var startY = 110;
+        var endY = hidden * 100;
+        var y = startY - e * (startY - endY);
+        pack.style.transform = 'translateY(' + y.toFixed(2) + '%)';
+        pack.style.opacity = pr > 0.001 ? '1' : '0';
+      }
+
+      function render(){
+        pending = false;
+        var p = reduce ? 1 : prog();
+        var inPack = cfg.hasPack && p >= cfg.packRiseStart;
+
+        if(inPack !== lastPack){
+          lastPack = inPack;
+          stage.classList.toggle('is-pack', inPack);
+        }
+
+        if(!inPack){
+          paint(roastIndex(p), false);
+        }
+
+        updatePack(p);
+
+        if(cap){
+          cap.textContent = capFor(p);
+          cap.style.opacity = inPack ? '0' : '1';
+        }
+      }
+
+      function onScroll(){
+        if(pending) return;
+        pending = true;
+        requestAnimationFrame(render);
+      }
+
+      function preload(){
+        for(var i = 0; i < N; i++){
+          (function(i){
+            var im = new Image();
+            im.decoding = 'async';
+            im.onload = im.onerror = function(){
+              done++;
+              if(load) load.textContent = 'Loading ' + Math.round(done / N * 100) + '%';
+              if(done >= N){
+                ready = true;
+                if(load) load.style.display = 'none';
+                size();
+                render();
+              }
+            };
+            im.src = cfg.frames[i];
+            imgs[i] = im;
+          })(i);
+        }
+        if(packImg){
+          if(packImg.complete) layoutPack();
+          else packImg.addEventListener('load', function(){ layoutPack(); render(); });
+        }
+      }
+
+      var io = new IntersectionObserver(function(en){
+        if(en[0].isIntersecting){ io.disconnect(); preload(); }
+      }, { rootMargin: '600px 0px' });
+      io.observe(track);
+
+      addEventListener('scroll', onScroll, { passive: true });
+      addEventListener('resize', size);
+      size();
+    };
+  }
+
+  if(document.readyState !== 'loading') window.__beanRoastClean(cfg);
+  else document.addEventListener('DOMContentLoaded', function(){ window.__beanRoastClean(cfg); });
+})();
+</script>
 
 {% schema %}
 {
@@ -42,7 +322,7 @@
   "tag": "section",
   "class": "section-coffee-bean-roast",
   "settings": [
-    { "type": "header", "content": "Frames (upload fresh)" },
+    { "type": "header", "content": "Frames" },
     {
       "type": "select",
       "id": "frame_source",
@@ -63,21 +343,22 @@
       "type": "number",
       "id": "frame_count",
       "label": "Total frames (max)",
-      "default": 0,
-      "info": "Set after uploading new bean_001.webp … bean_N.webp frames."
+      "default": 202,
+      "info": "All exported frames in theme assets (bean_001 to bean_N). Current export: 202."
     },
     {
       "type": "number",
       "id": "frame_stop",
       "label": "Stop frames at",
-      "default": 0,
-      "info": "Last roast frame before pack rises. Set when frames are uploaded."
+      "default": 157,
+      "info": "Last roast frame before pack rises (1–202). Recommended: 157. Pour content starts ~frame 177 — keep stop below that."
     },
     { "type": "header", "content": "Pack image (upload)" },
     {
       "type": "image_picker",
       "id": "pack_image",
-      "label": "Pack image (transparent PNG/WebP)"
+      "label": "Pack image (transparent PNG/WebP)",
+      "info": "Rises after frame stop point. No frames play during pack phase."
     },
     {
       "type": "range",
@@ -97,7 +378,8 @@
       "max": 85,
       "step": 1,
       "default": 75,
-      "unit": "%"
+      "unit": "%",
+      "info": "75% = three-quarters visible, bottom quarter hidden."
     },
     {
       "type": "range",
@@ -171,7 +453,7 @@
       "default": 400,
       "unit": "vh"
     },
-    { "type": "checkbox", "id": "show_caption", "label": "Show stage label", "default": false },
+    { "type": "checkbox", "id": "show_caption", "label": "Show stage label", "default": true },
     {
       "type": "textarea",
       "id": "captions_json",
