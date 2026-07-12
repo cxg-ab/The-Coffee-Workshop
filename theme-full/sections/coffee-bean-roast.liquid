@@ -28,11 +28,20 @@
     #beanRoast-{{ sid }} .br-stage{
       align-items:center;
       justify-content:center;
+      padding:11vh 0 9vh;
+    }
+    #beanRoast-{{ sid }} .br-head{
+      top:4vh;
+      padding:0 16px;
     }
     #beanRoast-{{ sid }} .br-view{
-      width:min(var(--bean-w), 96vw);
-      height:min(var(--bean-h), 78vh);
+      width:min(82vw, var(--bean-w), 96vw);
+      height:min(68vh, var(--bean-h), 72vh);
       margin:0 auto;
+      flex:0 0 auto;
+    }
+    #beanRoast-{{ sid }} .br-caption{
+      bottom:5vh;
     }
   }
   #beanRoast-{{ sid }} .br-track{position:relative;height:calc(var(--scrub-vh) * 1vh)}
@@ -174,6 +183,7 @@
       var N = cfg.frames.length;
       var imgs = new Array(N);
       var done = 0;
+      var targetLoads = N;
       var ready = false;
       var cur = -1;
       var pending = false;
@@ -183,6 +193,25 @@
       var stopIdx = Math.max(0, Math.min(N - 1, cfg.frameStop - 1));
 
       function isMobile(){ return mobileMq.matches; }
+
+      function loadBudget(){
+        if(isMobile()) return Math.min(N, Math.max(stopIdx + 1, 1));
+        return N;
+      }
+
+      function readyThreshold(){
+        var budget = loadBudget();
+        if(isMobile()) return Math.min(6, budget);
+        return Math.min(12, budget);
+      }
+
+      function maxConcurrent(){
+        return isMobile() ? 4 : 10;
+      }
+
+      function maxDpr(){
+        return isMobile() ? 2 : 4;
+      }
 
       ctx.imageSmoothingEnabled = true;
       if('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
@@ -217,7 +246,7 @@
       }
 
       function size(){
-        var dpr = Math.min(devicePixelRatio || 1, 4);
+        var dpr = Math.min(devicePixelRatio || 1, maxDpr());
         var r = cv.getBoundingClientRect();
         cv.width = Math.max(1, Math.round(r.width * dpr));
         cv.height = Math.max(1, Math.round(r.height * dpr));
@@ -226,10 +255,24 @@
         if(ready && cur >= 0) paint(cur, true);
       }
 
+      function requestFrame(i){
+        if(i < 0 || i >= N || imgs[i]) return;
+        var im = new Image();
+        im.decoding = 'async';
+        im.onload = im.onerror = function(){
+          if(ready) paint(roastIndex(prog()), true);
+        };
+        im.src = cfg.frames[i];
+        imgs[i] = im;
+      }
+
       function paint(idx, force){
         if(idx === cur && !force) return;
         var im = imgs[idx];
-        if(!im || !im.complete || !im.naturalWidth) return;
+        if(!im || !im.complete || !im.naturalWidth){
+          if(idx <= stopIdx) requestFrame(idx);
+          return;
+        }
         cur = idx;
 
         var r = cv.getBoundingClientRect();
@@ -289,24 +332,55 @@
       }
 
       function preload(){
-        for(var i = 0; i < N; i++){
-          (function(i){
-            var im = new Image();
-            im.decoding = 'async';
-            im.onload = im.onerror = function(){
-              done++;
-              if(load) load.textContent = 'Loading ' + Math.round(done / N * 100) + '%';
-              if(done >= N){
-                ready = true;
-                if(load) load.style.display = 'none';
-                size();
-                render();
-              }
-            };
-            im.src = cfg.frames[i];
-            imgs[i] = im;
-          })(i);
+        var budget = loadBudget();
+        targetLoads = budget;
+        var queue = [];
+        var seen = {};
+        var priority = [0, stopIdx, Math.floor(stopIdx * 0.5), 1, stopIdx - 1];
+        priority.forEach(function(i){
+          if(i >= 0 && i < budget && !seen[i]){ seen[i] = true; queue.push(i); }
+        });
+        for(var i = 0; i < budget; i++){
+          if(!seen[i]) queue.push(i);
         }
+
+        var active = 0;
+        var threshold = readyThreshold();
+
+        function markDone(){
+          done++;
+          if(load) load.textContent = 'Loading ' + Math.min(100, Math.round(done / targetLoads * 100)) + '%';
+          if(!ready && done >= threshold){
+            ready = true;
+            if(load) load.style.display = 'none';
+            size();
+            render();
+          }
+          if(done >= targetLoads && load) load.style.display = 'none';
+        }
+
+        function loadAt(i){
+          if(imgs[i] || i >= N) return;
+          active++;
+          var im = new Image();
+          im.decoding = 'async';
+          im.onload = im.onerror = function(){
+            active--;
+            markDone();
+            pump();
+          };
+          im.src = cfg.frames[i];
+          imgs[i] = im;
+        }
+
+        function pump(){
+          while(active < maxConcurrent() && queue.length){
+            loadAt(queue.shift());
+          }
+        }
+
+        pump();
+
         if(packImg){
           if(packImg.complete) layoutPack();
           else packImg.addEventListener('load', function(){ layoutPack(); render(); });
@@ -315,7 +389,7 @@
 
       var io = new IntersectionObserver(function(en){
         if(en[0].isIntersecting){ io.disconnect(); preload(); }
-      }, { rootMargin: '600px 0px' });
+      }, { rootMargin: isMobile() ? '120px 0px' : '400px 0px' });
       io.observe(track);
 
       addEventListener('scroll', onScroll, { passive: true });
