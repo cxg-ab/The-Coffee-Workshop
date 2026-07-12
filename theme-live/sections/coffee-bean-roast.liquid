@@ -1,6 +1,7 @@
 {%- comment -%}
-  Coffee Bean Roast — roast frames only (scroll scrub).
-  Pack image rises at end. No pour frames, no canvas during pack phase.
+  Coffee Bean Roast — full frame export (scroll scrub).
+  All frames load (bean_001..bean_N). Stop frame setting chooses last roast frame.
+  Pack image rises at pack_rise_start; canvas hidden during pack phase.
 {%- endcomment -%}
 
 {%- assign sid = section.id -%}
@@ -343,14 +344,14 @@
       "id": "frame_count",
       "label": "Total frames (max)",
       "default": 241,
-      "info": "All frames in theme assets (bean_001 to bean_N). Must match exported count."
+      "info": "All exported frames in theme assets (bean_001 to bean_N). Current export: 241."
     },
     {
       "type": "number",
       "id": "frame_stop",
       "label": "Stop frames at",
-      "default": 110,
-      "info": "Last frame to show before pack rises. Lower = stop roast earlier. Max = frame count."
+      "default": 192,
+      "info": "Last roast frame before pack rises (1–241). Recommended: 192. Pour content starts ~frame 212 — keep stop below that."
     },
     { "type": "header", "content": "Pack image (upload)" },
     {
