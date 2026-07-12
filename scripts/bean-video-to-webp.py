@@ -29,26 +29,27 @@ def run(cmd: list[str]) -> None:
 
 
 def key_out(im: Image.Image) -> Image.Image:
-    """Remove checkerboard/white studio bg; keep bean only."""
+    """Hard-key checkerboard/white studio bg — crisp alpha, no bg bleed."""
     rgba = im.convert("RGBA")
     px = rgba.load()
     w, h = rgba.size
     for y in range(h):
         for x in range(w):
             r, g, b, a = px[x, y]
-            lum = 0.299 * r + 0.587 * g + 0.114 * b
             spread = max(r, g, b) - min(r, g, b)
-            alpha = 255
+            mx = max(r, g, b)
 
-            # Checkerboard gray/white backdrop (common in export)
-            if spread < 28 and lum > 158:
+            # Checkerboard tiles: neutral gray (~192) and white (~255)
+            if spread < 32 and mx > 168 and min(r, g, b) > 155:
                 alpha = 0
-            elif spread < 40 and lum > 235:
-                alpha = max(0, 255 - int((lum - 220) * 18))
-            elif lum < 42 and spread < 65:
-                alpha = max(0, int((lum - 8) * 6))
+            elif spread < 20 and mx > 240:
+                alpha = 0
+            elif spread < 45 and r > 200 and g > 200 and b > 200:
+                alpha = 0
+            else:
+                alpha = 255
 
-            px[x, y] = (r, g, b, min(a, alpha))
+            px[x, y] = (r, g, b, alpha)
     return rgba
 
 
@@ -92,7 +93,9 @@ def process_frame(path: Path, out_size: int, square_source: bool) -> Image.Image
     raw = Image.open(path)
     keyed = key_out(raw)
     if square_source:
-        return keyed.resize((out_size, out_size), Image.LANCZOS)
+        if out_size and (keyed.width != out_size or keyed.height != out_size):
+            return keyed.resize((out_size, out_size), Image.LANCZOS)
+        return keyed
     bbox = opaque_bbox(keyed)
     if not bbox:
         return None
@@ -109,7 +112,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Video → transparent WebP bean frames")
     ap.add_argument("video", type=Path, help="Input video (mp4, mov, webm)")
     ap.add_argument("--out", type=Path, default=Path("theme/assets"), help="Output directory")
-    ap.add_argument("--size", type=int, default=720, help="Output square size in px")
+    ap.add_argument("--size", type=int, default=1440, help="Output square size in px (0 = native)")
     ap.add_argument("--min-frames", type=int, default=90, help="Minimum frames to keep")
     ap.add_argument("--max-frames", type=int, default=300, help="Maximum frames to keep")
     ap.add_argument("--dedupe", action="store_true", help="Skip near-duplicate consecutive frames")
@@ -197,7 +200,7 @@ def main() -> None:
 
     for i, im in enumerate(kept, start=1):
         out_path = args.out / f"bean_{i:03d}.webp"
-        im.save(out_path, "WEBP", lossless=False, quality=92, method=6)
+        im.save(out_path, "WEBP", lossless=True, method=6)
 
     report = {
         "source": str(args.video),

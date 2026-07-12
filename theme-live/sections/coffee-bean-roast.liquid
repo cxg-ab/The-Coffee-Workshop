@@ -1,6 +1,6 @@
 {%- comment -%}
-  Coffee Bean Roast — single centered bean, transparent WebP sequence.
-  Clean scroll scrub: one bean in the middle, full roast to last frame.
+  Coffee Bean Roast — HD transparent WebP scroll sequence.
+  No container outline; free width/height resize; crisp alpha compositing.
 {%- endcomment -%}
 
 {%- assign sid = section.id -%}
@@ -10,7 +10,10 @@
 <style>
   #beanRoast-{{ sid }}{
     --scrub-vh: {{ section.settings.scrub_vh }};
-    --bean-max: {{ section.settings.bean_size }}px;
+    --bean-w: {{ section.settings.bean_width }}%;
+    --bean-h: {{ section.settings.bean_height }}vh;
+    --bean-max-w: {{ section.settings.bean_max_width }}px;
+    --bean-max-h: {{ section.settings.bean_max_height }}px;
   }
   @media (max-width: 768px) {
     #beanRoast-{{ sid }} { --scrub-vh: {{ mobile_scrub_vh }}; }
@@ -19,24 +22,29 @@
   #beanRoast-{{ sid }} .br-stage{
     position:sticky;top:0;height:100vh;
     display:flex;align-items:center;justify-content:center;
-    overflow:hidden;
+    overflow:visible;
   }
   #beanRoast-{{ sid }} .br-head{
-    position:absolute;left:0;right:0;top:10vh;text-align:center;padding:0 24px;
+    position:absolute;left:0;right:0;top:8vh;text-align:center;padding:0 24px;
     pointer-events:none;z-index:2;
   }
-  #beanRoast-{{ sid }} .br-wrap{
-    position:relative;width:min(58vmin,var(--bean-max));aspect-ratio:1;
-    display:flex;align-items:center;justify-content:center;
+  #beanRoast-{{ sid }} .br-view{
+    position:relative;
+    width:min(var(--bean-w), var(--bean-max-w), 96vw);
+    height:min(var(--bean-h), var(--bean-max-h), 82vh);
+    flex:0 0 auto;
+    border:none;outline:none;box-shadow:none;background:transparent;
   }
   #beanRoast-{{ sid }} .br-canvas{
-    width:100%;height:100%;display:block;background:transparent;
+    width:100%;height:100%;display:block;
+    background:transparent;border:none;outline:none;box-shadow:none;
   }
   #beanRoast-{{ sid }} .br-loader{
     position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    pointer-events:none;
   }
   #beanRoast-{{ sid }} .br-caption{
-    position:absolute;left:0;right:0;bottom:9vh;text-align:center;
+    position:absolute;left:0;right:0;bottom:7vh;text-align:center;
     font-size:.75rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
     color:rgba(28,25,23,.55);pointer-events:none;z-index:2;
   }
@@ -56,7 +64,7 @@
       </div>
       {%- endif -%}
 
-      <div class="br-wrap" data-br-wrap>
+      <div class="br-view" data-br-view>
         <canvas class="br-canvas" data-br-canvas aria-hidden="true"></canvas>
         <div class="br-loader text-brand font-semibold tracking-widest text-xs uppercase opacity-50" data-br-loader>Loading 0%</div>
       </div>
@@ -98,7 +106,7 @@
       if(!root) return;
 
       var track = root.querySelector('[data-br-track]');
-      var wrap = root.querySelector('[data-br-wrap]');
+      var view = root.querySelector('[data-br-view]');
       var cap = root.querySelector('[data-br-caption]');
       var load = root.querySelector('[data-br-loader]');
       var cv = root.querySelector('[data-br-canvas]');
@@ -112,8 +120,10 @@
       var pending = false;
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+      ctx.imageSmoothingEnabled = true;
+      if('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
+
       function clamp(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
-      function ease(t){ return t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2; }
       function prog(){
         var r = track.getBoundingClientRect();
         var tot = r.height - innerHeight;
@@ -128,10 +138,10 @@
       }
 
       function size(){
-        var dpr = Math.min(devicePixelRatio || 1, 2);
+        var dpr = Math.min(devicePixelRatio || 1, 3);
         var r = cv.getBoundingClientRect();
-        cv.width = Math.round(r.width * dpr);
-        cv.height = Math.round(r.height * dpr);
+        cv.width = Math.max(1, Math.round(r.width * dpr));
+        cv.height = Math.max(1, Math.round(r.height * dpr));
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         if(ready) paint(cur < 0 ? 0 : cur, true);
       }
@@ -139,23 +149,28 @@
       function paint(idx, force){
         if(idx === cur && !force) return;
         var im = imgs[idx];
-        if(!im || !im.complete) return;
+        if(!im || !im.complete || !im.naturalWidth) return;
         cur = idx;
+
         var r = cv.getBoundingClientRect();
-        ctx.clearRect(0, 0, r.width, r.height);
-        ctx.drawImage(im, 0, 0, r.width, r.height);
+        var cw = r.width;
+        var ch = r.height;
+        var iw = im.naturalWidth;
+        var ih = im.naturalHeight;
+        var scale = Math.min(cw / iw, ch / ih);
+        var dw = iw * scale;
+        var dh = ih * scale;
+        var dx = (cw - dw) * 0.5;
+        var dy = (ch - dh) * 0.5;
+
+        ctx.clearRect(0, 0, cw, ch);
+        ctx.drawImage(im, dx, dy, dw, dh);
       }
 
       function render(){
         pending = false;
         var p = reduce ? 1 : prog();
-        var e = ease(p);
-
         paint(Math.round(p * (N - 1)));
-
-        wrap.style.transform = 'none';
-        wrap.style.filter = 'drop-shadow(0 ' + (12 + 14 * e) + 'px ' + (16 + 12 * e) + 'px rgba(40,18,6,' + (0.10 + 0.22 * e) + '))';
-
         if(cap){
           cap.textContent = capFor(p);
           cap.style.opacity = '1';
@@ -233,29 +248,59 @@
       "type": "number",
       "id": "frame_count",
       "label": "Frame count",
-      "default": 133,
-      "info": "bean_001.webp through bean_133.webp"
+      "default": 241
+    },
+    { "type": "header", "content": "Display size (free resize)" },
+    {
+      "type": "range",
+      "id": "bean_width",
+      "label": "Width",
+      "min": 40,
+      "max": 100,
+      "step": 1,
+      "default": 78,
+      "unit": "%"
+    },
+    {
+      "type": "range",
+      "id": "bean_height",
+      "label": "Height",
+      "min": 40,
+      "max": 95,
+      "step": 1,
+      "default": 72,
+      "unit": "vh"
+    },
+    {
+      "type": "range",
+      "id": "bean_max_width",
+      "label": "Max width",
+      "min": 400,
+      "max": 1600,
+      "step": 20,
+      "default": 1200,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "bean_max_height",
+      "label": "Max height",
+      "min": 400,
+      "max": 1200,
+      "step": 20,
+      "default": 1000,
+      "unit": "px"
     },
     { "type": "header", "content": "Motion" },
     {
       "type": "range",
       "id": "scrub_vh",
-      "label": "Roast length (scroll)",
+      "label": "Scroll length",
       "min": 120,
       "max": 600,
       "step": 10,
       "default": 400,
       "unit": "vh"
-    },
-    {
-      "type": "range",
-      "id": "bean_size",
-      "label": "Bean size (max)",
-      "min": 240,
-      "max": 700,
-      "step": 10,
-      "default": 380,
-      "unit": "px"
     },
     { "type": "checkbox", "id": "show_caption", "label": "Show stage label", "default": true },
     {
