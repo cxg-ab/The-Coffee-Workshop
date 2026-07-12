@@ -26,10 +26,8 @@
       "settings": {
         "frame_source": "assets",
         "custom_base": "https://your-cdn.com/bean-frames/",
-        "frame_count": 111,
-        "bean_roast_end": 110,
-        "pour_fall_distance": 28,
-        "pack_rise_start": 72,
+        "frame_count": 110,
+        "pack_rise_start": 78,
         "pack_visible": 75,
         "pack_width": 52,
         "pack_max_width": 520,

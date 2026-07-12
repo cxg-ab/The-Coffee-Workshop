@@ -1,10 +1,10 @@
 {%- comment -%}
-  Coffee Bean Roast — HD WebP frames (no pack in video).
-  Bean phase: centered canvas. Pour phase: coffee falls behind uploaded pack image.
+  Coffee Bean Roast — roast frames only (scroll scrub).
+  Pack image rises at end. No pour frames, no canvas during pack phase.
 {%- endcomment -%}
 
 {%- assign sid = section.id -%}
-{%- assign count = section.settings.frame_count -%}
+{%- assign total_frames = section.settings.frame_count -%}
 {%- assign mobile_scrub_vh = section.settings.scrub_vh | times: 0.5 | round -%}
 {%- assign has_pack_image = false -%}
 {%- if section.settings.pack_image != blank -%}
@@ -21,9 +21,6 @@
     --pack-w: {{ section.settings.pack_width }}%;
     --pack-max-w: {{ section.settings.pack_max_width }}px;
     --pack-visible: {{ section.settings.pack_visible | divided_by: 100.0 }};
-    --pour-h: {{ section.settings.pour_viewport_height }}vh;
-    --pour-overlap: {{ section.settings.pour_overlap }}%;
-    --pour-fall: {{ section.settings.pour_fall_distance }}%;
   }
   @media (max-width: 768px) {
     #beanRoast-{{ sid }} { --scrub-vh: {{ mobile_scrub_vh }}; }
@@ -44,20 +41,10 @@
     height:min(var(--bean-h), var(--bean-max-h), 82vh);
     flex:0 0 auto;
     border:none;outline:none;box-shadow:none;background:transparent;
-    transition:width .4s ease, height .4s ease, bottom .4s ease;
   }
-  #beanRoast-{{ sid }} .br-stage.is-pour .br-view{
-    position:absolute;left:50%;
-    transform:translateX(-50%) translateY(var(--pour-y, 0%));
-    width:min(var(--pack-w), var(--pack-max-w), 88vw);
-    height:min(var(--pour-h), 52vh);
-    margin:0;
-    opacity:1;
+  #beanRoast-{{ sid }} .br-stage.is-pack .br-view{
+    visibility:hidden;
     pointer-events:none;
-    will-change:transform;
-  }
-  #beanRoast-{{ sid }} .br-stage.is-pour.is-pouring .br-view{
-    opacity:1;
   }
   #beanRoast-{{ sid }} .br-canvas{
     width:100%;height:100%;display:block;
@@ -89,7 +76,6 @@
   @media (prefers-reduced-motion: reduce){
     #beanRoast-{{ sid }} .br-track{height:auto}
     #beanRoast-{{ sid }} .br-stage{position:static;height:auto;padding:14vh 0}
-    #beanRoast-{{ sid }} .br-view{transition:none}
     #beanRoast-{{ sid }} .br-pack-inner{transform:translateY(15%)}
   }
 </style>
@@ -131,9 +117,6 @@
   </div>
 </section>
 
-{%- assign roast_end = section.settings.bean_roast_end -%}
-{%- assign total_frames = section.settings.frame_count -%}
-
 <script>
 (function(){
   var frames = [
@@ -158,12 +141,6 @@
     captions: {{ section.settings.captions_json }},
     packRiseStart: {{ section.settings.pack_rise_start }} / 100,
     packVisible: {{ section.settings.pack_visible }} / 100,
-    beanRoastEnd: {{ roast_end }},
-    pourFall: {{ section.settings.pour_fall_distance }} / 100,
-    pourVisible: {{ section.settings.pour_visible }} / 100,
-    pourScale: {{ section.settings.pour_scale }} / 100,
-    pourOffsetX: {{ section.settings.pour_offset_x }},
-    pourOverlap: {{ section.settings.pour_overlap }} / 100,
     hasPack: {{ has_pack_image | json }}
   };
 
@@ -174,7 +151,6 @@
 
       var track = root.querySelector('[data-br-track]');
       var stage = root.querySelector('[data-br-stage]');
-      var view = root.querySelector('[data-br-view]');
       var cap = root.querySelector('[data-br-caption]');
       var load = root.querySelector('[data-br-loader]');
       var packOuter = root.querySelector('[data-br-pack-outer]');
@@ -189,11 +165,8 @@
       var ready = false;
       var cur = -1;
       var pending = false;
-      var lastPour = null;
-      var lastProg = 0;
+      var lastPack = null;
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      var beanRoastEndIdx = Math.max(0, cfg.beanRoastEnd - 1);
-      var pourSingleIdx = frames.length - 1;
 
       ctx.imageSmoothingEnabled = true;
       if('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
@@ -212,21 +185,10 @@
         }
         return c;
       }
-      function frameIndex(p){
-        if(!cfg.hasPack || p < cfg.packRiseStart){
-          var t = cfg.hasPack ? p / cfg.packRiseStart : p;
-          if(beanRoastEndIdx <= 0) return 0;
-          return Math.min(beanRoastEndIdx, Math.floor(t * (beanRoastEndIdx + 1)));
-        }
-        return pourSingleIdx;
-      }
-
-      function updatePourFall(pr){
-        if(!view) return;
-        var e = ease(clamp(pr));
-        var start = -Math.max(0.12, cfg.pourFall) * 100;
-        var y = start * (1 - e);
-        view.style.setProperty('--pour-y', y.toFixed(2) + '%');
+      function roastIndex(p){
+        var end = cfg.hasPack ? cfg.packRiseStart : 1;
+        var t = cfg.hasPack ? p / end : p;
+        return Math.min(N - 1, Math.floor(t * N));
       }
 
       function layoutPack(){
@@ -235,15 +197,6 @@
         var fullH = packImg.offsetHeight || packImg.naturalHeight;
         if(!fullH) return;
         packOuter.style.height = Math.round(fullH * vis) + 'px';
-        layoutPour();
-      }
-
-      function layoutPour(){
-        if(!view || !packOuter || lastPour !== true) return;
-        var packH = packOuter.offsetHeight;
-        if(!packH) return;
-        var overlap = packH * cfg.pourOverlap;
-        view.style.bottom = Math.round(packH - overlap) + 'px';
       }
 
       function size(){
@@ -253,38 +206,25 @@
         cv.height = Math.max(1, Math.round(r.height * dpr));
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         layoutPack();
-        if(ready) paint(cur < 0 ? 0 : cur, true, lastProg);
+        if(ready && cur >= 0) paint(cur, true);
       }
 
-      function paint(idx, force, p){
+      function paint(idx, force){
         if(idx === cur && !force) return;
         var im = imgs[idx];
         if(!im || !im.complete || !im.naturalWidth) return;
         cur = idx;
-        lastProg = p;
 
         var r = cv.getBoundingClientRect();
         var cw = r.width;
         var ch = r.height;
         var iw = im.naturalWidth;
         var ih = im.naturalHeight;
-        var inPour = cfg.hasPack && p >= cfg.packRiseStart;
-        var scale, dw, dh, dx, dy;
-
-        if(!inPour){
-          scale = Math.min(cw / iw, ch / ih);
-          dw = iw * scale;
-          dh = ih * scale;
-          dx = (cw - dw) * 0.5;
-          dy = (ch - dh) * 0.5;
-        } else {
-          var vis = Math.max(0.35, cfg.pourVisible);
-          scale = Math.max(cw / iw, (ch / vis) / ih) * cfg.pourScale;
-          dw = iw * scale;
-          dh = ih * scale;
-          dx = (cw - dw) * 0.5 + (cfg.pourOffsetX / 100) * cw;
-          dy = ch - dh;
-        }
+        var scale = Math.min(cw / iw, ch / ih);
+        var dw = iw * scale;
+        var dh = ih * scale;
+        var dx = (cw - dw) * 0.5;
+        var dy = (ch - dh) * 0.5;
 
         ctx.clearRect(0, 0, cw, ch);
         ctx.drawImage(im, dx, dy, dw, dh);
@@ -306,25 +246,22 @@
       function render(){
         pending = false;
         var p = reduce ? 1 : prog();
-        var inPour = cfg.hasPack && p >= cfg.packRiseStart;
-        var pourProgress = inPour ? clamp((p - cfg.packRiseStart) / (1 - cfg.packRiseStart)) : 0;
+        var inPack = cfg.hasPack && p >= cfg.packRiseStart;
 
-        if(inPour !== lastPour){
-          lastPour = inPour;
-          stage.classList.toggle('is-pour', inPour);
-          stage.classList.toggle('is-pouring', inPour);
-          cur = -1;
-          requestAnimationFrame(size);
+        if(inPack !== lastPack){
+          lastPack = inPack;
+          stage.classList.toggle('is-pack', inPack);
         }
 
-        paint(frameIndex(p), false, p);
+        if(!inPack){
+          paint(roastIndex(p), false);
+        }
+
         updatePack(p);
-        updatePourFall(pourProgress);
-        layoutPour();
 
         if(cap){
           cap.textContent = capFor(p);
-          cap.style.opacity = inPour ? '0' : '1';
+          cap.style.opacity = inPack ? '0' : '1';
         }
       }
 
@@ -381,7 +318,7 @@
   "tag": "section",
   "class": "section-coffee-bean-roast",
   "settings": [
-    { "type": "header", "content": "Frames (bean roast + single pour frame)" },
+    { "type": "header", "content": "Roast frames only (no pour frames)" },
     {
       "type": "select",
       "id": "frame_source",
@@ -401,23 +338,16 @@
     {
       "type": "number",
       "id": "frame_count",
-      "label": "Total frames",
-      "default": 111,
-      "info": "Contiguous frames: roast + 1 pour. No gaps. Match bean-frames-report.json."
-    },
-    {
-      "type": "number",
-      "id": "bean_roast_end",
-      "label": "Roast ends at frame",
+      "label": "Roast frame count",
       "default": 110,
-      "info": "Last roast frame. Frame (this + 1) is the single pour image."
+      "info": "Bean roast frames only. No pour frames in video."
     },
     { "type": "header", "content": "Pack image (upload)" },
     {
       "type": "image_picker",
       "id": "pack_image",
       "label": "Pack image (transparent PNG/WebP)",
-      "info": "Upload pack with transparent opening at top — coffee pours in behind it."
+      "info": "Rises from bottom after roast. No video frames run during pack phase."
     },
     {
       "type": "range",
@@ -426,7 +356,7 @@
       "min": 55,
       "max": 90,
       "step": 1,
-      "default": 72,
+      "default": 78,
       "unit": "%"
     },
     {
@@ -459,70 +389,6 @@
       "step": 20,
       "default": 520,
       "unit": "px"
-    },
-    { "type": "header", "content": "Pour alignment" },
-    {
-      "type": "range",
-      "id": "pour_viewport_height",
-      "label": "Pour window height",
-      "min": 28,
-      "max": 60,
-      "step": 1,
-      "default": 42,
-      "unit": "vh"
-    },
-    {
-      "type": "range",
-      "id": "pour_visible",
-      "label": "Pour crop (frame focus)",
-      "min": 35,
-      "max": 70,
-      "step": 1,
-      "default": 52,
-      "unit": "%",
-      "info": "Shows lower portion of frame where coffee stream falls."
-    },
-    {
-      "type": "range",
-      "id": "pour_scale",
-      "label": "Pour zoom",
-      "min": 85,
-      "max": 130,
-      "step": 1,
-      "default": 100,
-      "unit": "%"
-    },
-    {
-      "type": "range",
-      "id": "pour_fall_distance",
-      "label": "Pour fall distance",
-      "min": 10,
-      "max": 45,
-      "step": 1,
-      "default": 28,
-      "unit": "%",
-      "info": "How far the single pour frame drops into the pack during scroll."
-    },
-    {
-      "type": "range",
-      "id": "pour_overlap",
-      "label": "Canvas overlap into pack",
-      "min": 0,
-      "max": 35,
-      "step": 1,
-      "default": 12,
-      "unit": "%",
-      "info": "How far coffee canvas overlaps pack opening."
-    },
-    {
-      "type": "range",
-      "id": "pour_offset_x",
-      "label": "Pour horizontal nudge",
-      "min": -20,
-      "max": 20,
-      "step": 1,
-      "default": 0,
-      "unit": "%"
     },
     { "type": "header", "content": "Bean display" },
     {

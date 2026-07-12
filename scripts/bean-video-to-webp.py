@@ -337,18 +337,16 @@ def main() -> None:
     if args.clean_export:
         pour_src = args.pour_source_frame if args.pour_source_frame > 0 else pour_frame_start
         pour_src = max(1, min(len(kept), pour_src))
-        roast_frames = kept[:bean_roast_end]
-        pour_frame = kept[pour_src - 1]
-        kept = roast_frames + [pour_frame]
+        kept = kept[:bean_roast_end]
         n = len(kept)
-        pour_frame_start = n
-        bean_roast_end = n - 1
+        pour_frame_start = 0
+        bean_roast_end = n
         pour_skip_frames = []
-        pour_playback_frames = [n]
-        bean_frame_count = bean_roast_end
-        pour_frame_count = 1
+        pour_playback_frames = []
+        bean_frame_count = n
+        pour_frame_count = 0
         gap_frame_count = 0
-        print(f"Clean export: {bean_roast_end} roast + 1 pour = {n} contiguous frames")
+        print(f"Clean export: {n} roast-only frames (no pour frames)")
     else:
         pour_playback_frames = [
             i + 1 for i in range(pour_frame_start - 1, n) if (i + 1) not in pour_skip_frames
@@ -375,7 +373,7 @@ def main() -> None:
         "output_size": args.size,
         "pour_frame_start": pour_frame_start,
         "bean_roast_end": bean_roast_end,
-        "pour_single_frame": n if args.clean_export else pour_frame_start,
+        "pour_single_frame": 0,
         "bean_frame_count": bean_frame_count,
         "pour_frame_count": pour_frame_count,
         "pour_skip_frames": pour_skip_frames,

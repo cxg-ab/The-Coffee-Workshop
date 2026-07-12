@@ -1,20 +1,9 @@
 {
   "source": "/workspace/theme/assets/Mp4bean.mp4",
-  "raw_frames": 130,
-  "output_frames": 111,
-  "skipped_blank": 0,
-  "skipped_duplicate": 0,
-  "trimmed_duplicate_start": 0,
-  "output_size": 1440,
-  "pour_frame_start": 111,
+  "output_frames": 110,
   "bean_roast_end": 110,
-  "pour_single_frame": 111,
-  "bean_frame_count": 110,
-  "pour_frame_count": 1,
-  "pour_skip_frames": [],
-  "pour_playback_frames": [111],
-  "gap_frame_count": 0,
+  "pour_frame_count": 0,
   "clean_export": true,
-  "recommended_frame_count": 111,
+  "recommended_frame_count": 110,
   "recommended_scrub_vh": 280
 }
