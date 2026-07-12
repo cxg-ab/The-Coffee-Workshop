@@ -26,7 +26,8 @@
       "settings": {
         "frame_source": "assets",
         "custom_base": "https://your-cdn.com/bean-frames/",
-        "frame_count": 110,
+        "frame_count": 241,
+        "frame_stop": 192,
         "pack_rise_start": 78,
         "pack_visible": 75,
         "pack_width": 52,

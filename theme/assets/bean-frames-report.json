@@ -1,9 +1,10 @@
 {
   "source": "/workspace/theme/assets/Mp4bean.mp4",
-  "output_frames": 110,
-  "bean_roast_end": 110,
-  "pour_frame_count": 0,
-  "clean_export": true,
-  "recommended_frame_count": 110,
-  "recommended_scrub_vh": 280
+  "raw_frames": 241,
+  "output_frames": 241,
+  "pour_frame_start": 212,
+  "bean_roast_end": 192,
+  "recommended_frame_count": 241,
+  "recommended_frame_stop": 192,
+  "recommended_scrub_vh": 400
 }

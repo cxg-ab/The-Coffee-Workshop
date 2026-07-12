@@ -141,6 +141,7 @@
     captions: {{ section.settings.captions_json }},
     packRiseStart: {{ section.settings.pack_rise_start }} / 100,
     packVisible: {{ section.settings.pack_visible }} / 100,
+    frameStop: {{ section.settings.frame_stop }},
     hasPack: {{ has_pack_image | json }}
   };
 
@@ -167,6 +168,7 @@
       var pending = false;
       var lastPack = null;
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var stopIdx = Math.max(0, Math.min(N - 1, cfg.frameStop - 1));
 
       ctx.imageSmoothingEnabled = true;
       if('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
@@ -188,7 +190,8 @@
       function roastIndex(p){
         var end = cfg.hasPack ? cfg.packRiseStart : 1;
         var t = cfg.hasPack ? p / end : p;
-        return Math.min(N - 1, Math.floor(t * N));
+        if(stopIdx <= 0) return 0;
+        return Math.min(stopIdx, Math.floor(t * (stopIdx + 1)));
       }
 
       function layoutPack(){
@@ -318,7 +321,7 @@
   "tag": "section",
   "class": "section-coffee-bean-roast",
   "settings": [
-    { "type": "header", "content": "Roast frames only (no pour frames)" },
+    { "type": "header", "content": "Frames" },
     {
       "type": "select",
       "id": "frame_source",
@@ -338,16 +341,23 @@
     {
       "type": "number",
       "id": "frame_count",
-      "label": "Roast frame count",
+      "label": "Total frames (max)",
+      "default": 241,
+      "info": "All frames in theme assets (bean_001 to bean_N). Must match exported count."
+    },
+    {
+      "type": "number",
+      "id": "frame_stop",
+      "label": "Stop frames at",
       "default": 110,
-      "info": "Bean roast frames only. No pour frames in video."
+      "info": "Last frame to show before pack rises. Lower = stop roast earlier. Max = frame count."
     },
     { "type": "header", "content": "Pack image (upload)" },
     {
       "type": "image_picker",
       "id": "pack_image",
       "label": "Pack image (transparent PNG/WebP)",
-      "info": "Rises from bottom after roast. No video frames run during pack phase."
+      "info": "Rises after frame stop point. No frames play during pack phase."
     },
     {
       "type": "range",

@@ -380,6 +380,7 @@ def main() -> None:
         "pour_playback_frames": pour_playback_frames,
         "gap_frame_count": gap_frame_count,
         "clean_export": args.clean_export,
+        "recommended_frame_stop": bean_roast_end if args.clean_export else min(bean_roast_end, n),
         "recommended_frame_count": n,
         "recommended_scrub_vh": max(280, min(400, int(n * 2.5))),
     }
