@@ -1,11 +1,17 @@
 {%- comment -%}
   Coffee Bean Roast — scroll scrub frames (bean_001..bean_N).
   Stop frame setting chooses last frame shown during scroll.
+  Final scroll phase can reveal products from a chosen collection.
 {%- endcomment -%}
 
 {%- assign sid = section.id -%}
 {%- assign total_frames = section.settings.frame_count -%}
 {%- assign mobile_scrub_vh = section.settings.scrub_vh | times: 0.5 | round -%}
+{%- assign featured_collection = section.settings.collection -%}
+{%- assign has_products = false -%}
+{%- if featured_collection != blank and featured_collection.products_count > 0 -%}
+  {%- assign has_products = true -%}
+{%- endif -%}
 
 <style>
   #beanRoast-{{ sid }}{
@@ -67,9 +73,54 @@
     font-size:.75rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
     color:rgba(28,25,23,.55);pointer-events:none;z-index:4;
   }
+  #beanRoast-{{ sid }} .br-bean-layer{
+    position:relative;z-index:2;display:flex;align-items:flex-end;justify-content:center;
+    width:100%;height:100%;will-change:opacity;
+  }
+  #beanRoast-{{ sid }} .br-products{
+    position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;
+    padding:10vh 0 6vh;opacity:0;pointer-events:none;will-change:opacity;
+  }
+  #beanRoast-{{ sid }} .br-products.is-active{pointer-events:auto}
+  #beanRoast-{{ sid }} .br-products-inner{width:100%;max-width:1280px;padding:0 16px}
+  #beanRoast-{{ sid }} .br-products-head{
+    display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;
+    margin-bottom:1.25rem;
+  }
+  #beanRoast-{{ sid }} .br-products-grid{
+    display:grid;gap:1rem;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  @media (min-width: 1024px) {
+    #beanRoast-{{ sid }} .br-products{padding:12vh 0 8vh}
+    #beanRoast-{{ sid }} .br-products-inner{padding:0 24px}
+    #beanRoast-{{ sid }} .br-products-head{margin-bottom:1.75rem}
+    #beanRoast-{{ sid }} .br-products-grid{
+      gap:1.5rem;
+      grid-template-columns:repeat({{ section.settings.product_limit }},minmax(0,1fr));
+    }
+    #beanRoast-{{ sid }} .br-products .product-card > a{aspect-ratio:4/3}
+    #beanRoast-{{ sid }} .br-products .product-card > div:last-child{padding:1rem 1.25rem}
+    #beanRoast-{{ sid }} .br-products .product-card .font-display{font-size:1rem}
+  }
+  @media (max-width: 768px) {
+    #beanRoast-{{ sid }} .br-bean-layer{align-items:center}
+    #beanRoast-{{ sid }} .br-products{
+      align-items:flex-end;padding:8vh 0 5vh;
+    }
+    #beanRoast-{{ sid }} .br-products-grid{
+      display:flex;overflow-x:auto;scroll-snap-type:x mandatory;
+      gap:.75rem;padding-bottom:.5rem;-webkit-overflow-scrolling:touch;
+    }
+    #beanRoast-{{ sid }} .br-products-grid > *{
+      flex:0 0 min(72vw,280px);scroll-snap-align:start;
+    }
+  }
   @media (prefers-reduced-motion: reduce){
     #beanRoast-{{ sid }} .br-track{height:auto}
     #beanRoast-{{ sid }} .br-stage{position:static;height:auto;padding:14vh 0}
+    #beanRoast-{{ sid }} .br-products{position:static;opacity:1;pointer-events:auto;padding:2rem 0 0}
+    #beanRoast-{{ sid }} .br-bean-layer{display:none}
   }
 </style>
 
@@ -77,20 +128,54 @@
   <div class="br-track" data-br-track>
     <div class="br-stage" data-br-stage>
       {%- if section.settings.heading != blank or section.settings.subheading != blank -%}
-      <div class="br-head">
+      <div class="br-head" data-br-head>
         {% if section.settings.heading != blank %}<h2 class="font-display font-bold text-4xl lg:text-6xl text-ink leading-[1.05] tracking-tight">{{ section.settings.heading }}</h2>{% endif %}
         {% if section.settings.subheading != blank %}<p class="prose-brand mt-4">{{ section.settings.subheading }}</p>{% endif %}
       </div>
       {%- endif -%}
 
-      <div class="br-view" data-br-view>
-        <canvas class="br-canvas" data-br-canvas aria-hidden="true"></canvas>
-        <div class="br-loader text-brand font-semibold tracking-widest text-xs uppercase opacity-50" data-br-loader>Loading 0%</div>
+      <div class="br-bean-layer" data-br-bean-layer>
+        <div class="br-view" data-br-view>
+          <canvas class="br-canvas" data-br-canvas aria-hidden="true"></canvas>
+          <div class="br-loader text-brand font-semibold tracking-widest text-xs uppercase opacity-50" data-br-loader>Loading 0%</div>
+        </div>
+
+        {% if section.settings.show_caption %}
+          <div class="br-caption" data-br-caption>Green</div>
+        {% endif %}
       </div>
 
-      {% if section.settings.show_caption %}
-        <div class="br-caption" data-br-caption>Green</div>
-      {% endif %}
+      {%- if has_products -%}
+      <div class="br-products" data-br-products aria-hidden="true">
+        <div class="br-products-inner">
+          <div class="br-products-head">
+            <div>
+              {%- if section.settings.products_heading != blank -%}
+                <h3 class="font-display font-bold text-2xl lg:text-4xl text-ink leading-tight tracking-tight">{{ section.settings.products_heading }}</h3>
+              {%- endif -%}
+              {%- if section.settings.products_subheading != blank -%}
+                <p class="prose-brand mt-2 text-sm lg:text-base">{{ section.settings.products_subheading }}</p>
+              {%- endif -%}
+            </div>
+            {%- if section.settings.products_cta_label != blank -%}
+              <a href="{{ featured_collection.url }}" class="hidden sm:inline-flex shrink-0 text-xs font-bold uppercase tracking-[0.15em] text-brand border-b border-brand/40 pb-0.5 hover:text-ink transition-colors">
+                {{ section.settings.products_cta_label }}
+              </a>
+            {%- endif -%}
+          </div>
+          <div class="br-products-grid">
+            {%- for product in featured_collection.products limit: section.settings.product_limit -%}
+              {% render 'product-card', card_product: product %}
+            {%- endfor -%}
+          </div>
+          {%- if section.settings.products_cta_label != blank -%}
+            <a href="{{ featured_collection.url }}" class="sm:hidden mt-4 inline-flex text-xs font-bold uppercase tracking-[0.15em] text-brand">
+              {{ section.settings.products_cta_label }} →
+            </a>
+          {%- endif -%}
+        </div>
+      </div>
+      {%- endif -%}
     </div>
   </div>
 </section>
@@ -117,7 +202,9 @@
     root: document.getElementById('beanRoast-{{ sid }}'),
     frames: frames,
     captions: {{ section.settings.captions_json }},
-    frameStop: {{ section.settings.frame_stop }}
+    frameStop: {{ section.settings.frame_stop }},
+    revealStart: {{ section.settings.reveal_start }} / 100,
+    hasProducts: {{ has_products | json }}
   };
 
   if(!window.__beanRoastClean){
@@ -130,6 +217,10 @@
       var load = root.querySelector('[data-br-loader]');
       var cv = root.querySelector('[data-br-canvas]');
       var ctx = cv.getContext('2d', { alpha: true });
+      var head = root.querySelector('[data-br-head]');
+      var beanLayer = root.querySelector('[data-br-bean-layer]');
+      var products = root.querySelector('[data-br-products]');
+      var revealStart = cfg.hasProducts ? Math.min(0.95, Math.max(0.5, cfg.revealStart || 0.82)) : 1;
 
       var N = cfg.frames.length;
       var imgs = new Array(N);
@@ -183,6 +274,33 @@
         if(stopIdx <= 0) return 0;
         return Math.min(stopIdx, Math.floor(p * (stopIdx + 1)));
       }
+      function beanProgress(p){
+        if(revealStart >= 1) return p;
+        return Math.min(1, p / revealStart);
+      }
+      function updateReveal(p){
+        if(!cfg.hasProducts || revealStart >= 1) return;
+
+        if(p < revealStart){
+          if(beanLayer) beanLayer.style.opacity = '1';
+          if(head) head.style.opacity = '1';
+          if(products){
+            products.style.opacity = '0';
+            products.classList.remove('is-active');
+            products.setAttribute('aria-hidden', 'true');
+          }
+          return;
+        }
+
+        var fadeP = (p - revealStart) / (1 - revealStart);
+        if(beanLayer) beanLayer.style.opacity = String(1 - fadeP);
+        if(head) head.style.opacity = String(Math.max(0, 1 - fadeP * 1.4));
+        if(products){
+          products.style.opacity = String(fadeP);
+          products.classList.toggle('is-active', fadeP > 0.35);
+          products.setAttribute('aria-hidden', fadeP > 0.35 ? 'false' : 'true');
+        }
+      }
 
       function size(){
         var dpr = Math.min(devicePixelRatio || 1, maxDpr());
@@ -198,7 +316,7 @@
         var im = new Image();
         im.decoding = 'async';
         im.onload = im.onerror = function(){
-          if(ready) paint(roastIndex(prog()), true);
+          if(ready) paint(roastIndex(beanProgress(prog())), true);
         };
         im.src = cfg.frames[i];
         imgs[i] = im;
@@ -231,8 +349,17 @@
       function render(){
         pending = false;
         var p = reduce ? 1 : prog();
-        paint(roastIndex(p), false);
-        if(cap) cap.textContent = capFor(p);
+        var beanP = beanProgress(p);
+
+        if(cfg.hasProducts && p >= revealStart){
+          paint(stopIdx, false);
+          if(cap) cap.textContent = capFor(1);
+        } else {
+          paint(roastIndex(beanP), false);
+          if(cap) cap.textContent = capFor(beanP);
+        }
+
+        updateReveal(p);
       }
 
       function onScroll(){
@@ -406,7 +533,37 @@
     },
     { "type": "header", "content": "Text" },
     { "type": "text", "id": "heading", "label": "Heading", "default": "Roasted to order" },
-    { "type": "text", "id": "subheading", "label": "Subheading", "default": "Watch it develop as you scroll" }
+    { "type": "text", "id": "subheading", "label": "Subheading", "default": "Watch it develop as you scroll" },
+    { "type": "header", "content": "Product reveal" },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection",
+      "info": "Products shown at the end of the roast scroll (e.g. Exotic)."
+    },
+    {
+      "type": "range",
+      "id": "product_limit",
+      "label": "Products to show",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "reveal_start",
+      "label": "Reveal starts at",
+      "min": 70,
+      "max": 92,
+      "step": 1,
+      "default": 82,
+      "unit": "%",
+      "info": "Scroll progress when bean fades out and product cards fade in."
+    },
+    { "type": "text", "id": "products_heading", "label": "Products heading", "default": "Try something exotic" },
+    { "type": "text", "id": "products_subheading", "label": "Products subheading", "default": "Rare micro-lots, roasted to order" },
+    { "type": "text", "id": "products_cta_label", "label": "View all label", "default": "View all exotic" }
   ],
   "presets": [{ "name": "Coffee Bean Roast" }]
 }
