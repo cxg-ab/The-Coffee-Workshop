@@ -1,8 +1,3 @@
-{%- liquid
-  assign free_shipping_threshold = 30000
-  assign remaining = free_shipping_threshold | minus: cart.total_price
--%}
-
 <div
   class="pointer-events-none fixed inset-0 z-[60] bg-ink/40 opacity-0 transition-opacity duration-300"
   data-cart-overlay
@@ -34,13 +29,9 @@
     </button>
   </div>
 
-  {%- if cart.total_price < free_shipping_threshold and cart.item_count > 0 -%}
+  {%- if cart.item_count > 0 -%}
     <div class="border-b border-line bg-canvas px-6 py-3 text-xs text-muted">
-      {{ 'cart.free_shipping_remaining' | t: amount: remaining | money }}
-    </div>
-  {%- elsif cart.item_count > 0 -%}
-    <div class="border-b border-line bg-canvas px-6 py-3 text-xs text-brand">
-      {{ 'cart.free_shipping_qualified' | t }}
+      {{ 'cart.flat_shipping_note' | t }}
     </div>
   {%- endif -%}
 

@@ -1,6 +1,26 @@
+<style>
+  /* Mobile-centered logo: written as plain CSS, not Tailwind utility
+     classes, because this theme's Tailwind build is precompiled — new
+     utility combinations (e.g. left-1/2 + -translate-x-1/2) that weren't
+     already present elsewhere in the theme have no generated CSS and
+     silently do nothing. */
+  .tcw-header__mobile-logo {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+  }
+  @media (min-width: 1024px) {
+    .tcw-header__mobile-logo {
+      display: none;
+    }
+  }
+</style>
+
 <header class="tcw-header sticky top-0 z-50 border-b border-line bg-white/95 backdrop-blur-md transition-shadow duration-300" data-header>
   <div class="site-container">
-    <div class="tcw-header__inner flex h-20 items-center justify-between gap-4 lg:h-24" data-header-inner>
+    <div class="tcw-header__inner relative flex h-20 items-center justify-between gap-4 lg:h-24" data-header-inner>
       <div class="flex items-center gap-4 lg:gap-8">
         <button
           type="button"
@@ -15,6 +35,16 @@
           </svg>
         </button>
 
+        <!-- Desktop: logo sits inline next to the (hidden-on-desktop) hamburger slot -->
+        <div class="hidden lg:block">
+          {% render 'logo', loading: 'eager' %}
+        </div>
+      </div>
+
+      <!-- Mobile: logo is absolutely centered in the header bar via the
+           plain-CSS class above — stays centered regardless of how wide
+           the hamburger or the icon group on the right are. -->
+      <div class="tcw-header__mobile-logo">
         {% render 'logo', loading: 'eager' %}
       </div>
 
@@ -32,7 +62,7 @@
 
         <a
           href="{{ routes.account_url }}"
-          class="hidden h-10 w-10 items-center justify-center text-ink transition-colors hover:text-brand sm:inline-flex"
+          class="inline-flex h-10 w-10 items-center justify-center text-ink transition-colors hover:text-brand"
           aria-label="{{ 'header.account' | t }}"
         >
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -68,7 +98,6 @@
         link_class: 'nav-link block py-3',
         fallback: 'main'
       %}
-      <a href="{{ routes.account_url }}" class="nav-link block py-3">{{ 'header.account' | t }}</a>
     </nav>
   </div>
 </header>
@@ -78,12 +107,7 @@
   "name": "Header",
   "class": "header-section",
   "settings": [
-    {
-      "type": "link_list",
-      "id": "menu",
-      "label": "Main menu",
-      "default": "main-menu"
-    }
+    { "type": "link_list", "id": "menu", "label": "Main menu", "default": "main-menu" }
   ]
 }
 {% endschema %}

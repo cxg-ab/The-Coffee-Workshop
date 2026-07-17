@@ -15,7 +15,7 @@
       "blocks": {
         "q1": { "type": "question", "settings": { "question": "Do you ship across the UAE?", "answer": "Yes. We ship within the United Arab Emirates. Free shipping on orders over AED 300." }},
         "q2": { "type": "question", "settings": { "question": "Where is The Coffee Workshop located?", "answer": "Al Nahdah St, Dafan Al Khor, Ras Al Khaimah, UAE. Phone: +971 7 222 4466." }},
-        "q3": { "type": "question", "settings": { "question": "Do you offer subscriptions?", "answer": "Yes. Single bean or rotating selection. Monthly or bi-weekly. Save 10% as a subscriber." }},
+        "q3": { "type": "question", "settings": { "question": "How fresh is the coffee?", "answer": "We roast in small batches in Ras Al Khaimah. Beans ship soon after roasting so you receive peak flavor — check each product for roast details." }},
         "q4": { "type": "question", "settings": { "question": "What payment methods do you accept?", "answer": "Apple Pay, Google Pay, and Cash on Delivery (UAE)." }},
         "q5": { "type": "question", "settings": { "question": "How should I store my beans?", "answer": "Keep beans in an airtight container away from heat, light, and moisture. Use within 2–4 weeks of roast date for best flavor." }}
       },

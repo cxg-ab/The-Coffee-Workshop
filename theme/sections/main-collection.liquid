@@ -1,51 +1,232 @@
-<div class="collection-header relative overflow-hidden bg-surface py-24 lg:py-32 border-b border-line">
+<style>
+  .plp-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .plp-sort__label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-muted, #6B6B6B);
+  }
+  .plp-sort__select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--color-line, #E8E4DC);
+    padding: 0.35rem 1.4rem 0.35rem 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink, #1A1A1A);
+    cursor: pointer;
+    transition: border-color 0.25s ease;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238B5E3C' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right center;
+  }
+  [dir="rtl"] .plp-sort__select {
+    padding: 0.35rem 0 0.35rem 1.4rem;
+    background-position: left center;
+  }
+  .plp-sort__select:hover,
+  .plp-sort__select:focus-visible {
+    border-color: var(--color-brand, #8B5E3C);
+    outline: none;
+  }
+
+  .plp-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 5rem;
+  }
+  .plp-pagination__item,
+  .plp-pagination__arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.75rem;
+    height: 2.75rem;
+    padding: 0 0.9rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-ink, #1A1A1A);
+    border: 1px solid transparent;
+    transition: border-color 0.25s ease, color 0.25s ease, background-color 0.25s ease;
+  }
+  .plp-pagination__item:hover,
+  .plp-pagination__arrow:hover {
+    border-color: var(--color-line, #E8E4DC);
+    color: var(--color-brand, #8B5E3C);
+  }
+  .plp-pagination__item.is-current {
+    background: var(--color-ink, #1A1A1A);
+    color: #fff;
+    pointer-events: none;
+  }
+  .plp-pagination__arrow.is-disabled {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+  .plp-pagination__chevron {
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+  [dir="rtl"] .plp-pagination__chevron {
+    transform: scaleX(-1);
+  }
+  .plp-pagination__gap {
+    min-width: 1.5rem;
+    text-align: center;
+    color: var(--color-muted, #6B6B6B);
+    font-size: 0.7rem;
+  }
+</style>
+
+{%- assign per_page = section.settings.products_per_page | default: 12 -%}
+{%- paginate collection.products by per_page -%}
+
+<div class="collection-header relative overflow-hidden bg-surface py-28 lg:py-36 border-b border-line">
   <div class="hero-clip absolute inset-0 z-0 opacity-60">
     {% render 'hero-arabic-bg' %}
   </div>
-  
+
   <div class="site-container relative z-10 text-center">
-    <p class="section-eyebrow mb-6 inline-block px-4 py-1 border border-brand/30 text-brand rounded-full bg-brand/5 backdrop-blur-sm" data-reveal>
-      Shop Our Coffee
+    <p class="section-eyebrow mb-6" data-reveal data-reveal-y="24" data-reveal-scale="1">
+      {{ 'collections.shop_eyebrow' | t }}
     </p>
-    <h1 class="hero-heading text-5xl lg:text-7xl mb-6 tracking-tight" data-reveal>{{ collection.title }}</h1>
-    
+    <h1 class="hero-heading text-5xl lg:text-7xl mb-6 tracking-tight" data-split-title>{{ collection.title }}</h1>
+
     {%- if collection.description != blank -%}
-      <div class="prose-brand mx-auto max-w-2xl text-muted/90 text-lg lg:text-xl font-light leading-relaxed" data-reveal>
+      <div class="prose-brand mx-auto max-w-2xl text-lg lg:text-xl font-light leading-relaxed" data-reveal data-reveal-y="28" data-reveal-scale="1" data-reveal-delay="0.15">
         {{ collection.description }}
       </div>
     {%- endif -%}
   </div>
 </div>
 
-<div class="site-container py-16 lg:py-24">
-  <div class="flex items-center justify-between mb-12 border-b border-line/30 pb-6" data-reveal>
+<div class="site-container py-20 lg:py-28">
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-16 border-b border-line pb-6" data-reveal data-reveal-y="24" data-reveal-scale="1">
     <p class="text-xs font-bold tracking-[0.15em] uppercase text-muted">
-      {{ collection.products_count }} {{ 'collections.products' | t | default: 'Products' }}
+      {{ 'collections.products_count' | t: count: collection.products_count }}
     </p>
+
+    {%- if collection.products_count > 1 -%}
+      {%- assign current_sort = collection.sort_by | default: collection.default_sort_by -%}
+      <form class="plp-sort" data-plp-sort>
+        <label class="plp-sort__label" for="plp-sort-select">{{ 'collections.sort' | t }}</label>
+        <select id="plp-sort-select" name="sort_by" class="plp-sort__select" aria-label="{{ 'collections.sort' | t }}">
+          <option value="manual" {% if current_sort == 'manual' %}selected{% endif %}>{{ 'collections.sort_featured' | t }}</option>
+          <option value="best-selling" {% if current_sort == 'best-selling' %}selected{% endif %}>{{ 'collections.sort_best_selling' | t }}</option>
+          <option value="title-ascending" {% if current_sort == 'title-ascending' %}selected{% endif %}>{{ 'collections.sort_az' | t }}</option>
+          <option value="title-descending" {% if current_sort == 'title-descending' %}selected{% endif %}>{{ 'collections.sort_za' | t }}</option>
+          <option value="price-ascending" {% if current_sort == 'price-ascending' %}selected{% endif %}>{{ 'collections.sort_price_low' | t }}</option>
+          <option value="price-descending" {% if current_sort == 'price-descending' %}selected{% endif %}>{{ 'collections.sort_price_high' | t }}</option>
+          <option value="created-descending" {% if current_sort == 'created-descending' %}selected{% endif %}>{{ 'collections.sort_newest' | t }}</option>
+          <option value="created-ascending" {% if current_sort == 'created-ascending' %}selected{% endif %}>{{ 'collections.sort_oldest' | t }}</option>
+        </select>
+      </form>
+    {%- endif -%}
   </div>
 
   {%- if collection.products.size > 0 -%}
-    <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div class="grid gap-x-10 gap-y-20 sm:grid-cols-2 lg:grid-cols-3">
       {%- for product in collection.products -%}
-        <div data-reveal style="transition-delay: {{ forloop.index0 | times: 100 }}ms;">
-          {% render 'product-card', card_product: product %}
-        </div>
+        {% render 'product-card', card_product: product %}
       {%- endfor -%}
     </div>
+
+    {%- if paginate.pages > 1 -%}
+      <nav class="plp-pagination" role="navigation" aria-label="{{ 'collections.pagination_page' | t: number: paginate.current_page }}">
+        {%- if paginate.previous -%}
+          <a href="{{ paginate.previous.url }}" class="plp-pagination__arrow" aria-label="{{ 'collections.pagination_previous' | t }}">
+            <svg class="plp-pagination__chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </a>
+        {%- else -%}
+          <span class="plp-pagination__arrow is-disabled" aria-hidden="true">
+            <svg class="plp-pagination__chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </span>
+        {%- endif -%}
+
+        {%- for part in paginate.parts -%}
+          {%- if part.is_link -%}
+            <a href="{{ part.url }}" class="plp-pagination__item" aria-label="{{ 'collections.pagination_page' | t: number: part.title }}">{{ part.title }}</a>
+          {%- elsif part.title == paginate.current_page -%}
+            <span class="plp-pagination__item is-current" aria-current="page">{{ part.title }}</span>
+          {%- else -%}
+            <span class="plp-pagination__gap">{{ part.title }}</span>
+          {%- endif -%}
+        {%- endfor -%}
+
+        {%- if paginate.next -%}
+          <a href="{{ paginate.next.url }}" class="plp-pagination__arrow" aria-label="{{ 'collections.pagination_next' | t }}">
+            <svg class="plp-pagination__chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        {%- else -%}
+          <span class="plp-pagination__arrow is-disabled" aria-hidden="true">
+            <svg class="plp-pagination__chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
+        {%- endif -%}
+      </nav>
+    {%- endif -%}
   {%- else -%}
-    <div class="border border-line bg-surface/30 px-8 py-32 text-center rounded-2xl backdrop-blur-sm">
-      <p class="text-2xl text-muted font-light mb-8">No products found in this collection.</p>
+    <div class="brand-card px-8 py-24 text-center">
+      <p class="text-2xl text-muted font-light mb-8">{{ 'collections.empty' | t }}</p>
       <a href="{{ routes.all_products_collection_url }}" class="btn-primary inline-flex items-center px-10 py-4 text-sm tracking-widest uppercase font-bold">
-        Continue Shopping
+        {{ 'general.continue_shopping' | t }}
       </a>
     </div>
   {%- endif -%}
 </div>
 
+{%- endpaginate -%}
+
+<script>
+  (function () {
+    var form = document.querySelector('[data-plp-sort]');
+    if (!form) return;
+    var select = form.querySelector('select[name="sort_by"]');
+    if (!select) return;
+
+    select.addEventListener('change', function () {
+      var url = new URL(window.location.href);
+      url.searchParams.set('sort_by', select.value);
+      url.searchParams.delete('page');
+      window.location.href = url.toString();
+    });
+  })();
+</script>
+
 {% schema %}
 {
   "name": "Collection",
   "class": "collection-section",
-  "settings": []
+  "settings": [
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "Products per page",
+      "min": 6,
+      "max": 24,
+      "step": 3,
+      "default": 12
+    }
+  ]
 }
 {% endschema %}

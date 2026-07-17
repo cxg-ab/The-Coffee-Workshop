@@ -1,130 +1,112 @@
 {%- comment -%}
-  Coffee Bean Roast — scroll-scrubbed frame sequence
-  ---------------------------------------------------
-  A single coffee bean roasts (green -> roasted) as the visitor scrolls,
-  pinned in the middle of the section. Frames are a transparent-PNG/WebP
-  image sequence, pre-decoded and painted to a <canvas> for lag-free scrub.
-
-  FRAMES
-  Files must be named:  bean_001.webp ... bean_133.webp  (zero-padded to 3 digits)
-  Load them one of two ways (set "Frame source" in the theme editor):
-    1) Theme assets  -> upload every bean_XXX.webp into your theme's /assets folder
-    2) Custom URL    -> host the folder anywhere and give the base URL
-                       (e.g. Shopify Files / a CDN). URLs become:
-                       {base}bean_001.webp, {base}bean_002.webp, ...
+  Coffee Bean Roast — scroll scrub frames (bean_001..bean_N).
+  Stop frame setting chooses last frame shown during scroll.
 {%- endcomment -%}
 
 {%- assign sid = section.id -%}
-{%- assign count = section.settings.frame_count -%}
+{%- assign total_frames = section.settings.frame_count -%}
+{%- assign mobile_scrub_vh = section.settings.scrub_vh | times: 0.5 | round -%}
 
 <style>
   #beanRoast-{{ sid }}{
     --scrub-vh: {{ section.settings.scrub_vh }};
-    --bean-max: {{ section.settings.bean_size }}px;
+    --bean-w: {{ section.settings.bean_width }}%;
+    --bean-h: {{ section.settings.bean_height }}vh;
+    --bean-max-w: {{ section.settings.bean_max_width }}px;
+    --bean-max-h: {{ section.settings.bean_max_height }}px;
+  }
+  @media (max-width: 768px) {
+    #beanRoast-{{ sid }} { --scrub-vh: {{ mobile_scrub_vh }}; }
+    #beanRoast-{{ sid }} .br-stage{
+      align-items:center;
+      justify-content:center;
+      padding:11vh 0 9vh;
+    }
+    #beanRoast-{{ sid }} .br-head{
+      top:4vh;
+      padding:0 16px;
+    }
+    #beanRoast-{{ sid }} .br-view{
+      width:min(82vw, var(--bean-w), 96vw);
+      height:min(50vh, var(--bean-h), 58vh);
+      margin:0 auto;
+      flex:0 0 auto;
+    }
+    #beanRoast-{{ sid }} .br-caption{
+      bottom:5vh;
+    }
   }
   #beanRoast-{{ sid }} .br-track{position:relative;height:calc(var(--scrub-vh) * 1vh)}
   #beanRoast-{{ sid }} .br-stage{
-    position:sticky;top:0;height:100vh;
-    display:flex;align-items:center;justify-content:center;
-    perspective:1200px;overflow:hidden;
+    position:sticky;top:0;height:65vh;
+    display:flex;align-items:flex-end;justify-content:center;
+    overflow:hidden;
   }
-  #beanRoast-{{ sid }} .br-glow{
-    position:absolute;width:min(78vmin,640px);aspect-ratio:1;border-radius:50%;
-    background:radial-gradient(circle at 50% 55%,
-      rgba(255,150,54,.55) 0%, rgba(214,64,18,.28) 38%, rgba(60,20,6,0) 70%);
-    filter:blur(6px);opacity:0;transform:scale(.7);pointer-events:none;
-  }
-  #beanRoast-{{ sid }} .br-wrap{
-    position:relative;width:min(60vmin,var(--bean-max));aspect-ratio:1;
-    transform-style:preserve-3d;will-change:transform;
-  }
-  #beanRoast-{{ sid }} .br-canvas{width:100%;height:100%;display:block;will-change:filter}
   #beanRoast-{{ sid }} .br-head{
-    position:absolute;left:0;right:0;top:12vh;text-align:center;padding:0 24px;
-    pointer-events:none;
+    position:absolute;left:0;right:0;top:5vh;text-align:center;padding:0 24px;
+    pointer-events:none;z-index:4;
   }
-  #beanRoast-{{ sid }} .br-caption{
-    position:absolute;left:0;right:0;bottom:8vh;text-align:center;
+  #beanRoast-{{ sid }} .br-view{
+    position:relative;z-index:2;
+    width:min(var(--bean-w), var(--bean-max-w), 96vw);
+    height:min(var(--bean-h), var(--bean-max-h), 58vh);
+    flex:0 0 auto;
+    border:none;outline:none;box-shadow:none;background:transparent;
+  }
+  #beanRoast-{{ sid }} .br-canvas{
+    width:100%;height:100%;display:block;
+    background:transparent;border:none;outline:none;box-shadow:none;
+    filter:none;
   }
   #beanRoast-{{ sid }} .br-loader{
     position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    pointer-events:none;
   }
-  
-  /* --- NEW: Side Block Styles --- */
-  #beanRoast-{{ sid }} .br-side-block {
-    position: absolute;
-    right: 5%;
-    width: 40%;
-    max-width: 500px;
-    opacity: 0;
-    transform: translateY(40px);
-    will-change: transform, opacity;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    pointer-events: none; /* enabled via JS during phase 2 */
+  #beanRoast-{{ sid }} .br-caption{
+    position:absolute;left:0;right:0;bottom:7vh;text-align:center;
+    font-size:.75rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+    color:rgba(28,25,23,.55);pointer-events:none;z-index:4;
   }
-  
-  @media (max-width: 768px) {
-    #beanRoast-{{ sid }} .br-side-block {
-      right: 5%;
-      width: 90%;
-      text-align: center;
-      align-items: center;
-      top: 60%;
-    }
-  }
-
   @media (prefers-reduced-motion: reduce){
     #beanRoast-{{ sid }} .br-track{height:auto}
     #beanRoast-{{ sid }} .br-stage{position:static;height:auto;padding:14vh 0}
-    #beanRoast-{{ sid }} .br-side-block { opacity: 1; transform: none; position: relative; width: 100%; right: 0; pointer-events: auto; text-align: center; align-items: center; padding: 2rem 5%; }
   }
 </style>
 
-<section id="beanRoast-{{ sid }}" class="coffee-bean-roast bg-[#E6D095]">
+<section id="beanRoast-{{ sid }}" class="coffee-bean-roast bg-white">
   <div class="br-track" data-br-track>
-    <div class="br-stage">
-      {% if section.settings.glow %}<div class="br-glow" data-br-glow></div>{% endif %}
-
+    <div class="br-stage" data-br-stage>
       {%- if section.settings.heading != blank or section.settings.subheading != blank -%}
       <div class="br-head">
-        {% if section.settings.heading != blank %}<h2 class="font-display font-bold text-4xl lg:text-6xl text-ink leading-[1.05] tracking-tight">{{ section.settings.heading }}</h2>{% endif %}
+        {% if section.settings.heading != blank %}<h2 class="font-display font-bold text-4xl lg:text-6xl text-ink leading-[1.05] tracking-tight" data-split-title>{{ section.settings.heading }}</h2>{% endif %}
         {% if section.settings.subheading != blank %}<p class="prose-brand mt-4">{{ section.settings.subheading }}</p>{% endif %}
       </div>
       {%- endif -%}
 
-      <div class="br-wrap" data-br-wrap>
-        <canvas class="br-canvas" data-br-canvas></canvas>
+      <div class="br-view" data-br-view>
+        <canvas class="br-canvas" data-br-canvas aria-hidden="true"></canvas>
         <div class="br-loader text-brand font-semibold tracking-widest text-xs uppercase opacity-50" data-br-loader>Loading 0%</div>
       </div>
 
-      <div class="br-side-block" data-br-side>
-        {% if section.settings.side_heading != blank %}<h3 class="font-display font-bold text-4xl lg:text-6xl text-ink leading-[1.1] tracking-tight">{{ section.settings.side_heading }}</h3>{% endif %}
-        {% if section.settings.side_text != blank %}<p class="prose-brand mt-6 mb-8">{{ section.settings.side_text }}</p>{% endif %}
-        {% if section.settings.side_btn_label != blank and section.settings.side_btn_link != blank %}
-          <a href="{{ section.settings.side_btn_link }}" class="btn-primary self-center md:self-start">{{ section.settings.side_btn_label }}</a>
-        {% endif %}
-      </div>
-
-      {% if section.settings.show_caption %}<div class="br-caption text-brand font-semibold tracking-widest text-xs uppercase" data-br-caption>Green</div>{% endif %}
+      {% if section.settings.show_caption %}
+        <div class="br-caption" data-br-caption>Green</div>
+      {% endif %}
     </div>
   </div>
 </section>
 
 <script>
 (function(){
-  // ---- Build frame URL list for THIS section ----
   var frames = [
   {%- if section.settings.frame_source == 'assets' -%}
-    {%- for i in (1..count) -%}
+    {%- for i in (1..total_frames) -%}
       {%- capture p -%}{%- if i < 10 -%}00{{ i }}{%- elsif i < 100 -%}0{{ i }}{%- else -%}{{ i }}{%- endif -%}{%- endcapture -%}
       {%- capture fname -%}bean_{{ p }}.webp{%- endcapture -%}
       "{{ fname | asset_url }}"{% unless forloop.last %},{% endunless %}
     {%- endfor -%}
   {%- else -%}
     {%- assign base = section.settings.custom_base | strip -%}
-    {%- for i in (1..count) -%}
+    {%- for i in (1..total_frames) -%}
       {%- capture p -%}{%- if i < 10 -%}00{{ i }}{%- elsif i < 100 -%}0{{ i }}{%- else -%}{{ i }}{%- endif -%}{%- endcapture -%}
       "{{ base }}bean_{{ p }}.webp"{% unless forloop.last %},{% endunless %}
     {%- endfor -%}
@@ -134,96 +116,240 @@
   var cfg = {
     root: document.getElementById('beanRoast-{{ sid }}'),
     frames: frames,
-    glow: {{ section.settings.glow }},
-    captions: {{ section.settings.captions_json }}
+    captions: {{ section.settings.captions_json }},
+    frameStop: {{ section.settings.frame_stop }}
   };
 
-  // ---- Shared engine (defined once, reused by every instance) ----
-  if(!window.__beanRoast){
-    window.__beanRoast = function(cfg){
-      var root=cfg.root;
-      var track=root.querySelector('[data-br-track]');
-      var wrap =root.querySelector('[data-br-wrap]');
-      var glow =root.querySelector('[data-br-glow]');
-      var cap  =root.querySelector('[data-br-caption]');
-      var load =root.querySelector('[data-br-loader]');
-      var side =root.querySelector('[data-br-side]');
-      var cv   =root.querySelector('[data-br-canvas]');
-      var ctx  =cv.getContext('2d');
-      var N=cfg.frames.length, imgs=new Array(N), done=0, ready=false, cur=-1, pending=false;
-      var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!window.__beanRoastClean){
+    window.__beanRoastClean = function(cfg){
+      var root = cfg.root;
+      if(!root) return;
 
-      function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
-      function clamp(v){return v<0?0:(v>1?1:v);}
-      function prog(){var r=track.getBoundingClientRect(),tot=r.height-innerHeight;return tot<=0?0:clamp(-r.top/tot);}
-      function capFor(p){var c=cfg.captions.length?cfg.captions[0][1]:'';for(var i=0;i<cfg.captions.length;i++){if(p>=cfg.captions[i][0])c=cfg.captions[i][1];}return c;}
+      var track = root.querySelector('[data-br-track]');
+      var cap = root.querySelector('[data-br-caption]');
+      var load = root.querySelector('[data-br-loader]');
+      var cv = root.querySelector('[data-br-canvas]');
+      var ctx = cv.getContext('2d', { alpha: true });
+
+      var N = cfg.frames.length;
+      var imgs = new Array(N);
+      var done = 0;
+      var targetLoads = N;
+      var ready = false;
+      var cur = -1;
+      var pending = false;
+      var canProcessPixels = true;
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var mobileMq = window.matchMedia('(max-width: 768px)');
+      var stopIdx = Math.max(0, Math.min(N - 1, cfg.frameStop - 1));
+
+      function isMobile(){ return mobileMq.matches; }
+
+      function loadBudget(){
+        /* Frames past stopIdx are never displayed on any device (roastIndex
+           clamps to stopIdx), so the load budget is capped there for both
+           mobile and desktop — avoids requesting frames that will never
+           be shown, and avoids 404s if frame_count/frame_stop drift from
+           the number of frames actually exported to /assets. */
+        return Math.min(N, Math.max(stopIdx + 1, 1));
+      }
+
+      function readyThreshold(){
+        var budget = loadBudget();
+        if(isMobile()) return Math.min(6, budget);
+        return Math.min(12, budget);
+      }
+
+      function maxConcurrent(){
+        return isMobile() ? 4 : 10;
+      }
+
+      function maxDpr(){
+        return isMobile() ? 2 : 4;
+      }
+
+      ctx.imageSmoothingEnabled = true;
+      if('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
+
+      function clamp(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
+      function prog(){
+        var r = track.getBoundingClientRect();
+        var tot = r.height - innerHeight;
+        return tot <= 0 ? 0 : clamp(-r.top / tot);
+      }
+      function capFor(p){
+        var c = cfg.captions.length ? cfg.captions[0][1] : '';
+        for(var i = 0; i < cfg.captions.length; i++){
+          if(p >= cfg.captions[i][0]) c = cfg.captions[i][1];
+        }
+        return c;
+      }
+      function roastIndex(p){
+        if(stopIdx <= 0) return 0;
+        return Math.min(stopIdx, Math.floor(p * (stopIdx + 1)));
+      }
+
+      function toneDownWhites(x, y, w, h){
+        if(!canProcessPixels || w <= 0 || h <= 0) return;
+
+        var dpr = cv.width / Math.max(1, cv.getBoundingClientRect().width);
+        var sx = Math.max(0, Math.floor(x * dpr));
+        var sy = Math.max(0, Math.floor(y * dpr));
+        var sw = Math.min(cv.width - sx, Math.ceil(w * dpr));
+        var sh = Math.min(cv.height - sy, Math.ceil(h * dpr));
+        if(sw <= 0 || sh <= 0) return;
+
+        try {
+          var imgData = ctx.getImageData(sx, sy, sw, sh);
+          var data = imgData.data;
+
+          for(var i = 0; i < data.length; i += 4){
+            var a = data[i + 3];
+            if(a < 24) continue;
+
+            var r = data[i];
+            var g = data[i + 1];
+            var b = data[i + 2];
+            var max = Math.max(r, g, b);
+            var min = Math.min(r, g, b);
+
+            // Target washed-out white/cream highlights, not transparent space.
+            if(r > 198 && g > 190 && b > 170 && max - min < 70){
+              var strength = max > 228 ? 0.62 : 0.48;
+              data[i] = Math.round(r * (1 - strength) + 150 * strength);
+              data[i + 1] = Math.round(g * (1 - strength) + 116 * strength);
+              data[i + 2] = Math.round(b * (1 - strength) + 74 * strength);
+            }
+          }
+
+          ctx.putImageData(imgData, sx, sy);
+        } catch(e) {
+          canProcessPixels = false;
+        }
+      }
 
       function size(){
-        var dpr=Math.min(devicePixelRatio||1,2), r=cv.getBoundingClientRect();
-        cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr);
-        ctx.setTransform(dpr,0,0,dpr,0,0);
-        if(ready) paint(cur<0?0:cur,true);
+        var dpr = Math.min(devicePixelRatio || 1, maxDpr());
+        var r = cv.getBoundingClientRect();
+        cv.width = Math.max(1, Math.round(r.width * dpr));
+        cv.height = Math.max(1, Math.round(r.height * dpr));
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        if(ready && cur >= 0) paint(cur, true);
       }
-      function paint(idx,force){
-        if(idx===cur&&!force)return;
-        var im=imgs[idx]; if(!im||!im.complete)return; cur=idx;
-        var r=cv.getBoundingClientRect(); ctx.clearRect(0,0,r.width,r.height); ctx.drawImage(im,0,0,r.width,r.height);
+
+      function requestFrame(i){
+        if(i < 0 || i >= N || imgs[i]) return;
+        var im = new Image();
+        im.decoding = 'async';
+        im.onload = im.onerror = function(){
+          if(ready) paint(roastIndex(prog()), true);
+        };
+        im.src = cfg.frames[i];
+        imgs[i] = im;
       }
+
+      function paint(idx, force){
+        if(idx === cur && !force) return;
+        var im = imgs[idx];
+        if(!im || !im.complete || !im.naturalWidth){
+          if(idx <= stopIdx) requestFrame(idx);
+          return;
+        }
+        cur = idx;
+
+        var r = cv.getBoundingClientRect();
+        var cw = r.width;
+        var ch = r.height;
+        var iw = im.naturalWidth;
+        var ih = im.naturalHeight;
+        var scale = Math.min(cw / iw, ch / ih);
+        var dw = iw * scale;
+        var dh = ih * scale;
+        var dx = (cw - dw) * 0.5;
+        var dy = isMobile() ? (ch - dh) * 0.5 : ch - dh;
+
+        ctx.clearRect(0, 0, cw, ch);
+        ctx.drawImage(im, dx, dy, dw, dh);
+        toneDownWhites(dx, dy, dw, dh);
+      }
+
       function render(){
-        pending=false;
-        var p=reduce?1:prog();
-        
-        var p_roast = clamp(p / 0.75); 
-        var p_reveal = clamp((p - 0.75) / 0.25);
-        
-        var e = ease(p_roast);
-        var e_reveal = ease(p_reveal);
-
-        paint(Math.round(p_roast*(N-1)));
-        
-        var scale = 1.0 - 0.20 * e;
-        var isMobile = window.innerWidth <= 768;
-        var transX = isMobile ? 0 : e_reveal * -22; 
-        var transY = isMobile ? e_reveal * -15 : 0;
-        
-        if (side) {
-          side.style.opacity = e_reveal;
-          side.style.transform = 'translateY(' + (40 - 40 * e_reveal) + 'px)';
-          side.style.pointerEvents = e_reveal > 0.5 ? 'auto' : 'none';
-        }
-
-        wrap.style.transform='translate('+transX+'vw, '+transY+'vh) scale('+scale+')';
-        if(glow){
-          glow.style.opacity=(p_roast*0.9).toFixed(3);
-          glow.style.transform='translate('+transX+'vw, '+transY+'vh) scale('+(0.7+0.4*e)+')';
-        }
-        cv.style.filter='drop-shadow(0 '+(18+22*e)+'px '+(22+18*e)+'px rgba(40,18,6,'+(0.10+0.28*e)+'))';
-        if(cap) {
-          cap.textContent=capFor(p_roast);
-          cap.style.opacity = (0.65 * (1 - e_reveal)).toFixed(3);
-        }
+        pending = false;
+        var p = reduce ? 1 : prog();
+        paint(roastIndex(p), false);
+        if(cap) cap.textContent = capFor(p);
       }
-      function onScroll(){ if(pending)return; pending=true; requestAnimationFrame(render); }
+
+      function onScroll(){
+        if(pending) return;
+        pending = true;
+        requestAnimationFrame(render);
+      }
+
       function preload(){
-        for(var i=0;i<N;i++){(function(i){
-          var im=new Image(); im.decoding='async';
-          im.onload=im.onerror=function(){
-            done++; if(load) load.textContent='Loading '+Math.round(done/N*100)+'%';
-            if(done>=N){ready=true; if(load)load.style.display='none'; size(); render();}
+        var budget = loadBudget();
+        targetLoads = budget;
+        var queue = [];
+        var seen = {};
+        var priority = [0, stopIdx, Math.floor(stopIdx * 0.5), 1, stopIdx - 1];
+        priority.forEach(function(i){
+          if(i >= 0 && i < budget && !seen[i]){ seen[i] = true; queue.push(i); }
+        });
+        for(var i = 0; i < budget; i++){
+          if(!seen[i]) queue.push(i);
+        }
+
+        var active = 0;
+        var threshold = readyThreshold();
+
+        function markDone(){
+          done++;
+          if(load) load.textContent = 'Loading ' + Math.min(100, Math.round(done / targetLoads * 100)) + '%';
+          if(!ready && done >= threshold){
+            ready = true;
+            if(load) load.style.display = 'none';
+            size();
+            render();
+          }
+          if(done >= targetLoads && load) load.style.display = 'none';
+        }
+
+        function loadAt(i){
+          if(imgs[i] || i >= N) return;
+          active++;
+          var im = new Image();
+          im.decoding = 'async';
+          im.onload = im.onerror = function(){
+            active--;
+            markDone();
+            pump();
           };
-          im.src=cfg.frames[i]; imgs[i]=im;
-        })(i);}
+          im.src = cfg.frames[i];
+          imgs[i] = im;
+        }
+
+        function pump(){
+          while(active < maxConcurrent() && queue.length){
+            loadAt(queue.shift());
+          }
+        }
+
+        pump();
       }
-      var io=new IntersectionObserver(function(en){if(en[0].isIntersecting){io.disconnect();preload();}},{rootMargin:'600px 0px'});
+
+      var io = new IntersectionObserver(function(en){
+        if(en[0].isIntersecting){ io.disconnect(); preload(); }
+      }, { rootMargin: isMobile() ? '120px 0px' : '400px 0px' });
       io.observe(track);
-      addEventListener('scroll',onScroll,{passive:true});
-      addEventListener('resize',size);
+
+      addEventListener('scroll', onScroll, { passive: true });
+      addEventListener('resize', size);
       size();
     };
   }
 
-  if(document.readyState!=='loading'){ window.__beanRoast(cfg); }
-  else { document.addEventListener('DOMContentLoaded', function(){ window.__beanRoast(cfg); }); }
+  if(document.readyState !== 'loading') window.__beanRoastClean(cfg);
+  else document.addEventListener('DOMContentLoaded', function(){ window.__beanRoastClean(cfg); });
 })();
 </script>
 
@@ -233,14 +359,11 @@
   "tag": "section",
   "class": "section-coffee-bean-roast",
   "settings": [
-    { "type": "header", "content": "Side Block Reveal (End of Scroll)" },
-    { "type": "text", "id": "side_heading", "label": "Side Heading", "default": "Reserve your micro-lot" },
-    { "type": "textarea", "id": "side_text", "label": "Side Text", "default": "Freshly roasted to your preference. Shop our curated selection of micro-lot beans." },
-    { "type": "text", "id": "side_btn_label", "label": "Button Label", "default": "Shop Now" },
-    { "type": "url", "id": "side_btn_link", "label": "Button Link" },
     { "type": "header", "content": "Frames" },
     {
-      "type": "select", "id": "frame_source", "label": "Frame source",
+      "type": "select",
+      "id": "frame_source",
+      "label": "Frame source",
       "options": [
         { "value": "assets", "label": "Theme assets (/assets folder)" },
         { "value": "custom", "label": "Custom URL (Shopify Files / CDN)" }
@@ -248,36 +371,88 @@
       "default": "assets"
     },
     {
-      "type": "text", "id": "custom_base", "label": "Custom base URL",
-      "info": "Only for 'Custom URL'. Must end with a slash. Files become {base}bean_001.webp ...",
+      "type": "text",
+      "id": "custom_base",
+      "label": "Custom base URL",
       "default": "https://your-cdn.com/bean-frames/"
     },
     {
-      "type": "number", "id": "frame_count", "label": "Frame count",
-      "default": 133,
-      "info": "Must match the number of bean_XXX.webp files you uploaded."
+      "type": "number",
+      "id": "frame_count",
+      "label": "Total frames (max)",
+      "default": 203,
+      "info": "All exported frames in theme assets (bean_001 to bean_N). Current export: 203."
+    },
+    {
+      "type": "number",
+      "id": "frame_stop",
+      "label": "Stop frames at",
+      "default": 203,
+      "info": "Last frame to show during scroll (1–203). Recommended: 203."
+    },
+    { "type": "header", "content": "Bean display" },
+    {
+      "type": "range",
+      "id": "bean_width",
+      "label": "Width",
+      "min": 40,
+      "max": 100,
+      "step": 1,
+      "default": 78,
+      "unit": "%"
+    },
+    {
+      "type": "range",
+      "id": "bean_height",
+      "label": "Height",
+      "min": 40,
+      "max": 95,
+      "step": 1,
+      "default": 72,
+      "unit": "vh"
+    },
+    {
+      "type": "range",
+      "id": "bean_max_width",
+      "label": "Max width",
+      "min": 400,
+      "max": 1600,
+      "step": 20,
+      "default": 1200,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "bean_max_height",
+      "label": "Max height",
+      "min": 400,
+      "max": 1200,
+      "step": 20,
+      "default": 1000,
+      "unit": "px"
     },
     { "type": "header", "content": "Motion" },
     {
-      "type": "range", "id": "scrub_vh", "label": "Roast length (scroll)",
-      "min": 120, "max": 400, "step": 10, "default": 240, "unit": "vh",
-      "info": "How much scrolling the full roast takes. Higher = slower, more cinematic."
+      "type": "range",
+      "id": "scrub_vh",
+      "label": "Scroll length",
+      "min": 120,
+      "max": 600,
+      "step": 10,
+      "default": 400,
+      "unit": "vh"
     },
+    { "type": "checkbox", "id": "show_caption", "label": "Show stage label", "default": true },
     {
-      "type": "range", "id": "bean_size", "label": "Bean size (max)",
-      "min": 240, "max": 700, "step": 10, "default": 460, "unit": "px"
-    },
-    { "type": "checkbox", "id": "glow", "label": "Heat glow", "default": true },
-    { "type": "checkbox", "id": "show_caption", "label": "Show stage label (Green → Roasted)", "default": true },
-    {
-      "type": "textarea", "id": "captions_json", "label": "Stage labels (advanced)",
-      "info": "JSON: [progress, label] pairs, 0–1.",
-      "default": "[[0,\"Green\"],[0.30,\"Drying\"],[0.55,\"First crack\"],[0.80,\"Developing\"],[0.92,\"Roasted\"]]"
+      "type": "textarea",
+      "id": "captions_json",
+      "label": "Stage labels",
+      "default": "[[0,\"Green\"],[0.30,\"Drying\"],[0.55,\"First Crack\"],[0.80,\"Developing\"],[0.92,\"Roasted\"]]"
     },
     { "type": "header", "content": "Text" },
     { "type": "text", "id": "heading", "label": "Heading", "default": "Roasted to order" },
     { "type": "text", "id": "subheading", "label": "Subheading", "default": "Watch it develop as you scroll" }
   ],
-  "presets": [ { "name": "Coffee Bean Roast" } ]
+  "presets": [{ "name": "Coffee Bean Roast" }]
 }
 {% endschema %}

@@ -1,6 +1,6 @@
 <div class="site-container py-12 lg:py-16">
   <p class="section-eyebrow mb-4">{{ 'faq.eyebrow' | t }}</p>
-  <h1 class="section-title">{{ page.title | default: 'faq.heading' | t }}</h1>
+  <h1 class="section-title" data-reveal data-reveal-y="32" data-reveal-scale="1">{%- if page.title != blank -%}{{ page.title }}{%- else -%}{{ 'faq.heading' | t }}{%- endif -%}</h1>
 
   <div class="mx-auto mt-10 max-w-3xl divide-y divide-line border border-line bg-surface">
     {%- if section.blocks.size > 0 -%}
@@ -33,7 +33,7 @@
       "name": "Question",
       "settings": [
         { "type": "text", "id": "question", "label": "Question", "default": "Do you ship across the UAE?" },
-        { "type": "textarea", "id": "answer", "label": "Answer", "default": "Yes. We ship within the United Arab Emirates. Free shipping on orders over AED 300." }
+        { "type": "textarea", "id": "answer", "label": "Answer", "default": "Yes. We ship within the United Arab Emirates. Flat rate: AED 30." }
       ]
     }
   ],
@@ -41,9 +41,8 @@
     {
       "name": "FAQ page",
       "blocks": [
-        { "type": "question", "settings": { "question": "Do you ship across the UAE?", "answer": "Yes. We ship within the United Arab Emirates. Free shipping on orders over AED 300." }},
+        { "type": "question", "settings": { "question": "Do you ship across the UAE?", "answer": "Yes. We ship within the United Arab Emirates. Flat rate: AED 30." }},
         { "type": "question", "settings": { "question": "Where are you located?", "answer": "Al Nahdah St, Dafan Al Khor, Ras Al Khaimah, UAE. Phone: +971 7 222 4466." }},
-        { "type": "question", "settings": { "question": "Do you offer subscriptions?", "answer": "Yes. Single bean or rotating selection. Monthly or bi-weekly. Save 10% as a subscriber." }},
         { "type": "question", "settings": { "question": "What payment methods do you accept?", "answer": "Apple Pay, Google Pay, and Cash on Delivery (UAE)." }}
       ]
     }

@@ -20,12 +20,79 @@
         max-height: 7rem;
       }
     }
+
+    /* Mobile accordion for Shop / Support / Legal, desktop always-visible column.
+       Two separate blocks (not a single CSS override) so it's not dependent on
+       browser-specific <details> internals or on Tailwind classes that may not
+       exist in the precompiled stylesheet. */
+    .tcw-footer-mobile-only { display: block; }
+    .tcw-footer-desktop-only { display: none; }
+    @media (min-width: 1024px) {
+      .tcw-footer-mobile-only { display: none; }
+      .tcw-footer-desktop-only { display: block; }
+    }
+
+    .tcw-footer-accordion > summary {
+      list-style: none;
+      cursor: pointer;
+    }
+    .tcw-footer-accordion > summary::marker,
+    .tcw-footer-accordion > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .tcw-footer-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    @media (min-width: 1024px) {
+      .tcw-footer-grid {
+        grid-template-columns: repeat(12, 1fr);
+        gap: 2rem;
+        align-items: start;
+      }
+    }
+    .tcw-footer-col-brand { grid-column: 1 / -1; }
+    .tcw-footer-col-link { grid-column: 1 / -1; }
+    .tcw-footer-col-news { grid-column: 1 / -1; }
+    @media (min-width: 1024px) {
+      .tcw-footer-col-brand { grid-column: span 3; padding-right: 1.5rem; }
+      .tcw-footer-col-link { grid-column: span 2; }
+      .tcw-footer-col-news { grid-column: span 3; }
+    }
+
+    /* Modern link columns: consistent baseline heading, comfortable row rhythm */
+    .tcw-footer-heading {
+      margin-bottom: 1.25rem;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #C5A059;
+    }
+    .tcw-footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .tcw-footer-links a {
+      display: inline-block;
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.7);
+      transition: color 0.2s ease, transform 0.2s ease;
+    }
+    .tcw-footer-links a:hover {
+      color: var(--color-brand, #8B5E3C);
+    }
+    html:not([dir="rtl"]) .tcw-footer-links a:hover { transform: translateX(3px); }
+    html[dir="rtl"] .tcw-footer-links a:hover { transform: translateX(-3px); }
   </style>
-  <div class="site-container py-12 lg:py-20">
+  <div class="site-container py-10 lg:py-20">
     <div class="mx-auto max-w-[1150px] px-4 md:px-8">
-      <div class="grid grid-cols-2 gap-y-10 gap-x-6 lg:grid-cols-12 lg:gap-8">
+      <div class="tcw-footer-grid">
       <!-- Brand & Contact -->
-      <div class="col-span-2 lg:col-span-4 lg:pr-6">
+      <div class="tcw-footer-col-brand">
         <div class="tcw-logo__img--footer-white">
           {% render 'logo' %}
         </div>
@@ -34,83 +101,103 @@
           {{ section.settings.tagline }}
         </p>
 
-        <ul class="mt-6 space-y-2 text-sm text-white/70">
-          {%- if settings.contact_phone != blank -%}
-            <li>
-              <a href="tel:{{ settings.contact_phone | replace: ' ', '' }}" class="hover:text-brand" dir="ltr">
-                <span dir="ltr">{{ settings.contact_phone }}</span>
+        {%- if settings.contact_address != blank -%}
+          <div class="tcw-footer-desktop-only mt-6 text-sm text-white/70">
+            <span class="block mb-2">{{ settings.contact_address }}</span>
+            {%- if settings.maps_url != blank -%}
+              <a href="{{ settings.maps_url }}" class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-brand hover:text-[#C5A059] transition-colors" target="_blank" rel="noopener noreferrer">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                Get Directions
               </a>
-            </li>
-          {%- endif -%}
-          {%- if settings.contact_email != blank -%}
-            <li>
-              <a href="mailto:{{ settings.contact_email }}" class="hover:text-brand">
-                {{ settings.contact_email }}
-              </a>
-            </li>
-          {%- endif -%}
-          {%- if settings.contact_website != blank -%}
-            <li>
-              <a
-                href="https://{{ settings.contact_website | remove: 'https://' | remove: 'http://' }}"
-                class="hover:text-brand"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {{ settings.contact_website }}
-              </a>
-            </li>
-          {%- endif -%}
-          {%- if settings.contact_address != blank -%}
-            <li class="pt-4 mt-2 border-t border-[#2A2624]">
-              <span class="block mb-2">{{ settings.contact_address }}</span>
-              {%- if settings.maps_url != blank -%}
-                <a href="{{ settings.maps_url }}" class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-brand hover:text-[#C5A059] transition-colors" target="_blank" rel="noopener noreferrer">
-                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                  Get Directions
-                </a>
-              {%- endif -%}
-            </li>
-          {%- endif -%}
-        </ul>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
       </div>
 
       <!-- Shop Menu -->
-      <div class="col-span-1 lg:col-span-2">
-        <h2 class="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-[#C5A059]">{{ 'footer.shop' | t }}</h2>
-        {% render 'nav-menu',
-          menu_handle: section.settings.menu_shop,
-          list_class: 'space-y-3',
-          link_class: 'text-sm text-white/70 transition-colors hover:text-brand',
-          fallback: 'shop'
-        %}
+      <div class="tcw-footer-col-link">
+        <details class="tcw-footer-accordion tcw-footer-mobile-only border-b border-[#2A2624] py-4">
+          <summary class="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.16em] text-[#C5A059]">
+            {{ 'footer.shop' | t }}
+            <span class="text-white/40 text-base">+</span>
+          </summary>
+          <div class="mt-4">
+            {% render 'nav-menu',
+              menu_handle: section.settings.menu_shop,
+              list_class: 'tcw-footer-links',
+              link_class: '',
+              fallback: 'shop'
+            %}
+          </div>
+        </details>
+        <div class="tcw-footer-desktop-only">
+          <h2 class="tcw-footer-heading">{{ 'footer.shop' | t }}</h2>
+          {% render 'nav-menu',
+            menu_handle: section.settings.menu_shop,
+            list_class: 'tcw-footer-links',
+            link_class: '',
+            fallback: 'shop'
+          %}
+        </div>
       </div>
 
       <!-- Support Menu -->
-      <div class="col-span-1 lg:col-span-2">
-        <h2 class="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-[#C5A059]">{{ 'footer.support' | t }}</h2>
-        {% render 'nav-menu',
-          menu_handle: section.settings.menu_support,
-          list_class: 'space-y-3',
-          link_class: 'text-sm text-white/70 transition-colors hover:text-brand',
-          fallback: 'support'
-        %}
+      <div class="tcw-footer-col-link">
+        <details class="tcw-footer-accordion tcw-footer-mobile-only border-b border-[#2A2624] py-4">
+          <summary class="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.16em] text-[#C5A059]">
+            {{ 'footer.support' | t }}
+            <span class="text-white/40 text-base">+</span>
+          </summary>
+          <div class="mt-4">
+            {% render 'nav-menu',
+              menu_handle: section.settings.menu_support,
+              list_class: 'tcw-footer-links',
+              link_class: '',
+              fallback: 'support'
+            %}
+          </div>
+        </details>
+        <div class="tcw-footer-desktop-only">
+          <h2 class="tcw-footer-heading">{{ 'footer.support' | t }}</h2>
+          {% render 'nav-menu',
+            menu_handle: section.settings.menu_support,
+            list_class: 'tcw-footer-links',
+            link_class: '',
+            fallback: 'support'
+          %}
+        </div>
       </div>
 
       <!-- Legal Menu -->
-      <div class="col-span-1 lg:col-span-2">
-        <h2 class="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-[#C5A059]">{{ 'footer.legal' | t }}</h2>
-        <ul class="space-y-3 text-sm text-white/70">
-          <li><a href="/policies/privacy-policy" class="hover:text-brand">{{ 'footer.privacy' | t }}</a></li>
-          <li><a href="/policies/refund-policy" class="hover:text-brand">{{ 'footer.refund' | t }}</a></li>
-          <li><a href="/policies/shipping-policy" class="hover:text-brand">{{ 'footer.shipping' | t }}</a></li>
-          <li><a href="/policies/terms-of-service" class="hover:text-brand">{{ 'footer.terms' | t }}</a></li>
-        </ul>
+      <div class="tcw-footer-col-link">
+        <details class="tcw-footer-accordion tcw-footer-mobile-only border-b border-[#2A2624] py-4">
+          <summary class="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.16em] text-[#C5A059]">
+            {{ 'footer.legal' | t }}
+            <span class="text-white/40 text-base">+</span>
+          </summary>
+          <div class="mt-4">
+            <ul class="tcw-footer-links">
+              <li><a href="/policies/privacy-policy">{{ 'footer.privacy' | t }}</a></li>
+              <li><a href="/policies/refund-policy">{{ 'footer.refund' | t }}</a></li>
+              <li><a href="/policies/shipping-policy">{{ 'footer.shipping' | t }}</a></li>
+              <li><a href="/policies/terms-of-service">{{ 'footer.terms' | t }}</a></li>
+            </ul>
+          </div>
+        </details>
+        <div class="tcw-footer-desktop-only">
+          <h2 class="tcw-footer-heading">{{ 'footer.legal' | t }}</h2>
+          <ul class="tcw-footer-links">
+            <li><a href="/policies/privacy-policy">{{ 'footer.privacy' | t }}</a></li>
+            <li><a href="/policies/refund-policy">{{ 'footer.refund' | t }}</a></li>
+            <li><a href="/policies/shipping-policy">{{ 'footer.shipping' | t }}</a></li>
+            <li><a href="/policies/terms-of-service">{{ 'footer.terms' | t }}</a></li>
+          </ul>
+        </div>
       </div>
 
       <!-- Newsletter -->
-      <div class="col-span-2 sm:col-span-1 lg:col-span-2">
-        <h2 class="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-[#C5A059]">{{ 'footer.newsletter_title' | t }}</h2>
+      <div class="tcw-footer-col-news pt-2 lg:pt-0">
+        <h2 class="tcw-footer-heading">{{ 'footer.newsletter_title' | t }}</h2>
         <p class="mb-4 text-sm text-white/70">{{ 'footer.newsletter_text' | t }}</p>
         {% form 'customer', class: 'flex flex-col gap-3' %}
           <input type="hidden" name="contact[tags]" value="newsletter">
@@ -130,7 +217,7 @@
     </div>
 
     <!-- Bottom Footer: Socials & Copyright -->
-    <div class="mt-12 flex flex-col items-center gap-6 border-t border-[#2A2624] pt-8 text-center">
+    <div class="mt-10 lg:mt-12 flex flex-col items-center gap-6 border-t border-[#2A2624] pt-8 text-center">
       <!-- Social Icons -->
       <div class="flex items-center justify-center gap-6 text-white/70">
         <a href="{{ settings.social_instagram | default: '#' }}" class="hover:text-brand transition-colors p-2" target="_blank" aria-label="Instagram">
@@ -161,27 +248,10 @@
   "name": "Footer",
   "class": "footer-section",
   "settings": [
-    {
-      "type": "textarea",
-      "id": "tagline",
-      "label": "Tagline",
-      "default": "Specialty Coffee — locally roasted in Ras Al Khaimah since 2018"
-    },
-    {
-      "type": "link_list",
-      "id": "menu_shop",
-      "label": "Shop menu"
-    },
-    {
-      "type": "link_list",
-      "id": "menu_support",
-      "label": "Support menu"
-    },
-    {
-      "type": "link_list",
-      "id": "menu_legal",
-      "label": "Legal menu"
-    }
+    { "type": "textarea", "id": "tagline", "label": "Tagline", "default": "Specialty Coffee — locally roasted in Ras Al Khaimah since 2018" },
+    { "type": "link_list", "id": "menu_shop", "label": "Shop menu" },
+    { "type": "link_list", "id": "menu_support", "label": "Support menu" },
+    { "type": "link_list", "id": "menu_legal", "label": "Legal menu" }
   ]
 }
 {% endschema %}

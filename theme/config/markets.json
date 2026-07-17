@@ -8,11 +8,9 @@
  * ------------------------------------------------------------
  */
 {
-  "sections": {
-    "main": {
-      "type": "main-page-subscriptions",
-      "settings": {}
+  "markets": {
+    "ae": {
+      "parent": "@default"
     }
-  },
-  "order": ["main"]
+  }
 }

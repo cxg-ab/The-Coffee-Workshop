@@ -1,11 +1,11 @@
 /**
  * The Coffee Workshop — Premium Motion Pack (GSAP + ScrollTrigger)
- * Hero 3D · scroll reveals · product stagger · page transitions · header scroll
+ * Hero 3D · split-text titles · scroll reveals · origin story choreography
+ * product stagger · page transitions · header scroll
  */
 (function () {
   const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)');
   const TRANSITION_KEY = 'tcw-page-transition';
-  const ORIGIN_STORY_ST_ID = 'origin-story-scroll';
   let heroMouseHandler = null;
   let lenis = null;
   let lenisTicker = null;
@@ -19,6 +19,76 @@
 
   function isDesignMode() {
     return typeof Shopify !== 'undefined' && Shopify.designMode;
+  }
+
+  /* ─── Split-text (word masks — safe for Arabic ligatures, RTL aware) ─── */
+  const SPLIT_STYLE_ID = 'tcw-split-style';
+
+  function injectSplitStyle() {
+    if (document.getElementById(SPLIT_STYLE_ID)) return;
+    const style = document.createElement('style');
+    style.id = SPLIT_STYLE_ID;
+    style.textContent = [
+      '.tcw-word{display:inline-block;overflow:hidden;vertical-align:bottom;padding-bottom:0.08em;margin-bottom:-0.08em;}',
+      '.tcw-word__inner{display:inline-block;will-change:transform;}',
+    ].join('');
+    document.head.appendChild(style);
+  }
+
+  function wrapWord(node) {
+    const outer = document.createElement('span');
+    outer.className = 'tcw-word';
+    const inner = document.createElement('span');
+    inner.className = 'tcw-word__inner';
+    inner.appendChild(node);
+    outer.appendChild(inner);
+    return outer;
+  }
+
+  /**
+   * Splits an element's direct text into word masks. Nested elements
+   * (e.g. styled Arabic spans) are wrapped whole, preserving their markup.
+   * Returns the array of .tcw-word__inner spans (empty if already split).
+   */
+  function splitWords(el) {
+    if (!el || el.dataset.tcwSplit === '1') {
+      return el ? Array.from(el.querySelectorAll('.tcw-word__inner')) : [];
+    }
+
+    el.dataset.tcwSplitOriginal = el.innerHTML;
+    const nodes = Array.from(el.childNodes);
+    const frag = document.createDocumentFragment();
+
+    nodes.forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const parts = node.textContent.split(/(\s+)/);
+        parts.forEach((part) => {
+          if (!part) return;
+          if (/^\s+$/.test(part)) {
+            frag.appendChild(document.createTextNode(' '));
+          } else {
+            frag.appendChild(wrapWord(document.createTextNode(part)));
+          }
+        });
+      } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'BR') {
+        frag.appendChild(node);
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        frag.appendChild(wrapWord(node));
+      }
+    });
+
+    el.innerHTML = '';
+    el.appendChild(frag);
+    el.dataset.tcwSplit = '1';
+    return Array.from(el.querySelectorAll('.tcw-word__inner'));
+  }
+
+  function revertSplits() {
+    document.querySelectorAll('[data-tcw-split="1"]').forEach((el) => {
+      el.innerHTML = el.dataset.tcwSplitOriginal || el.innerHTML;
+      delete el.dataset.tcwSplit;
+      delete el.dataset.tcwSplitOriginal;
+    });
   }
 
   function initLenis() {
@@ -59,8 +129,8 @@
     if (typeof gsap === 'undefined') return;
 
     gsap.set(
-      '[data-hero-visual], [data-hero-orb], [data-hero-copy] [data-hero-eyebrow], [data-hero-copy] [data-hero-heading], [data-hero-copy] [data-hero-sub], [data-hero-copy] [data-hero-cta] > *, [data-reveal], [data-reveal-item], .product-card, [data-footer-reveal]',
-      { clearProps: 'opacity,visibility,transform' }
+      '[data-hero-visual], [data-hero-orb], [data-hero-copy] [data-hero-eyebrow], [data-hero-copy] [data-hero-heading], [data-hero-copy] [data-hero-sub], [data-hero-copy] [data-hero-cta] > *, [data-reveal], [data-reveal-item], .product-card, [data-footer-reveal], [data-origin-media], [data-origin-media] img, [data-origin-copy] > *',
+      { clearProps: 'opacity,visibility,transform,clipPath' }
     );
   }
 
@@ -74,10 +144,11 @@
     ScrollTrigger?.getAll().forEach((t) => t.kill());
     gsap?.globalTimeline.clear();
     destroyLenis();
+    revertSplits();
     resetMotionTargets();
   }
 
-  /* ─── Page transitions ─── */
+  /* ─── Page transitions (GSAP overlay — complete implementation) ─── */
   function initPageEnter() {
     const main = document.querySelector('#main-content');
     const overlay = document.querySelector('#page-transition');
@@ -98,10 +169,6 @@
       ease: 'power3.out',
       delay: fromTransition ? 0.08 : 0.05,
     });
-
-    if (document.startViewTransition && fromTransition) {
-      /* View Transitions API supported — GSAP handles fallback */
-    }
   }
 
   function initPageExit() {
@@ -124,6 +191,16 @@
 
       if (main) tl.to(main, { autoAlpha: 0, y: -20, duration: 0.35, ease: 'power2.in' }, 0);
       if (overlay) tl.to(overlay, { autoAlpha: 1, duration: 0.35, ease: 'power2.in' }, 0);
+    });
+
+    /* bfcache: restore visibility when navigating back to a page whose
+       exit animation left #main-content hidden. */
+    window.addEventListener('pageshow', (event) => {
+      if (!event.persisted) return;
+      const main = document.querySelector('#main-content');
+      const overlay = document.querySelector('#page-transition');
+      if (main && typeof gsap !== 'undefined') gsap.set(main, { clearProps: 'opacity,visibility,transform' });
+      if (overlay && typeof gsap !== 'undefined') gsap.set(overlay, { autoAlpha: 0 });
     });
   }
 
@@ -176,7 +253,21 @@
     if (eyebrow) tl.from(eyebrow, { y: 28, autoAlpha: 0, duration: 0.7 }, tagline ? '-=0.35' : 0);
     if (rule) tl.from(rule, { scaleX: 0, transformOrigin: 'left center', duration: 0.55 }, '-=0.45');
 
-    if (headingLines.length) {
+    /* SplitText-style word masks per heading line (falls back to line masks) */
+    let heroWords = [];
+    headingLines.forEach((line) => {
+      heroWords = heroWords.concat(splitWords(line));
+    });
+
+    if (heroWords.length) {
+      gsap.set(headingLines, { yPercent: 0 });
+      gsap.set(heroWords, { yPercent: 115 });
+      tl.to(
+        heroWords,
+        { yPercent: 0, duration: 0.9, stagger: 0.07, ease: 'power4.out' },
+        '-=0.35'
+      );
+    } else if (headingLines.length) {
       gsap.set(headingLines, { yPercent: 110 });
       tl.to(headingLines, { yPercent: 0, duration: 0.85, stagger: 0.1, ease: 'power3.out' }, '-=0.35');
     } else if (heading) {
@@ -291,54 +382,27 @@
     });
   }
 
-  function initHeroClipReveal() {
-    return; // Disabled per user request
-    const section = document.querySelector('[data-hero-section]');
-    const clip = section?.querySelector('[data-hero-clip]');
-    if (!section || !clip) return;
+  /* ─── Split-text titles (any section) ─── */
+  function initSplitTitles() {
+    gsap.utils.toArray('[data-split-title]').forEach((el) => {
+      if (el.closest('[data-hero-section]')) return;
 
-    const isMobile = window.matchMedia('(max-width: 767px)').matches;
+      const words = splitWords(el);
+      if (!words.length) return;
 
-    gsap.set(clip, {
-      clipPath: 'inset(0% 0% 0% 0%)',
-      webkitClipPath: 'inset(0% 0% 0% 0%)',
-    });
+      gsap.set(words, { yPercent: 115 });
 
-    gsap.to(clip, {
-      clipPath: 'inset(100% 0% 0% 0%)',
-      webkitClipPath: 'inset(100% 0% 0% 0%)',
-      ease: 'none',
-      scrollTrigger: {
-        trigger: section,
-        start: 'top top',
-        end: isMobile ? '+=90%' : '+=130%',
-        scrub: true,
-        invalidateOnRefresh: true,
-      },
-    });
-
-    gsap.to(section.querySelector('[data-hero-copy]'), {
-      autoAlpha: 0.35,
-      y: isMobile ? 28 : 48,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: section,
-        start: 'top top',
-        end: isMobile ? '+=70%' : '+=100%',
-        scrub: true,
-      },
-    });
-
-    gsap.to(section.querySelector('[data-hero-visual]'), {
-      scale: 0.88,
-      autoAlpha: 0.5,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: section,
-        start: 'top top',
-        end: isMobile ? '+=70%' : '+=100%',
-        scrub: true,
-      },
+      gsap.to(words, {
+        yPercent: 0,
+        duration: 0.9,
+        stagger: 0.055,
+        ease: 'power4.out',
+        scrollTrigger: {
+          trigger: el,
+          start: 'top 88%',
+          once: true,
+        },
+      });
     });
   }
 
@@ -395,9 +459,8 @@
     });
   }
 
-  /* ─── About us section ─── */
-  function initAboutStory() {
-    const section = document.querySelector('[data-about-section]');
+  /* ─── About / Visit glass story ─── */
+  function initGlassStorySection(section) {
     if (!section) return;
 
     const introItems = section.querySelectorAll('[data-about-intro] [data-about-item]');
@@ -495,9 +558,97 @@
     }
   }
 
-  /* ─── Origin sticky scroll (CSS handled) ─── */
-  function initOriginHorizontalScroll() {
-    // Left intentionally blank as layout is handled gracefully via CSS position: sticky
+  function initAboutStory() {
+    document.querySelectorAll('[data-about-section], [data-visit-section]').forEach(initGlassStorySection);
+  }
+
+  /* ─── Origin story — sticky intro + card choreography ─── */
+  function initOriginStory() {
+    const section = document.querySelector('[data-origin-sticky-section]');
+    if (!section) return;
+
+    const cards = section.querySelectorAll('[data-origin-card]');
+    const progressCurrent = section.querySelector('[data-origin-progress-current]');
+    const padIndex = (n) => String(n).padStart(2, '0');
+
+    if (progressCurrent && cards.length) {
+      const updateProgress = (index) => {
+        progressCurrent.textContent = padIndex(Math.min(Math.max(index, 1), cards.length));
+      };
+
+      updateProgress(1);
+
+      cards.forEach((card, i) => {
+        ScrollTrigger.create({
+          trigger: card,
+          start: 'top 55%',
+          end: 'bottom 45%',
+          onEnter: () => updateProgress(i + 1),
+          onEnterBack: () => updateProgress(i + 1),
+        });
+      });
+    }
+
+    cards.forEach((card) => {
+      const media = card.querySelector('[data-origin-media]');
+      const img = media?.querySelector('img');
+      const copyItems = card.querySelectorAll('[data-origin-copy] > *:not([data-split-title])');
+
+      /* Clip + scale reveal of the media frame */
+      if (media) {
+        gsap.fromTo(
+          media,
+          { clipPath: 'inset(14% 10% 14% 10% round 12px)', scale: 0.96, autoAlpha: 0.4 },
+          {
+            clipPath: 'inset(0% 0% 0% 0% round 12px)',
+            scale: 1,
+            autoAlpha: 1,
+            duration: 1.1,
+            ease: 'power3.out',
+            scrollTrigger: { trigger: card, start: 'top 82%', once: true },
+          }
+        );
+      }
+
+      /* Inner-image parallax while the card passes the viewport */
+      if (img) {
+        gsap.fromTo(
+          img,
+          { scale: 1.15, yPercent: -7 },
+          {
+            scale: 1.15,
+            yPercent: 7,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: card,
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: 0.6,
+            },
+          }
+        );
+      }
+
+      /* Copy stagger */
+      if (copyItems.length) {
+        gsap.set(copyItems, { y: 30, autoAlpha: 0 });
+        ScrollTrigger.create({
+          trigger: card,
+          start: 'top 74%',
+          once: true,
+          onEnter: () => {
+            gsap.to(copyItems, {
+              y: 0,
+              autoAlpha: 1,
+              duration: 0.8,
+              stagger: 0.1,
+              ease: 'power3.out',
+              overwrite: true,
+            });
+          },
+        });
+      }
+    });
   }
 
   /* ─── Origins kinetic marquee ─── */
@@ -567,6 +718,33 @@
     });
   }
 
+  /* ─── Product page — pinned gallery drift ─── */
+  function initProductGallery() {
+    const gallery = document.querySelector('[data-product-gallery]');
+    if (!gallery) return;
+    if (window.matchMedia('(max-width: 1023px)').matches) return;
+
+    const img = gallery.querySelector('img');
+    if (!img) return;
+
+    /* Gallery column is CSS-sticky (pinned); give the packshot a gentle
+       counter-drift so the pin feels alive while specs scroll past. */
+    gsap.fromTo(
+      img,
+      { y: 18 },
+      {
+        y: -18,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: gallery.closest('.site-container') || gallery,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 0.5,
+        },
+      }
+    );
+  }
+
   /* ─── Footer + marquee + FAQ ─── */
   function initFooterReveal() {
     const footer = document.querySelector('[data-footer-reveal]');
@@ -631,6 +809,7 @@
     if (!enabled()) return;
 
     gsap.registerPlugin(ScrollTrigger);
+    injectSplitStyle();
 
     initPageEnter();
     initPageExit();
@@ -638,11 +817,13 @@
     initHeroEntrance();
     initHero3DMouse();
     initHeroParallax();
-    initHeroClipReveal();
+    initSplitTitles();
     initScrollReveals();
     initRevealGroups();
     initAboutStory();
+    initOriginStory();
     initProductCards();
+    initProductGallery();
     initFooterReveal();
     initMarqueeEnhancement();
     initFaqAccordion();
@@ -669,7 +850,6 @@
     gsap.registerPlugin(ScrollTrigger);
 
     initLenis();
-    initOriginHorizontalScroll();
 
     if (!enabled()) return;
 
@@ -687,6 +867,17 @@
     requestAnimationFrame(onReady);
   });
 
-  window.addEventListener('resize', () => ScrollTrigger?.refresh());
+  /* Debounced resize handler: on mobile, the address bar hiding/showing
+     while scrolling fires 'resize' repeatedly. Refreshing every ScrollTrigger
+     position on every one of those events causes visible jank mid-scroll.
+     Only refresh once resize activity has actually settled. */
+  let resizeRefreshTimer = null;
+  window.addEventListener('resize', () => {
+    if (resizeRefreshTimer) clearTimeout(resizeRefreshTimer);
+    resizeRefreshTimer = window.setTimeout(() => {
+      ScrollTrigger?.refresh();
+    }, 200);
+  });
+
   REDUCED_MOTION.addEventListener('change', onReady);
 })();

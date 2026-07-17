@@ -73,6 +73,32 @@
 
     <div id="page-transition" class="page-transition" aria-hidden="true"></div>
 
+    <script>
+      window.theme = window.theme || {};
+      window.theme.moneyFormat = {{ shop.money_format | json }};
+      window.theme.strings = {
+        cartEmpty: {{ 'cart.empty' | t | json }},
+        cartAddError: {{ 'cart.add_error' | t | json }},
+        addingToCart: {{ 'products.adding_to_cart' | t | json }}
+      };
+      if (typeof Shopify === 'undefined') window.Shopify = {};
+      if (!Shopify.formatMoney) {
+        Shopify.formatMoney = function (cents, format) {
+          if (typeof cents === 'string') cents = cents.replace('.', '');
+          var value = (parseInt(cents, 10) / 100).toFixed(2);
+          var placeholder = /\{\{\s*(\w+)\s*\}\}/;
+          var formatString = format || '{{amount}}';
+          function formatWithDelimiters(number) {
+            var parts = number.split('.');
+            return parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (parts[1] ? '.' + parts[1] : '');
+          }
+          var match = formatString.match(placeholder) || ['{{amount}}', 'amount'];
+          var formatted = formatWithDelimiters(value);
+          if (match[1] === 'amount_no_decimals') formatted = formatWithDelimiters(parseInt(value, 10).toFixed(0));
+          return formatString.replace(placeholder, formatted);
+        };
+      }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js" defer></script>

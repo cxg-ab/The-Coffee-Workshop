@@ -29,8 +29,11 @@
   },
   "header": {
     "shop_beans": "Shop beans",
+    "single_origin": "Single Origin",
+    "micro_lot": "Micro-Lot",
+    "exotic": "Exotic",
+    "capsules_drip": "Capsules & Drip",
     "accessories": "Accessories",
-    "subscriptions": "Subscriptions",
     "about": "About",
     "faq": "FAQ",
     "cart": "Cart",
@@ -48,9 +51,9 @@
     "shipping": "Shipping policy",
     "terms": "Terms of service",
     "newsletter_title": "Stay in the loop",
-    "newsletter_text": "New limited batches, brewing tips, and subscriber offers.",
+    "newsletter_text": "New limited batches and brewing tips.",
     "newsletter_placeholder": "Your email",
-    "newsletter_submit": "Subscribe",
+    "newsletter_submit": "Join",
     "contact": "Contact",
     "copyright": "© {{ year }} The Coffee Workshop Co. All rights reserved."
   },
@@ -60,30 +63,48 @@
     "subtotal": "Subtotal",
     "checkout": "Checkout",
     "view_cart": "View cart",
-    "free_shipping_remaining": "Add {{ amount }} more for free UAE shipping",
-    "free_shipping_qualified": "You've unlocked free UAE shipping"
+    "flat_shipping_note": "Shipping: flat AED 30 across the UAE",
+    "add_error": "Could not add this item to your cart. Please try again."
   },
   "collections": {
     "shop": "Shop",
+    "shop_eyebrow": "Shop Our Coffee",
     "beans": "Beans",
     "accessories": "Accessories",
     "filter": "Filter",
     "sort": "Sort",
+    "sort_featured": "Featured",
+    "sort_best_selling": "Best selling",
+    "sort_az": "Alphabetically, A–Z",
+    "sort_za": "Alphabetically, Z–A",
+    "sort_price_low": "Price, low to high",
+    "sort_price_high": "Price, high to low",
+    "sort_newest": "Newest first",
+    "sort_oldest": "Oldest first",
     "products_count": "{{ count }} products",
-    "empty": "No products in this collection yet."
+    "empty": "No products in this collection yet.",
+    "pagination_previous": "Previous",
+    "pagination_next": "Next",
+    "pagination_page": "Page {{ number }}"
   },
   "products": {
     "add_to_cart": "Add to cart",
     "sold_out": "Sold out",
     "limited_batch": "Limited batch",
-    "subscribe": "Subscribe & save 10%",
-    "flavor_notes": "Flavor notes",
+    "flavor_notes": "Tasting Notes",
     "process": "Process",
-    "roast_level": "Roast level",
+    "roast_level": "Roast",
     "origin": "Origin",
+    "country": "Country",
+    "region": "Region",
+    "variety": "Variety",
+    "altitude": "Altitude",
     "variant": "Option",
     "from": "From",
-    "no_image": "No image"
+    "no_image": "No image",
+    "signature_roast": "Signature Roast",
+    "quick_add": "Quick Add",
+    "adding_to_cart": "Adding…"
   },
   "search": {
     "no_results": "No products found. Try a different search."
@@ -92,24 +113,13 @@
     "eyebrow": "Support",
     "heading": "Frequently asked questions"
   },
-  "subscriptions": {
-    "eyebrow": "Subscribe",
-    "heading": "Coffee subscriptions",
-    "intro": "Fresh specialty coffee delivered on your schedule.",
-    "single_title": "Single bean",
-    "single_text": "Choose one coffee you love. Same bean, every delivery.",
-    "rotating_title": "Rotating selection",
-    "rotating_text": "We curate the best of our current micro-lots each cycle.",
-    "save": "Save 10%",
-    "cta": "Get started"
-  },
   "templates": {
     "search": {
       "title": "Search"
     }
   },
   "announcement": {
-    "default": "Free UAE shipping on orders over AED 300 · Specialty coffee roasted in Ras Al Khaimah since 2018"
+    "default": "Flat AED 30 shipping across the UAE · Specialty coffee roasted in Ras Al Khaimah since 2018"
   },
   "about": {
     "eyebrow": "About us",
@@ -121,11 +131,57 @@
   },
   "visit": {
     "eyebrow": "Visit us",
-    "heading": "The workshop in RAK",
+    "heading": "The Coffee Workshop in RAK",
     "phone": "Phone",
     "email": "Email",
     "web": "Web",
     "address": "Address",
     "directions": "Get directions"
+  },
+  "home": {
+    "hero": {
+      "trust": "Roasted in RAK · Ships across UAE"
+    },
+    "trust": {
+      "aria": "Bean categories",
+      "est": "Est. {{ year }}",
+      "roasted": "RAK roasted",
+      "shipping": "Free shipping over AED 300",
+      "micro_lots": "Micro-lot specialty",
+      "capsules": "Capsules",
+      "drip": "Drip"
+    },
+    "shop_strip": {
+      "empty": "Products coming soon — check back after our next roast."
+    },
+    "origin": {
+      "progress": "Origin"
+    },
+    "roast": {
+      "heading_default": "Roasted to order",
+      "stages_aria": "Roast stages",
+      "loading": "Loading roast",
+      "scroll_hint": "Scroll to roast"
+    }
+  },
+  "contact": {
+    "eyebrow": "Get in Touch",
+    "heading": "Contact Us",
+    "intro": "We would love to hear from you. Whether you have a question about our coffee or anything else, our team is ready to answer all your questions.",
+    "email_us": "Email Us",
+    "location": "Location",
+    "default_location": "Ras Al Khaimah, United Arab Emirates",
+    "form_heading": "Send a Message",
+    "form_subheading": "Fill out the form below and we'll get back to you.",
+    "success_message": "Thanks for contacting us. We will get back to you as soon as possible.",
+    "error_heading": "Please adjust the following:",
+    "name_label": "Name",
+    "name_placeholder": "John Doe",
+    "email_label": "Email",
+    "phone_label": "Phone Number",
+    "phone_placeholder": "+971 50 123 4567",
+    "message_label": "Message",
+    "message_placeholder": "How can we help you?",
+    "submit": "Send Message"
   }
 }

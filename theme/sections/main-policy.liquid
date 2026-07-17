@@ -1,0 +1,20 @@
+<div class="bg-canvas py-16 lg:py-24">
+  <div class="site-container">
+    <div class="max-w-3xl mx-auto">
+      <p class="section-eyebrow mb-4" data-reveal>Legal</p>
+      <h1 class="section-title mb-10" data-reveal>{{ policy.title }}</h1>
+
+      <div class="brand-card prose-brand max-w-none" data-reveal data-reveal-delay="0.1">
+        {{ policy.body }}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Policy",
+  "class": "policy-section",
+  "settings": []
+}
+{% endschema %}

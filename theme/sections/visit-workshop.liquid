@@ -1,79 +1,155 @@
-<section class="bg-surface py-16 lg:py-24">
-  <div class="site-container">
-    <div class="grid gap-10 lg:grid-cols-2 lg:items-center">
-      <div data-reveal>
-        <p class="section-eyebrow mb-4">{{ 'visit.eyebrow' | t }}</p>
-        <h2 class="section-title">{{ 'visit.heading' | t }}</h2>
-        <p class="prose-brand mt-6">{{ section.settings.description }}</p>
+<!-- visit-modern 2026-07-17T15:48:12.8925950+04:00 -->
+{%- liquid
+  assign visit_align = section.settings.content_align | default: 'left'
+  if visit_align != 'left' and visit_align != 'right'
+    assign visit_align = 'left'
+  endif
 
-        <ul class="mt-8 space-y-4 text-sm text-muted">
-          <li class="flex gap-3">
-            <span class="font-semibold uppercase tracking-[0.1em] text-brand">{{ 'visit.phone' | t }}</span>
-            <a href="tel:{{ settings.contact_phone | replace: ' ', '' }}" class="hover:text-brand" dir="ltr">
-              <span dir="ltr">{{ settings.contact_phone }}</span>
+  if section.settings.eyebrow != blank
+    assign visit_eyebrow = section.settings.eyebrow
+  else
+    assign visit_eyebrow = 'visit.eyebrow' | t
+  endif
+
+  if section.settings.heading != blank
+    assign visit_heading = section.settings.heading
+  else
+    assign visit_heading = 'visit.heading' | t
+  endif
+
+  if section.settings.cta_label != blank
+    assign visit_cta = section.settings.cta_label
+  else
+    assign visit_cta = 'visit.directions' | t
+  endif
+-%}
+
+<div
+  id="visit-workshop"
+  class="visit-modern visit-modern--{{ visit_align }}"
+  data-visit-section
+>
+  <div class="site-container">
+    <div class="visit-modern__panel" data-reveal>
+      <header class="visit-modern__header">
+        <div class="visit-modern__intro">
+          <p class="visit-modern__eyebrow">{{ visit_eyebrow }}</p>
+          <h2 class="visit-modern__title">{{ visit_heading }}</h2>
+        </div>
+        {%- if settings.brand_established != blank -%}
+          <p class="visit-modern__est">Est. {{ settings.brand_established }}</p>
+        {%- endif -%}
+      </header>
+
+      {%- if section.settings.paragraph_1 != blank -%}
+        <p class="visit-modern__lead">{{ section.settings.paragraph_1 }}</p>
+      {%- endif -%}
+
+      <ul class="visit-modern__list">
+        {%- if settings.contact_phone != blank -%}
+          <li class="visit-modern__row">
+            <span class="visit-modern__label">{{ 'visit.phone' | t }}</span>
+            <a class="visit-modern__value" href="tel:{{ settings.contact_phone | replace: ' ', '' }}" dir="ltr">
+              {{ settings.contact_phone }}
             </a>
           </li>
-          <li class="flex gap-3">
-            <span class="font-semibold uppercase tracking-[0.1em] text-brand">{{ 'visit.email' | t }}</span>
-            <a href="mailto:{{ settings.contact_email }}" class="hover:text-brand">
+        {%- endif -%}
+
+        {%- if settings.contact_email != blank -%}
+          <li class="visit-modern__row">
+            <span class="visit-modern__label">{{ 'visit.email' | t }}</span>
+            <a class="visit-modern__value" href="mailto:{{ settings.contact_email }}">
               {{ settings.contact_email }}
             </a>
           </li>
-          <li class="flex gap-3">
-            <span class="font-semibold uppercase tracking-[0.1em] text-brand">{{ 'visit.web' | t }}</span>
-            <a href="https://{{ settings.contact_website | remove: 'https://' | remove: 'http://' | remove: 'www.' }}" class="hover:text-brand" target="_blank" rel="noopener noreferrer">
+        {%- endif -%}
+
+        {%- if settings.contact_address != blank -%}
+          <li class="visit-modern__row">
+            <span class="visit-modern__label">{{ 'visit.address' | t }}</span>
+            <span class="visit-modern__value visit-modern__value--text">{{ settings.contact_address }}</span>
+          </li>
+        {%- endif -%}
+
+        {%- if settings.contact_website != blank -%}
+          <li class="visit-modern__row">
+            <span class="visit-modern__label">{{ 'visit.web' | t }}</span>
+            <a
+              class="visit-modern__value"
+              href="https://{{ settings.contact_website | remove: 'https://' | remove: 'http://' | remove: 'www.' }}"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {{ settings.contact_website }}
             </a>
           </li>
-          <li class="flex gap-3">
-            <span class="shrink-0 font-semibold uppercase tracking-[0.1em] text-brand">{{ 'visit.address' | t }}</span>
-            <span>{{ settings.contact_address }}</span>
-          </li>
-        </ul>
+        {%- endif -%}
+      </ul>
 
-        {%- if settings.maps_url != blank -%}
-          <a href="{{ settings.maps_url }}" class="btn-outline mt-10 inline-flex" target="_blank" rel="noopener noreferrer">
-            {{ 'visit.directions' | t }}
+      {%- if settings.maps_url != blank -%}
+        <div class="visit-modern__actions">
+          <a
+            href="{{ settings.maps_url }}"
+            class="btn-primary visit-modern__cta"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ visit_cta }}
           </a>
-        {%- endif -%}
-      </div>
-
-      <div class="brand-card flex min-h-[280px] items-center justify-center bg-canvas text-center" data-reveal data-reveal-delay="0.2">
-        {%- if section.settings.image != blank -%}
-          {{
-            section.settings.image
-            | image_url: width: 800
-            | image_tag: class: 'h-full w-full object-cover', loading: 'lazy', alt: 'The Coffee Workshop'
-          }}
-        {%- else -%}
-          <div class="p-8">
-            <p class="font-display text-2xl font-bold uppercase tracking-[0.12em] text-brand">The Coffee Workshop</p>
-            <p class="mt-2 text-sm uppercase tracking-[0.16em] text-muted">{{ settings.brand_tagline }}</p>
-            <p class="mt-4 text-xs text-muted">RAK · UAE</p>
-          </div>
-        {%- endif -%}
-      </div>
+        </div>
+      {%- endif -%}
     </div>
   </div>
-</section>
+</div>
 
 {% schema %}
 {
   "name": "Visit workshop",
   "tag": "section",
+  "class": "visit-workshop-section",
   "settings": [
     {
+      "type": "select",
+      "id": "content_align",
+      "label": "Content position",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Visit us"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "The Coffee Workshop in RAK"
+    },
+    {
       "type": "textarea",
-      "id": "description",
+      "id": "paragraph_1",
       "label": "Description",
       "default": "Visit our specialty coffee workshop in Ras Al Khaimah — a hidden treasure for ethically conscious coffee, creative beverages, and one of the region's most desired blends."
     },
     {
-      "type": "image_picker",
-      "id": "image",
-      "label": "Image"
+      "type": "text",
+      "id": "cta_label",
+      "label": "Directions button",
+      "default": "Get directions"
     }
   ],
-  "presets": [{ "name": "Visit workshop" }]
+  "presets": [
+    {
+      "name": "Visit workshop",
+      "settings": {
+        "content_align": "left"
+      }
+    }
+  ]
 }
 {% endschema %}

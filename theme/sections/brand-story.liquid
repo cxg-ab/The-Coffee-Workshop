@@ -1,73 +1,49 @@
-<section class="about-story-section relative overflow-visible py-14 lg:py-20" data-about-section>
-  <div class="about-story-glow about-story-glow--left" data-about-glow aria-hidden="true"></div>
-  <div class="about-story-glow about-story-glow--right" aria-hidden="true"></div>
+<section class="about-story-section about-story-section--compact" data-about-section>
+  <div class="about-liquid-bg about-liquid-bg--reduced" aria-hidden="true">
+    <span class="about-liquid-blob about-liquid-blob--1" data-about-glow></span>
+    <span class="about-liquid-blob about-liquid-blob--2 about-liquid-blob--desktop-only" data-parallax="0.35"></span>
+  </div>
 
   <div class="site-container relative z-10">
-    <div class="flex flex-col lg:flex-row gap-10 lg:gap-14 items-start">
-      
-      <!-- Left: Sticky Intro -->
-      <div class="lg:w-5/12 lg:sticky lg:top-32 h-auto pb-10">
-        <div class="about-story-intro" data-about-intro>
-          <p class="section-eyebrow mb-4">{{ section.settings.eyebrow }}</p>
-          <div class="about-story-rule" aria-hidden="true"></div>
-          <h2 class="section-title">{{ section.settings.heading }}</h2>
+    <div class="about-glass-shell">
+      <div class="about-glass-panel about-glass-panel--compact">
+        <header class="about-glass-header" data-about-intro>
+          <div class="about-glass-header__copy">
+            <p class="section-eyebrow mb-3" data-about-item>{{ section.settings.eyebrow }}</p>
+            <div class="about-story-rule" aria-hidden="true"></div>
+            <h2 class="about-glass-title" data-about-item>{{ section.settings.heading }}</h2>
+          </div>
+          {%- if settings.brand_established != blank -%}
+            <p class="about-glass-est" data-about-item>Est. {{ settings.brand_established }}</p>
+          {%- endif -%}
+        </header>
+
+        <div class="about-glass-body" data-about-body>
+          <div class="about-glass-copy">
+            {%- if section.settings.paragraph_1 != blank -%}
+              <p class="about-glass-prose" data-about-item>{{ section.settings.paragraph_1 }}</p>
+            {%- endif -%}
+            {%- if section.settings.paragraph_2 != blank -%}
+              <p class="about-glass-prose" data-about-item>{{ section.settings.paragraph_2 }}</p>
+            {%- endif -%}
+          </div>
+
+          {%- if section.blocks.size > 0 -%}
+            <div class="about-glass-values" data-about-values>
+              {%- for block in section.blocks -%}
+                <article class="about-value-card about-value-card--glass" data-about-card {{ block.shopify_attributes }}>
+                  <span class="about-value-card__index" aria-hidden="true">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>
+                  <h3 class="about-value-card__title">{{ block.settings.title }}</h3>
+                  <p class="about-value-card__text">{{ block.settings.text }}</p>
+                </article>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
         </div>
-      </div>
-
-      <!-- Right: Apple-Style Focus Scrolling Content -->
-      <div class="lg:w-7/12 flex flex-col gap-20 pb-[10vh]">
-        
-        <!-- Story Paragraphs -->
-        <div data-focus-item>
-          <p class="prose-brand">{{ section.settings.paragraph_1 }}</p>
-        </div>
-
-        <div data-focus-item>
-          <p class="prose-brand">{{ section.settings.paragraph_2 }}</p>
-        </div>
-
-        <!-- Value Cards -->
-        {%- if section.blocks.size > 0 -%}
-          {%- for block in section.blocks -%}
-            <article class="about-value-card" style="margin-top: 0; position: relative;" data-focus-item {{ block.shopify_attributes }}>
-              <span class="about-value-card__index" aria-hidden="true">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>
-              <h3 class="about-value-card__title">{{ block.settings.title }}</h3>
-              <p class="about-value-card__text">{{ block.settings.text }}</p>
-            </article>
-          {%- endfor -%}
-        {%- endif -%}
-
       </div>
     </div>
   </div>
 </section>
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    if (typeof gsap === 'undefined') return;
-    if (typeof ScrollTrigger === 'undefined') return;
-
-    gsap.registerPlugin(ScrollTrigger);
-
-    const focusItems = document.querySelectorAll('[data-focus-item]');
-    
-    focusItems.forEach((item) => {
-      // Set initial dimmed state using GSAP
-      gsap.set(item, { opacity: 0.2, scale: 0.95, transformOrigin: "left center" });
-
-      // Create scroll-based triggers for the "Focus Scroll" effect
-      ScrollTrigger.create({
-        trigger: item,
-        start: 'top 75%',
-        end: 'bottom 25%',
-        onEnter: () => gsap.to(item, { opacity: 1, scale: 1, duration: 0.6, ease: 'power2.out' }),
-        onLeave: () => gsap.to(item, { opacity: 0.2, scale: 0.95, duration: 0.6, ease: 'power2.out' }),
-        onEnterBack: () => gsap.to(item, { opacity: 1, scale: 1, duration: 0.6, ease: 'power2.out' }),
-        onLeaveBack: () => gsap.to(item, { opacity: 0.2, scale: 0.95, duration: 0.6, ease: 'power2.out' })
-      });
-    });
-  });
-</script>
 
 {% schema %}
 {
@@ -75,48 +51,18 @@
   "tag": "section",
   "class": "about-story-section",
   "settings": [
-    {
-      "type": "text",
-      "id": "eyebrow",
-      "label": "Eyebrow",
-      "default": "About us"
-    },
-    {
-      "type": "text",
-      "id": "heading",
-      "label": "Heading",
-      "default": "Specialty coffee, roasted with purpose"
-    },
-    {
-      "type": "textarea",
-      "id": "paragraph_1",
-      "label": "Paragraph 1",
-      "default": "Founded in 2018, The Coffee Workshop is a team of coffee professionals with deep expertise in serving and roasting green coffee beans."
-    },
-    {
-      "type": "textarea",
-      "id": "paragraph_2",
-      "label": "Paragraph 2",
-      "default": "We roast in small batches on our store roaster — maintaining consistency from batch to batch while bringing out the best qualities of each micro-lot."
-    }
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "About us" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Specialty coffee, roasted with purpose" },
+    { "type": "textarea", "id": "paragraph_1", "label": "Paragraph 1", "default": "Founded in 2018, The Coffee Workshop is a team of coffee professionals with deep expertise in serving and roasting green coffee beans." },
+    { "type": "textarea", "id": "paragraph_2", "label": "Paragraph 2", "default": "We roast in small batches on our store roaster — maintaining consistency from batch to batch while bringing out the best qualities of each micro-lot." }
   ],
   "blocks": [
     {
       "type": "value",
       "name": "Value",
       "settings": [
-        {
-          "type": "text",
-          "id": "title",
-          "label": "Title",
-          "default": "Honest sourcing"
-        },
-        {
-          "type": "textarea",
-          "id": "text",
-          "label": "Text",
-          "default": "Long-term trading relationships with farmers and their families."
-        }
+        { "type": "text", "id": "title", "label": "Title", "default": "Honest sourcing" },
+        { "type": "textarea", "id": "text", "label": "Text", "default": "Long-term trading relationships with farmers and their families." }
       ]
     }
   ],

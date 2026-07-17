@@ -13,31 +13,80 @@
       "type": "hero",
       "settings": {
         "eyebrow": "Est. 2018 · Ras Al Khaimah, UAE",
-        "heading": "Small batches.ماستر roasted.",
+        "heading": "Small batches. ماستر roasted.",
         "subheading": "We discover, sample, and reserve micro-lot Arabica — roasted in small batches in Ras Al Khaimah for home brewers and advanced enthusiasts.",
         "cta_primary_label": "Shop beans",
-        "cta_primary_link": "",
-        "cta_secondary_label": "Subscribe",
-        "cta_secondary_link": ""
+        "cta_primary_link": "/collections/all-beans",
+        "cta_secondary_label": "Visit us",
+        "cta_secondary_link": "#visit-workshop",
+        "show_trust_line": true,
+        "trust_line": ""
+      }
+    },
+    "home_trust": {
+      "type": "home-trust-bar",
+      "blocks": {
+        "trust_1": {
+          "type": "item",
+          "settings": {
+            "label": "Single Origin"
+          }
+        },
+        "trust_2": {
+          "type": "item",
+          "settings": {
+            "label": "Micro-Lot"
+          }
+        },
+        "trust_3": {
+          "type": "item",
+          "settings": {
+            "label": "Exotic"
+          }
+        },
+        "trust_4": {
+          "type": "item",
+          "settings": {
+            "label": "Capsules"
+          }
+        },
+        "trust_5": {
+          "type": "item",
+          "settings": {
+            "label": "Drip"
+          }
+        }
+      },
+      "block_order": [
+        "trust_1",
+        "trust_2",
+        "trust_3",
+        "trust_4",
+        "trust_5"
+      ],
+      "settings": {
+        "enable_marquee": true,
+        "marquee_speed": 40,
+        "pause_on_hover": true,
+        "aria_label": "Bean categories"
       }
     },
     "coffee_bean_roast": {
       "type": "coffee-bean-roast",
       "settings": {
-        "side_heading": "Reserve your micro-lot",
-        "side_text": "Freshly roasted to your preference. Shop our curated selection of micro-lot beans.",
-        "side_btn_label": "Shop Now",
-        "side_btn_link": "",
         "frame_source": "assets",
         "custom_base": "https://your-cdn.com/bean-frames/",
-        "frame_count": 132,
-        "scrub_vh": 350,
-        "bean_size": 380,
-        "glow": false,
-        "show_caption": true,
+        "frame_count": 203,
+        "frame_stop": 203,
+        "bean_width": 100,
+        "bean_height": 95,
+        "bean_max_width": 1600,
+        "bean_max_height": 1200,
+        "scrub_vh": 190,
+        "show_caption": false,
         "captions_json": "[[0,\"Green\"],[0.30,\"Drying\"],[0.55,\"First crack\"],[0.80,\"Developing\"],[0.92,\"Roasted\"]]",
         "heading": "Roasted to order",
-        "subheading": "Watch it develop as you scroll"
+        "subheading": ""
       }
     },
     "origin_story": {
@@ -143,12 +192,18 @@
         "paragraph_1": "Founded in 2018, The Coffee Workshop is a team of coffee professionals with deep expertise in serving and roasting green coffee beans.",
         "paragraph_2": "We roast in small batches on our store roaster — maintaining consistency from batch to batch while bringing out the best qualities of each micro-lot."
       }
+    },
+    "visit_workshop": {
+      "type": "visit-workshop",
+      "settings": {}
     }
   },
   "order": [
     "hero",
+    "home_trust",
     "coffee_bean_roast",
     "origin_story",
-    "brand_story"
+    "brand_story",
+    "visit_workshop"
   ]
 }

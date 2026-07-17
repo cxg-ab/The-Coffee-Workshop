@@ -10,7 +10,7 @@
 {
   "current": {
     "logo": "shopify://shop_images/tcw_logo_0_dcf01d1a-8b1b-487d-9d2f-3f5216aee361.png",
-    "logo_width": 180,
+    "logo_width": 280,
     "favicon": "shopify://shop_images/wi2_0.png",
     "brand_tagline": "Specialty Coffee",
     "brand_established": "2018",
@@ -26,6 +26,7 @@
     "contact_email": "info@thecoffeeworkshop.ae",
     "contact_website": "www.thecoffeeworkshop.ae",
     "contact_address": "Al Nahdah St, Dafan Al Khor, Ras Al Khaimah, United Arab Emirates",
+    "maps_url": "https://maps.google.com/?q=Al+Nahdah+St+Dafan+Al+Khor+Ras+Al+Khaimah",
     "animations_enabled": true,
     "social_whatsapp": "+97172224466",
     "content_for_index": []
