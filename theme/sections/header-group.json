@@ -23,10 +23,61 @@
       "settings": {
         "menu": "main-menu"
       }
+    },
+    "trust_nav": {
+      "type": "home-trust-bar",
+      "blocks": {
+        "trust_1": {
+          "type": "item",
+          "settings": {
+            "label": "Single Origin",
+            "link": "/collections/single-origin"
+          }
+        },
+        "trust_2": {
+          "type": "item",
+          "settings": {
+            "label": "Micro-Lot",
+            "link": "/collections/micro-lot"
+          }
+        },
+        "trust_3": {
+          "type": "item",
+          "settings": {
+            "label": "Exotic",
+            "link": "/collections/exotic"
+          }
+        },
+        "trust_4": {
+          "type": "item",
+          "settings": {
+            "label": "Capsules & Drip",
+            "link": "/collections/capsules-drip"
+          }
+        },
+        "trust_5": {
+          "type": "item",
+          "settings": {
+            "label": "Accessories",
+            "link": "/collections/accessories"
+          }
+        }
+      },
+      "block_order": [
+        "trust_1",
+        "trust_2",
+        "trust_3",
+        "trust_4",
+        "trust_5"
+      ],
+      "settings": {
+        "aria_label": "Bean categories"
+      }
     }
   },
   "order": [
     "announcement",
-    "header"
+    "header",
+    "trust_nav"
   ]
 }

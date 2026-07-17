@@ -11,8 +11,12 @@
   "sections": {
     "main": {
       "type": "main-collection",
-      "settings": {}
+      "settings": {
+        "products_per_page": 12
+      }
     }
   },
-  "order": ["main"]
+  "order": [
+    "main"
+  ]
 }

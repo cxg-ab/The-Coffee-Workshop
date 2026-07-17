@@ -1,62 +1,162 @@
 {%- liquid
-  assign trust_speed = section.settings.marquee_speed | default: 40
-  if section.settings.enable_marquee == false
-    assign trust_marquee = false
-  else
-    assign trust_marquee = true
+  assign is_home = false
+  if template.name == 'index'
+    assign is_home = true
+  endif
+  assign is_shop = false
+  if template.name == 'collection'
+    assign is_shop = true
   endif
 -%}
 
-<section
-  class="home-trust-bar{% if trust_marquee %} home-trust-bar--marquee{% endif %}{% if section.settings.pause_on_hover %} home-trust-bar--pause-hover{% endif %}"
-  data-home-trust
-  data-trust-marquee="{{ trust_marquee }}"
-  data-trust-duration="{{ trust_speed }}"
-  data-trust-pause-hover="{{ section.settings.pause_on_hover }}"
-  aria-label="{{ section.settings.aria_label | default: 'Bean categories' }}"
->
-  <div class="home-trust-bar__viewport">
-    <div class="home-trust-bar__track" data-trust-track>
-      <ul class="home-trust-bar__list" data-trust-set>
+{%- unless is_home -%}
+  {%- if is_shop -%}
+    {%- comment -%} Shop pages: Sort (left) · Pills (center) · Filter (right) {%- endcomment -%}
+    {%- assign known_cats = 'single-origin,micro-lot,exotic,capsules-drip,accessories' | split: ',' -%}
+    {%- assign is_aggregate = false -%}
+    {%- unless known_cats contains collection.handle -%}{%- assign is_aggregate = true -%}{%- endunless -%}
+    {%- assign current_sort = collection.sort_by | default: collection.default_sort_by -%}
+
+    <section
+      class="shop-trust-bar"
+      data-shop-trust
+      data-aggregate="{% if is_aggregate %}true{% else %}false{% endif %}"
+      aria-label="{{ section.settings.aria_label | default: 'Bean categories' }}"
+    >
+      <div class="shop-trust-bar__row">
+        <div class="shop-trust-bar__side shop-trust-bar__side--left">
+          {%- if collection.products_count > 1 -%}
+            <form class="plp-sort" data-plp-sort>
+              <label class="sr-only" for="plp-sort-select">{{ 'collections.sort' | t }}</label>
+              <div class="plp-sort__control">
+                <span class="plp-sort__prefix" aria-hidden="true">{{ 'collections.sort' | t }}</span>
+                <select id="plp-sort-select" name="sort_by" class="plp-sort__select" aria-label="{{ 'collections.sort' | t }}">
+                  <option value="manual" {% if current_sort == 'manual' %}selected{% endif %}>{{ 'collections.sort_featured' | t }}</option>
+                  <option value="best-selling" {% if current_sort == 'best-selling' %}selected{% endif %}>{{ 'collections.sort_best_selling' | t }}</option>
+                  <option value="title-ascending" {% if current_sort == 'title-ascending' %}selected{% endif %}>{{ 'collections.sort_az' | t }}</option>
+                  <option value="title-descending" {% if current_sort == 'title-descending' %}selected{% endif %}>{{ 'collections.sort_za' | t }}</option>
+                  <option value="price-ascending" {% if current_sort == 'price-ascending' %}selected{% endif %}>{{ 'collections.sort_price_low' | t }}</option>
+                  <option value="price-descending" {% if current_sort == 'price-descending' %}selected{% endif %}>{{ 'collections.sort_price_high' | t }}</option>
+                  <option value="created-descending" {% if current_sort == 'created-descending' %}selected{% endif %}>{{ 'collections.sort_newest' | t }}</option>
+                  <option value="created-ascending" {% if current_sort == 'created-ascending' %}selected{% endif %}>{{ 'collections.sort_oldest' | t }}</option>
+                </select>
+                <svg class="plp-sort__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
+              </div>
+            </form>
+          {%- endif -%}
+        </div>
+
+        <nav class="shop-trust-bar__pills" aria-label="{{ section.settings.aria_label | default: 'Bean categories' }}">
+          {%- if is_aggregate -%}
+            <a href="{{ collection.url }}" class="shop-pill is-active" data-cat="all">{% if request.locale.iso_code == 'ar' %}الكل{% else %}All{% endif %}</a>
+          {%- else -%}
+            <a href="/collections/all-beans" class="shop-pill" data-cat="all">{% if request.locale.iso_code == 'ar' %}الكل{% else %}All{% endif %}</a>
+          {%- endif -%}
+
+          {%- if section.blocks.size > 0 -%}
+            {%- for block in section.blocks -%}
+              {%- liquid
+                assign link_handle = block.settings.link | split: '/' | last | split: '?' | first | downcase
+                assign pill_active = false
+                if collection.handle == link_handle
+                  assign pill_active = true
+                endif
+                assign cat_key = link_handle
+                if cat_key == blank
+                  assign cat_key = block.settings.label | handleize
+                endif
+              -%}
+              <a
+                href="{{ block.settings.link | default: collection.url }}"
+                class="shop-pill{% if pill_active %} is-active{% endif %}"
+                data-cat="{{ cat_key }}"
+                {% if pill_active %}aria-current="page"{% endif %}
+                {{ block.shopify_attributes }}
+              >
+                {{- block.settings.label -}}
+              </a>
+            {%- endfor -%}
+          {%- else -%}
+            {%- for h in known_cats -%}
+              {%- case h -%}
+                {%- when 'single-origin' -%}{%- assign cat_label = 'header.single_origin' | t -%}
+                {%- when 'micro-lot' -%}{%- assign cat_label = 'header.micro_lot' | t -%}
+                {%- when 'exotic' -%}{%- assign cat_label = 'header.exotic' | t -%}
+                {%- when 'capsules-drip' -%}{%- assign cat_label = 'header.capsules_drip' | t -%}
+                {%- when 'accessories' -%}{%- assign cat_label = 'header.accessories' | t -%}
+                {%- else -%}{%- assign cat_label = h -%}
+              {%- endcase -%}
+              <a href="/collections/{{ h }}" class="shop-pill{% if collection.handle == h %} is-active{% endif %}" data-cat="{{ h }}"{% if collection.handle == h %} aria-current="page"{% endif %}>{{ cat_label }}</a>
+            {%- endfor -%}
+          {%- endif -%}
+        </nav>
+
+        <div class="shop-trust-bar__side shop-trust-bar__side--right">
+          <button type="button" class="plp-filter-toggle" data-filter-toggle aria-expanded="false" aria-controls="plp-filter-panel" hidden>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h18M6 12h12M10 20h4" /></svg>
+            {{ 'collections.filter' | t }}
+            <span class="plp-filter-toggle__badge" data-filter-badge></span>
+            <svg class="plp-filter-toggle__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="plp-filter-panel" id="plp-filter-panel" data-filter-panel hidden>
+        <div class="plp-filter-group" data-filter-group="origin" hidden>
+          <p class="plp-filter-group-title">{{ 'products.origin' | t }}</p>
+          <div class="plp-filter-options" data-filter-options="origin"></div>
+        </div>
+        <div class="plp-filter-group" data-filter-group="notes" hidden>
+          <p class="plp-filter-group-title">{{ 'products.flavor_notes' | t }}</p>
+          <div class="plp-filter-options" data-filter-options="notes"></div>
+        </div>
+        <div class="plp-filter-group" data-filter-group="process" hidden>
+          <p class="plp-filter-group-title">{{ 'products.process' | t }}</p>
+          <div class="plp-filter-options" data-filter-options="process"></div>
+        </div>
+        <button type="button" class="plp-filter-clear" data-filter-clear hidden>{% if request.locale.iso_code == 'ar' %}مسح الكل{% else %}Clear all{% endif %}</button>
+      </div>
+    </section>
+  {%- else -%}
+    {%- comment -%} Other pages: centered pills only {%- endcomment -%}
+    <section
+      class="home-trust-bar home-trust-bar--nav home-trust-bar--pills"
+      data-home-trust
+      data-trust-marquee="false"
+      aria-label="{{ section.settings.aria_label | default: 'Bean categories' }}"
+    >
+      <nav class="home-trust-bar__pills-wrap" aria-label="{{ section.settings.aria_label | default: 'Bean categories' }}">
         {%- if section.blocks.size > 0 -%}
           {%- for block in section.blocks -%}
-            <li class="home-trust-bar__item" {{ block.shopify_attributes }}>
-              <span class="home-trust-bar__dot" aria-hidden="true"></span>
-              {%- if block.settings.link != blank -%}
-                <a href="{{ block.settings.link }}" class="home-trust-bar__link">
-                  {{- block.settings.label -}}
-                </a>
-              {%- else -%}
-                <span class="home-trust-bar__text">{{ block.settings.label }}</span>
-              {%- endif -%}
-            </li>
+            {%- liquid
+              assign item_active = false
+              if block.settings.link != blank
+                assign link_handle = block.settings.link | split: '/' | last | split: '?' | first | downcase
+                if request.path contains link_handle and link_handle != blank
+                  assign item_active = true
+                endif
+              endif
+            -%}
+            <a
+              href="{{ block.settings.link | default: '#' }}"
+              class="shop-pill{% if item_active %} is-active{% endif %}"
+              {% if item_active %}aria-current="page"{% endif %}
+              {{ block.shopify_attributes }}
+            >
+              {{- block.settings.label -}}
+            </a>
           {%- endfor -%}
         {%- else -%}
-          <li class="home-trust-bar__item">
-            <span class="home-trust-bar__dot" aria-hidden="true"></span>
-            <span class="home-trust-bar__text">{{ 'header.single_origin' | t }}</span>
-          </li>
-          <li class="home-trust-bar__item">
-            <span class="home-trust-bar__dot" aria-hidden="true"></span>
-            <span class="home-trust-bar__text">{{ 'header.micro_lot' | t }}</span>
-          </li>
-          <li class="home-trust-bar__item">
-            <span class="home-trust-bar__dot" aria-hidden="true"></span>
-            <span class="home-trust-bar__text">{{ 'header.exotic' | t }}</span>
-          </li>
-          <li class="home-trust-bar__item">
-            <span class="home-trust-bar__dot" aria-hidden="true"></span>
-            <span class="home-trust-bar__text">{{ 'home.trust.capsules' | t }}</span>
-          </li>
-          <li class="home-trust-bar__item">
-            <span class="home-trust-bar__dot" aria-hidden="true"></span>
-            <span class="home-trust-bar__text">{{ 'home.trust.drip' | t }}</span>
-          </li>
+          <a href="/collections/single-origin" class="shop-pill">{{ 'header.single_origin' | t }}</a>
+          <a href="/collections/micro-lot" class="shop-pill">{{ 'header.micro_lot' | t }}</a>
+          <a href="/collections/exotic" class="shop-pill">{{ 'header.exotic' | t }}</a>
+          <a href="/collections/capsules-drip" class="shop-pill">{{ 'header.capsules_drip' | t }}</a>
+          <a href="/collections/accessories" class="shop-pill">{{ 'header.accessories' | t }}</a>
         {%- endif -%}
-      </ul>
-    </div>
-  </div>
-</section>
+      </nav>
+    </section>
+  {%- endif -%}
+{%- endunless -%}
 
 {% schema %}
 {
@@ -66,30 +166,8 @@
   "max_blocks": 12,
   "settings": [
     {
-      "type": "header",
-      "content": "Marquee"
-    },
-    {
-      "type": "checkbox",
-      "id": "enable_marquee",
-      "label": "Keep text moving",
-      "default": true
-    },
-    {
-      "type": "range",
-      "id": "marquee_speed",
-      "label": "Scroll speed (seconds per loop)",
-      "min": 20,
-      "max": 80,
-      "step": 5,
-      "default": 40,
-      "info": "Higher = slower"
-    },
-    {
-      "type": "checkbox",
-      "id": "pause_on_hover",
-      "label": "Pause on hover",
-      "default": true
+      "type": "paragraph",
+      "content": "Hidden on the homepage. On shop/collection pages: Sort (left), category pills (center), Filter (right). On other pages: centered pills only."
     },
     {
       "type": "text",
@@ -121,11 +199,11 @@
     {
       "name": "Home trust bar",
       "blocks": [
-        { "type": "item", "settings": { "label": "Single Origin" } },
-        { "type": "item", "settings": { "label": "Micro-Lot" } },
-        { "type": "item", "settings": { "label": "Exotic" } },
-        { "type": "item", "settings": { "label": "Capsules" } },
-        { "type": "item", "settings": { "label": "Drip" } }
+        { "type": "item", "settings": { "label": "Single Origin", "link": "/collections/single-origin" } },
+        { "type": "item", "settings": { "label": "Micro-Lot", "link": "/collections/micro-lot" } },
+        { "type": "item", "settings": { "label": "Exotic", "link": "/collections/exotic" } },
+        { "type": "item", "settings": { "label": "Capsules & Drip", "link": "/collections/capsules-drip" } },
+        { "type": "item", "settings": { "label": "Accessories", "link": "/collections/accessories" } }
       ]
     }
   ]

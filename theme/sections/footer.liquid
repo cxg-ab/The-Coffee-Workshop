@@ -71,6 +71,15 @@
       text-transform: uppercase;
       color: #C5A059;
     }
+    a.tcw-footer-heading--link {
+      display: inline-block;
+      margin-bottom: 0;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    a.tcw-footer-heading--link:hover {
+      color: var(--color-brand, #8B5E3C);
+    }
     .tcw-footer-links {
       display: flex;
       flex-direction: column;
@@ -114,30 +123,17 @@
         {%- endif -%}
       </div>
 
-      <!-- Shop Menu -->
+      <!-- Shop — single link to all beans -->
       <div class="tcw-footer-col-link">
-        <details class="tcw-footer-accordion tcw-footer-mobile-only border-b border-[#2A2624] py-4">
-          <summary class="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.16em] text-[#C5A059]">
+        <div class="tcw-footer-mobile-only border-b border-[#2A2624] py-4">
+          <a href="/collections/all-beans" class="tcw-footer-heading tcw-footer-heading--link">
             {{ 'footer.shop' | t }}
-            <span class="text-white/40 text-base">+</span>
-          </summary>
-          <div class="mt-4">
-            {% render 'nav-menu',
-              menu_handle: section.settings.menu_shop,
-              list_class: 'tcw-footer-links',
-              link_class: '',
-              fallback: 'shop'
-            %}
-          </div>
-        </details>
+          </a>
+        </div>
         <div class="tcw-footer-desktop-only">
-          <h2 class="tcw-footer-heading">{{ 'footer.shop' | t }}</h2>
-          {% render 'nav-menu',
-            menu_handle: section.settings.menu_shop,
-            list_class: 'tcw-footer-links',
-            link_class: '',
-            fallback: 'shop'
-          %}
+          <a href="/collections/all-beans" class="tcw-footer-heading tcw-footer-heading--link">
+            {{ 'footer.shop' | t }}
+          </a>
         </div>
       </div>
 

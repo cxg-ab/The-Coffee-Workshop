@@ -32,7 +32,7 @@
 
       {%- if is_shop_beans_link -%}
         {%- unless shop_beans_rendered -%}
-          {% render 'shop-beans-nav-item', link_class: link_class %}
+          {% render 'shop-beans-nav-item', link_class: link_class, shop_link: shop_link %}
           {%- assign shop_beans_rendered = true -%}
         {%- endunless -%}
       {%- elsif link.links != blank -%}
@@ -82,7 +82,7 @@
     {%- endfor -%}
 
     {%- unless shop_beans_rendered -%}
-      {% render 'shop-beans-nav-item', link_class: link_class %}
+      {% render 'shop-beans-nav-item', link_class: link_class, shop_link: shop_link %}
     {%- endunless -%}
   </ul>
 {%- elsif fallback == 'shop' -%}
@@ -96,10 +96,9 @@
   </ul>
 {%- elsif fallback == 'main' -%}
   <ul class="{{ list_class }}" role="list">
-    {% render 'shop-beans-nav-item', link_class: link_class %}
-    <li><a href="/collections/accessories" class="{{ link_class }}">{{ 'header.accessories' | t }}</a></li>
+    {% render 'shop-beans-nav-item', link_class: link_class, shop_link: shop_link %}
     <li><a href="/pages/about" class="{{ link_class }}">{{ 'header.about' | t }}</a></li>
-    <li><a href="/pages/faq" class="{{ link_class }}">{{ 'header.faq' | t }}</a></li>
+    <li><a href="/pages/contact" class="{{ link_class }}">{{ 'footer.contact' | t }}</a></li>
   </ul>
 {%- elsif fallback == 'support' -%}
   <ul class="{{ list_class }}" role="list">
