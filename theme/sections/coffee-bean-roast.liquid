@@ -5,7 +5,8 @@
 
 {%- assign sid = section.id -%}
 {%- assign total_frames = section.settings.frame_count -%}
-{%- assign mobile_scrub_vh = section.settings.scrub_vh | times: 0.5 | round -%}
+{%- assign phone_scrub_vh = section.settings.scrub_vh | times: 0.55 | round -%}
+{%- assign tablet_scrub_vh = section.settings.scrub_vh | times: 0.75 | round -%}
 
 <style>
   #beanRoast-{{ sid }}{
@@ -17,35 +18,29 @@
     --br-canvas: var(--color-bg, #FAFAF8);
     --br-bronze: var(--color-brand, #8B5E3C);
     --br-line: var(--color-border, #E8E4DC);
+    --br-header: var(--tcw-header-h, 5rem);
+    --br-safe-t: env(safe-area-inset-top, 0px);
+    --br-safe-b: env(safe-area-inset-bottom, 0px);
+    --br-stage-h: calc(100svh - var(--br-header));
     background: var(--br-canvas);
     isolation: isolate;
   }
-  @media (max-width: 768px) {
-    #beanRoast-{{ sid }} { --scrub-vh: {{ mobile_scrub_vh }}; }
-    #beanRoast-{{ sid }} .br-stage{
-      align-items:center;
-      justify-content:center;
-      padding:6vh 0 5vh;
-      height:100svh;
-    }
-    #beanRoast-{{ sid }} .br-head{
-      top:3vh;
-      padding:0 16px;
-    }
-    #beanRoast-{{ sid }} .br-view{
-      width:min(96vw, var(--bean-w));
-      height:min(88svh, var(--bean-h));
-      margin:0 auto;
-      flex:0 0 auto;
-    }
-    #beanRoast-{{ sid }} .br-caption{
-      bottom:4vh;
-    }
+  @supports (height: 100dvh) {
+    #beanRoast-{{ sid }}{ --br-stage-h: calc(100dvh - var(--br-header)); }
   }
+
   #beanRoast-{{ sid }} .br-track{position:relative;height:calc(var(--scrub-vh) * 1vh)}
   #beanRoast-{{ sid }} .br-stage{
-    position:sticky;top:0;height:100svh;
-    display:flex;align-items:center;justify-content:center;
+    position:sticky;top:var(--br-header);
+    height:var(--br-stage-h);
+    min-height:280px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:clamp(0.5rem, 1.5vh, 1.25rem);
+    padding:
+      max(0.75rem, var(--br-safe-t))
+      clamp(0.75rem, 3vw, 1.5rem)
+      max(0.75rem, var(--br-safe-b));
+    box-sizing:border-box;
     overflow:hidden;
     background:
       radial-gradient(ellipse 68% 52% at 50% 78%, rgba(139, 94, 60, 0.07), transparent 72%),
@@ -53,14 +48,25 @@
       var(--br-canvas);
   }
   #beanRoast-{{ sid }} .br-head{
-    position:absolute;left:0;right:0;top:4vh;text-align:center;padding:0 24px;
-    pointer-events:none;z-index:4;
+    position:relative;flex:0 0 auto;width:100%;max-width:40rem;
+    text-align:center;z-index:4;pointer-events:none;
+  }
+  #beanRoast-{{ sid }} .br-head h2{
+    font-size:clamp(1.5rem, 4.2vw + 0.6rem, 3.75rem);
+    line-height:1.05;
+  }
+  #beanRoast-{{ sid }} .br-head .prose-brand{
+    margin-top:0.5rem;
+    font-size:clamp(0.875rem, 1.2vw + 0.7rem, 1.125rem);
   }
   #beanRoast-{{ sid }} .br-view{
     position:relative;z-index:2;
-    width:min(var(--bean-w), var(--bean-max-w), 100vw);
-    height:min(var(--bean-h), var(--bean-max-h), 100svh);
-    flex:0 0 auto;
+    flex:1 1 auto;
+    width:min(var(--bean-w), var(--bean-max-w), 100%);
+    height:auto;
+    max-height:min(var(--bean-h), var(--bean-max-h), 100%);
+    aspect-ratio:1 / 1;
+    max-width:100%;
     border:none;outline:none;box-shadow:none;background:transparent;
   }
   #beanRoast-{{ sid }} .br-canvas{
@@ -73,13 +79,72 @@
     pointer-events:none;
   }
   #beanRoast-{{ sid }} .br-caption{
-    position:absolute;left:0;right:0;bottom:7vh;text-align:center;
+    position:relative;flex:0 0 auto;width:100%;
+    text-align:center;
     font-size:.75rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
     color:rgba(28,25,23,.55);pointer-events:none;z-index:4;
   }
+
+  /* Phones */
+  @media (max-width: 640px) {
+    #beanRoast-{{ sid }} { --scrub-vh: {{ phone_scrub_vh }}; }
+    #beanRoast-{{ sid }} .br-stage{
+      gap:0.35rem;
+      padding-inline:0.75rem;
+    }
+    #beanRoast-{{ sid }} .br-view{
+      width:min(92vw, 100%);
+      max-height:min(72svh, calc(var(--br-stage-h) - 5.5rem));
+    }
+  }
+
+  /* Large phones / small tablets */
+  @media (min-width: 641px) and (max-width: 768px) {
+    #beanRoast-{{ sid }} { --scrub-vh: {{ phone_scrub_vh }}; }
+    #beanRoast-{{ sid }} .br-view{
+      width:min(86vw, 34rem);
+      max-height:min(76svh, calc(var(--br-stage-h) - 5rem));
+    }
+  }
+
+  /* iPad portrait & compact tablets */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    #beanRoast-{{ sid }} { --scrub-vh: {{ tablet_scrub_vh }}; }
+    #beanRoast-{{ sid }} .br-view{
+      width:min(78vw, 40rem);
+      max-height:min(78svh, calc(var(--br-stage-h) - 6rem));
+    }
+  }
+
+  /* iPad landscape / small laptops */
+  @media (min-width: 769px) and (max-width: 1180px) and (orientation: landscape) {
+    #beanRoast-{{ sid }} { --scrub-vh: {{ tablet_scrub_vh }}; }
+    #beanRoast-{{ sid }} .br-stage{
+      flex-direction:row;
+      flex-wrap:wrap;
+      justify-content:center;
+      align-content:center;
+      gap:1rem 2rem;
+    }
+    #beanRoast-{{ sid }} .br-head{
+      flex:1 1 16rem;
+      max-width:22rem;
+      text-align:left;
+    }
+    #beanRoast-{{ sid }} .br-view{
+      flex:0 1 auto;
+      width:min(52vh, 52vw, 28rem);
+      max-height:min(70svh, calc(var(--br-stage-h) - 2rem));
+    }
+    #beanRoast-{{ sid }} .br-caption{
+      flex:1 1 100%;
+      text-align:center;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce){
     #beanRoast-{{ sid }} .br-track{height:auto}
-    #beanRoast-{{ sid }} .br-stage{position:static;height:auto;padding:14vh 0}
+    #beanRoast-{{ sid }} .br-stage{position:static;height:auto;min-height:0;padding:14vh 0}
   }
 </style>
 
@@ -88,8 +153,8 @@
     <div class="br-stage" data-br-stage>
       {%- if section.settings.heading != blank or section.settings.subheading != blank -%}
       <div class="br-head">
-        {% if section.settings.heading != blank %}<h2 class="font-display font-bold text-4xl lg:text-6xl text-ink leading-[1.05] tracking-tight" data-split-title>{{ section.settings.heading }}</h2>{% endif %}
-        {% if section.settings.subheading != blank %}<p class="prose-brand mt-4">{{ section.settings.subheading }}</p>{% endif %}
+        {% if section.settings.heading != blank %}<h2 class="font-display font-bold text-ink tracking-tight" data-split-title>{{ section.settings.heading }}</h2>{% endif %}
+        {% if section.settings.subheading != blank %}<p class="prose-brand">{{ section.settings.subheading }}</p>{% endif %}
       </div>
       {%- endif -%}
 
@@ -149,10 +214,13 @@
       var cur = -1;
       var pending = false;
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      var mobileMq = window.matchMedia('(max-width: 768px)');
+      var phoneMq = window.matchMedia('(max-width: 640px)');
+      var tabletMq = window.matchMedia('(min-width: 641px) and (max-width: 1024px)');
       var stopIdx = Math.max(0, Math.min(N - 1, cfg.frameStop - 1));
 
-      function isMobile(){ return mobileMq.matches; }
+      function isPhone(){ return phoneMq.matches; }
+      function isTablet(){ return tabletMq.matches; }
+      function isCompact(){ return isPhone() || isTablet(); }
 
       function loadBudget(){
         /* Frames past stopIdx are never displayed on any device (roastIndex
@@ -165,25 +233,34 @@
 
       function readyThreshold(){
         var budget = loadBudget();
-        if(isMobile()) return Math.min(6, budget);
+        if(isPhone()) return Math.min(5, budget);
+        if(isTablet()) return Math.min(8, budget);
         return Math.min(12, budget);
       }
 
       function maxConcurrent(){
-        return isMobile() ? 4 : 10;
+        if(isPhone()) return 3;
+        if(isTablet()) return 6;
+        return 10;
       }
 
       function maxDpr(){
-        return isMobile() ? 2 : 4;
+        if(isPhone()) return 2;
+        if(isTablet()) return 2.5;
+        return 3;
       }
 
       ctx.imageSmoothingEnabled = true;
       if('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
 
       function clamp(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
+      function viewportH(){
+        if(window.visualViewport && window.visualViewport.height) return window.visualViewport.height;
+        return window.innerHeight || document.documentElement.clientHeight;
+      }
       function prog(){
         var r = track.getBoundingClientRect();
-        var tot = r.height - innerHeight;
+        var tot = r.height - viewportH();
         return tot <= 0 ? 0 : clamp(-r.top / tot);
       }
       function capFor(p){
@@ -236,7 +313,7 @@
         var dw = iw * scale;
         var dh = ih * scale;
         var dx = (cw - dw) * 0.5;
-        var dy = isMobile() ? (ch - dh) * 0.5 : ch - dh;
+        var dy = (ch - dh) * 0.5;
 
         ctx.clearRect(0, 0, cw, ch);
         ctx.drawImage(im, dx, dy, dw, dh);
@@ -308,11 +385,22 @@
 
       var io = new IntersectionObserver(function(en){
         if(en[0].isIntersecting){ io.disconnect(); preload(); }
-      }, { rootMargin: isMobile() ? '120px 0px' : '400px 0px' });
+      }, { rootMargin: isCompact() ? '160px 0px' : '400px 0px' });
       io.observe(track);
 
       addEventListener('scroll', onScroll, { passive: true });
       addEventListener('resize', size);
+      if(window.visualViewport){
+        window.visualViewport.addEventListener('resize', size);
+        window.visualViewport.addEventListener('scroll', onScroll, { passive: true });
+      }
+      if(phoneMq.addEventListener){
+        phoneMq.addEventListener('change', size);
+        tabletMq.addEventListener('change', size);
+      } else if(phoneMq.addListener){
+        phoneMq.addListener(size);
+        tabletMq.addListener(size);
+      }
       size();
     };
   }

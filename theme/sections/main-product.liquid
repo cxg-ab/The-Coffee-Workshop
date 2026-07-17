@@ -9,8 +9,6 @@
   assign roast_level = product.metafields.coffee.roast_level.value
   assign flavor_notes = product.metafields.coffee.flavor_notes.value
 
-  # Roast scale: 4 options only — Light=1 dot, Medium-Light=2, Medium=3,
-  # Dark=full (5). Matches the metafield's "choices" validation list.
   assign roast_step = 0
   case roast_level
     when 'Light'
@@ -22,169 +20,497 @@
     when 'Dark'
       assign roast_step = 5
   endcase
+
+  assign has_specs = false
+  if country != blank or region != blank or variety != blank or altitude != blank or process != blank or roast_level != blank or flavor_notes != blank
+    assign has_specs = true
+  endif
 -%}
 
 <style>
-  /* Coffee spec badges: bold dark pill labels, matching the reference
-     coffee-bag label design. Plain CSS (not Tailwind arbitrary values)
-     since this theme's build is precompiled. */
-  .coffee-spec-badge {
+  .pdp {
+    --pdp-ink: var(--color-ink, #1A1A1A);
+    --pdp-muted: var(--color-text-muted, #6B6B6B);
+    --pdp-line: var(--color-border, #E8E4DC);
+    --pdp-canvas: var(--color-bg, #FAFAF8);
+    --pdp-brand: var(--color-brand, #8B5E3C);
+    --pdp-surface: var(--color-surface, #FFFFFF);
+    background: var(--pdp-surface);
+    color: var(--pdp-ink);
+  }
+  .pdp__shell {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 1.25rem 1rem 3rem;
+  }
+  @media (min-width: 768px) {
+    .pdp__shell { padding: 1.75rem 1.5rem 4rem; }
+  }
+  @media (min-width: 1024px) {
+    .pdp__shell { padding: 2rem 1.5rem 5rem; }
+  }
+
+  .pdp__grid {
+    display: grid;
+    gap: 1.75rem 2.5rem;
+  }
+  @media (min-width: 1024px) {
+    .pdp__grid {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: 2.5rem 3.5rem;
+      align-items: start;
+    }
+  }
+
+  .pdp__gallery { position: relative; }
+  @media (min-width: 1024px) {
+    .pdp__gallery {
+      position: sticky;
+      top: calc(var(--tcw-header-h, 5rem) + 1rem);
+    }
+  }
+  .pdp__main-media {
+    border: 1px solid var(--pdp-line);
+  }
+  .pdp__thumbs {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .pdp__thumbs::-webkit-scrollbar { display: none; }
+  .pdp__thumb {
+    flex: 0 0 auto;
+    width: 4.25rem;
+    height: 4.25rem;
+    padding: 0;
+    border: 1px solid var(--pdp-line);
+    background: var(--pdp-canvas);
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .pdp__thumb.is-active {
+    border-color: var(--pdp-ink);
+  }
+  .pdp__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    display: block;
+    padding: 0.35rem;
+  }
+
+  .pdp__info {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    min-width: 0;
+  }
+  @media (min-width: 1024px) {
+    .pdp__info { gap: 1.35rem; padding-top: 0.25rem; }
+  }
+
+  .pdp__eyebrow {
+    margin: 0;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pdp-brand);
+  }
+  .pdp__title {
+    margin: 0;
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--pdp-ink);
+  }
+  .pdp__meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+  }
+  .pdp__price {
+    margin: 0;
+    font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--pdp-brand);
+  }
+  .pdp__badge {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    background: var(--color-ink, #1C1917);
-    color: #fff;
-    font-size: 0.65rem;
+    padding: 0.28rem 0.65rem;
+    font-size: 0.5625rem;
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    padding: 0.4rem 0.9rem;
-    border-radius: 999px;
-    margin-bottom: 0.5rem;
+    border: 1px solid var(--pdp-line);
+    color: var(--pdp-ink);
+    background: var(--pdp-canvas);
   }
-  .coffee-spec-value {
-    font-size: 0.95rem;
+  .pdp__badge--sold {
+    background: var(--pdp-ink);
+    border-color: var(--pdp-ink);
+    color: #fff;
+  }
+  .pdp__badge--limited {
+    border-color: var(--pdp-brand);
+    color: var(--pdp-brand);
+  }
+  .pdp__origin {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--pdp-ink);
+  }
+  .pdp__desc {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.65;
+    color: var(--pdp-muted);
+    max-width: 38rem;
+  }
+  .pdp__desc p { margin: 0 0 0.75rem; }
+  .pdp__desc p:last-child { margin-bottom: 0; }
+
+  .pdp__panel {
+    border-top: 1px solid var(--pdp-line);
+    padding-top: 1.1rem;
+  }
+  .pdp__panel-label {
+    margin: 0 0 0.65rem;
+    font-size: 0.625rem;
     font-weight: 700;
-    color: var(--color-ink, #1C1917);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pdp-muted);
   }
-  .coffee-roast-dot {
-    display: inline-block;
-    width: 0.7rem;
-    height: 0.7rem;
+
+  .pdp__specs {
+    display: grid;
+    gap: 0;
+    margin: 0;
+  }
+  .pdp__spec {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 32%) 1fr;
+    gap: 0.75rem 1rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--pdp-line);
+    align-items: start;
+  }
+  .pdp__spec:first-child { border-top: 1px solid var(--pdp-line); }
+  .pdp__spec dt {
+    margin: 0;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--pdp-muted);
+    padding-top: 0.15rem;
+  }
+  .pdp__spec dd {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--pdp-ink);
+    line-height: 1.4;
+  }
+  .pdp__notes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .pdp__note {
+    display: inline-flex;
+    padding: 0.28rem 0.65rem;
+    border: 1px solid var(--pdp-line);
+    background: var(--pdp-canvas);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--pdp-ink);
+  }
+  .pdp__roast {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .pdp__roast-dot {
+    width: 0.55rem;
+    height: 0.55rem;
     border-radius: 50%;
-    border: 1.5px solid var(--color-ink, #1C1917);
-    margin-inline-end: 0.35rem;
+    border: 1.5px solid var(--pdp-ink);
   }
-  .coffee-roast-dot.is-filled {
-    background: var(--color-ink, #1C1917);
+  .pdp__roast-dot.is-filled { background: var(--pdp-ink); }
+  .pdp__roast-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .pdp__variants {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+  .pdp-variant {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 4.5rem;
+    min-height: 2.75rem;
+    padding: 0.55rem 0.95rem;
+    border: 1px solid var(--pdp-line);
+    background: var(--pdp-surface);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--pdp-ink);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  }
+  .pdp-variant:hover { border-color: var(--pdp-brand); }
+  .pdp-variant.is-selected {
+    border-color: var(--pdp-ink);
+    background: var(--pdp-ink);
+    color: #fff;
+  }
+  .pdp-variant.is-disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+    text-decoration: line-through;
+  }
+  .pdp-variant input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+  }
+  .pdp-variant input:focus-visible ~ span {
+    outline: 2px solid var(--pdp-brand);
+    outline-offset: 3px;
+  }
+
+  .pdp__qty-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+  }
+  .pdp__qty {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--pdp-line);
+    background: var(--pdp-surface);
+  }
+  .pdp__qty button {
+    width: 2.5rem;
+    height: 2.75rem;
+    border: none;
+    background: transparent;
+    color: var(--pdp-ink);
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  .pdp__qty button:hover { color: var(--pdp-brand); }
+  .pdp__qty input {
+    width: 2.75rem;
+    height: 2.75rem;
+    border: none;
+    border-inline: 1px solid var(--pdp-line);
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--pdp-ink);
+    background: transparent;
+    -moz-appearance: textfield;
+  }
+  .pdp__qty input::-webkit-outer-spin-button,
+  .pdp__qty input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .pdp__cta {
+    flex: 1 1 12rem;
+    min-height: 2.75rem;
+  }
+  .pdp__error {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: #b42318;
+  }
+  .pdp__error[hidden] { display: none; }
+
+  @media (max-width: 640px) {
+    .pdp__buy {
+      position: sticky;
+      bottom: 0;
+      z-index: 20;
+      margin: 0 -1rem -1rem;
+      padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+      background: rgba(255, 255, 255, 0.96);
+      border-top: 1px solid var(--pdp-line);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+    }
   }
 </style>
 
-<div class="relative overflow-hidden bg-surface text-ink">
-  <div class="absolute inset-0 z-0 opacity-60 pointer-events-none">
-    {% render 'hero-arabic-bg' %}
-  </div>
-
-  <div class="site-container relative z-10 py-16 lg:py-32">
-    <div class="grid gap-12 lg:grid-cols-2 lg:gap-24 items-center lg:items-start">
-
-      <div class="space-y-4 lg:sticky lg:top-28" data-reveal data-product-gallery>
+<section class="pdp" data-pdp>
+  <div class="pdp__shell site-container">
+    <div class="pdp__grid">
+      <div class="pdp__gallery" data-product-gallery>
         {%- if product.media.size > 0 -%}
-          <div class="group relative overflow-hidden border border-line bg-canvas aspect-[4/5] flex items-center justify-center p-8 lg:p-16 transition-shadow duration-300 hover:shadow-brand">
+          <div class="tcw-product-media tcw-product-media--padded tcw-product-media--lift pdp__main-media" data-pdp-main>
             {{
               product.featured_media
-              | image_url: width: 1200
+              | image_url: width: 1400
               | image_tag:
-                class: 'relative z-10 h-full w-full object-contain transition-transform duration-700 ease-out group-hover:scale-105',
+                class: 'tcw-product-media__img',
                 loading: 'eager',
-                widths: '600, 900, 1200',
-                sizes: '(max-width: 1024px) 100vw, 50vw',
-                alt: product.featured_media.alt | default: product.title
+                widths: '600, 900, 1200, 1400',
+                sizes: '(max-width: 1024px) 100vw, 48vw',
+                alt: product.featured_media.alt | default: product.title,
+                data-pdp-main-img: true
             }}
           </div>
+
+          {%- if product.media.size > 1 -%}
+            <div class="pdp__thumbs" role="list">
+              {%- for media in product.media -%}
+                {%- if media.media_type == 'image' -%}
+                  <button
+                    type="button"
+                    class="pdp__thumb{% if forloop.first %} is-active{% endif %}"
+                    data-pdp-thumb
+                    data-full="{{ media | image_url: width: 1400 }}"
+                    data-alt="{{ media.alt | default: product.title | escape }}"
+                    aria-label="{{ product.title }} — image {{ forloop.index }}"
+                  >
+                    {{
+                      media
+                      | image_url: width: 200
+                      | image_tag: loading: 'lazy', alt: media.alt | default: product.title
+                    }}
+                  </button>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
         {%- endif -%}
       </div>
 
-      <div data-reveal data-reveal-delay="0.15" class="flex flex-col h-full justify-center lg:py-10">
-        <p class="section-eyebrow mb-6">
-          {{ settings.brand_tagline | default: 'Specialty Coffee' }}
-        </p>
+      <div class="pdp__info">
+        <p class="pdp__eyebrow">{{ settings.brand_tagline | default: 'Specialty Coffee' }}</p>
+        <h1 class="pdp__title">{{ product.title | remove: '[PLACEHOLDER] ' }}</h1>
 
-        <h1 class="font-display text-4xl lg:text-6xl font-bold uppercase tracking-[0.04em] text-ink mb-6 leading-tight">
-          {{ product.title }}
-        </h1>
-
-        <div class="flex flex-wrap gap-3 mb-6">
+        <div class="pdp__meta-row">
+          <p class="pdp__price" data-product-price>{{ current_variant.price | money }}</p>
           {%- if is_limited -%}
-            <span class="inline-flex items-center justify-center rounded-sm bg-brand px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-ink">
-              {{ 'products.limited_batch' | t | default: 'Limited Batch' }}
-            </span>
+            <span class="pdp__badge pdp__badge--limited">{{ 'products.limited_batch' | t | default: 'Limited Batch' }}</span>
           {%- endif -%}
           {%- unless current_variant.available -%}
-            <span class="inline-flex items-center justify-center rounded-sm bg-ink px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white">
-              {{ 'products.sold_out' | t | default: 'Sold Out' }}
-            </span>
+            <span class="pdp__badge pdp__badge--sold">{{ 'products.sold_out' | t | default: 'Sold Out' }}</span>
           {%- endunless -%}
         </div>
 
-        <p class="text-3xl lg:text-4xl font-light tracking-wide text-brand mb-10" data-product-price>{{ current_variant.price | money }}</p>
-
-        <!-- Country, bold + large, like the reference label -->
         {%- if country != blank -%}
-          <h2 class="font-display text-2xl lg:text-3xl font-bold uppercase tracking-wide text-ink mb-2">{{ country }}</h2>
+          <p class="pdp__origin">
+            {{ country }}{% if region != blank %} · {{ region }}{% endif %}
+          </p>
+        {%- elsif region != blank -%}
+          <p class="pdp__origin">{{ region }}</p>
         {%- endif -%}
 
-        <!-- Short description — product's own description copy serves this role -->
-        <div class="prose-brand leading-relaxed mb-8 max-w-none text-base lg:text-lg">
-          {{ product.description }}
-        </div>
+        {%- if product.description != blank -%}
+          <div class="pdp__desc prose-brand">{{ product.description }}</div>
+        {%- endif -%}
 
-        <!-- Altitude / Variety / Region: bold dark pill badges -->
-        {%- if altitude != blank or variety != blank or region != blank -%}
-          <div class="grid grid-cols-3 gap-4 mb-10">
-            {%- if altitude != blank -%}
-              <div>
-                <span class="coffee-spec-badge">{{ 'products.altitude' | t | default: 'Altitude' }}</span>
-                <p class="coffee-spec-value">{{ altitude }}</p>
-              </div>
-            {%- endif -%}
-            {%- if variety != blank -%}
-              <div>
-                <span class="coffee-spec-badge">{{ 'products.variety' | t | default: 'Variety' }}</span>
-                <p class="coffee-spec-value">{{ variety }}</p>
-              </div>
-            {%- endif -%}
-            {%- if region != blank -%}
-              <div>
-                <span class="coffee-spec-badge">{{ 'products.region' | t | default: 'Region' }}</span>
-                <p class="coffee-spec-value">{{ region }}</p>
-              </div>
-            {%- endif -%}
+        {%- if has_specs -%}
+          <div class="pdp__panel">
+            <p class="pdp__panel-label">{% if request.locale.iso_code == 'ar' %}التفاصيل{% else %}Details{% endif %}</p>
+            <dl class="pdp__specs">
+              {%- if country != blank -%}
+                <div class="pdp__spec">
+                  <dt>{{ 'products.origin' | t | default: 'Origin' }}</dt>
+                  <dd>{{ country }}</dd>
+                </div>
+              {%- endif -%}
+              {%- if region != blank -%}
+                <div class="pdp__spec">
+                  <dt>{{ 'products.region' | t | default: 'Region' }}</dt>
+                  <dd>{{ region }}</dd>
+                </div>
+              {%- endif -%}
+              {%- if variety != blank -%}
+                <div class="pdp__spec">
+                  <dt>{{ 'products.variety' | t | default: 'Variety' }}</dt>
+                  <dd>{{ variety }}</dd>
+                </div>
+              {%- endif -%}
+              {%- if altitude != blank -%}
+                <div class="pdp__spec">
+                  <dt>{{ 'products.altitude' | t | default: 'Altitude' }}</dt>
+                  <dd>{{ altitude }}</dd>
+                </div>
+              {%- endif -%}
+              {%- if process != blank -%}
+                <div class="pdp__spec">
+                  <dt>{{ 'products.process' | t | default: 'Process' }}</dt>
+                  <dd>{{ process }}</dd>
+                </div>
+              {%- endif -%}
+              {%- if roast_level != blank -%}
+                <div class="pdp__spec">
+                  <dt>{{ 'products.roast_level' | t | default: 'Roast' }}</dt>
+                  <dd>
+                    <span class="pdp__roast">
+                      {%- if roast_step > 0 -%}
+                        {%- for i in (1..5) -%}
+                          <span class="pdp__roast-dot{% if i <= roast_step %} is-filled{% endif %}"></span>
+                        {%- endfor -%}
+                      {%- endif -%}
+                      <span class="pdp__roast-label">{{ roast_level }}</span>
+                    </span>
+                  </dd>
+                </div>
+              {%- endif -%}
+              {%- if flavor_notes != blank -%}
+                <div class="pdp__spec">
+                  <dt>{{ 'products.flavor_notes' | t | default: 'Tasting notes' }}</dt>
+                  <dd>
+                    <div class="pdp__notes">
+                      {%- for note in flavor_notes -%}
+                        <span class="pdp__note">{{ note }}</span>
+                      {%- endfor -%}
+                    </div>
+                  </dd>
+                </div>
+              {%- endif -%}
+            </dl>
           </div>
         {%- endif -%}
 
-        <!-- Tasting Notes + Process + Roast (dots) -->
-        {%- if flavor_notes != blank or process != blank or roast_step > 0 -%}
-          <div class="mb-10 divide-y divide-line border-y border-line text-sm">
-            {%- if flavor_notes != blank -%}
-              <div class="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <dt class="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted">{{ 'products.flavor_notes' | t | default: 'Tasting Notes' }}</dt>
-                <dd class="flex flex-wrap gap-1.5 sm:justify-end">
-                  {%- for note in flavor_notes -%}
-                    <span class="rounded-full bg-canvas px-2.5 py-1 text-xs font-medium text-ink">{{ note }}</span>
-                  {%- endfor -%}
-                </dd>
-              </div>
-            {%- endif -%}
-            {%- if process != blank -%}
-              <div class="flex items-center justify-between gap-4 py-3">
-                <dt class="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted">{{ 'products.process' | t | default: 'Process' }}</dt>
-                <dd class="font-medium text-ink">{{ process }}</dd>
-              </div>
-            {%- endif -%}
-            {%- if roast_step > 0 -%}
-              <div class="flex items-center justify-between gap-4 py-3">
-                <dt class="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted">{{ 'products.roast_level' | t | default: 'Roast' }}</dt>
-                <dd>
-                  {%- for i in (1..5) -%}
-                    <span class="coffee-roast-dot{% if i <= roast_step %} is-filled{% endif %}"></span>
-                  {%- endfor -%}
-                </dd>
-              </div>
-            {%- endif -%}
-          </div>
-        {%- endif -%}
+        {% form 'product', product, class: 'pdp__form', id: 'product-form', data-ajax-cart: true %}
+          <p class="pdp__error" data-cart-error role="alert" hidden></p>
 
-        {% form 'product', product, class: 'mt-auto space-y-8', id: 'product-form', data-ajax-cart: true %}
-          <p class="hidden text-sm text-red-700" data-cart-error role="alert"></p>
           {%- if product.variants.size > 1 -%}
-            <div>
-              <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
-                {{ 'products.variant' | t | default: 'Select weight' }}
-              </p>
-              <div class="flex flex-wrap gap-2" data-variant-picker>
+            <div class="pdp__panel">
+              <p class="pdp__panel-label">{{ 'products.variant' | t | default: 'Options' }}</p>
+              <div class="pdp__variants" data-variant-picker>
                 {%- for variant in product.variants -%}
-                  <label class="variant-pill{% if variant == current_variant %} is-selected{% endif %}{% unless variant.available %} is-disabled{% endunless %}">
+                  <label class="pdp-variant{% if variant == current_variant %} is-selected{% endif %}{% unless variant.available %} is-disabled{% endunless %}">
                     <input
                       type="radio"
                       name="id"
@@ -202,84 +528,98 @@
             <input type="hidden" name="id" value="{{ current_variant.id }}">
           {%- endif -%}
 
-          <div class="pt-4 border-t border-line">
-            <button
-              type="submit"
-              name="add"
-              class="btn-primary w-full text-center disabled:opacity-50 disabled:cursor-not-allowed"
-              {% unless current_variant.available %}disabled{% endunless %}
-              data-add-to-cart-btn
-              data-add-label="{{ 'products.add_to_cart' | t | default: 'Add to Cart' }}"
-              data-adding-label="{{ 'products.adding_to_cart' | t }}"
-              data-soldout-label="{{ 'products.sold_out' | t | default: 'Sold Out' }}"
-            >
-              {%- if current_variant.available -%}
-                {{ 'products.add_to_cart' | t | default: 'Add to Cart' }}
-              {%- else -%}
-                {{ 'products.sold_out' | t | default: 'Sold Out' }}
-              {%- endif -%}
-            </button>
+          <div class="pdp__panel pdp__buy">
+            <div class="pdp__qty-row">
+              <div class="pdp__qty" data-pdp-qty>
+                <button type="button" data-qty-minus aria-label="Decrease quantity">−</button>
+                <input
+                  type="number"
+                  name="quantity"
+                  value="1"
+                  min="1"
+                  inputmode="numeric"
+                  aria-label="{{ 'products.quantity' | t | default: 'Quantity' }}"
+                  data-qty-input
+                >
+                <button type="button" data-qty-plus aria-label="Increase quantity">+</button>
+              </div>
+              <button
+                type="submit"
+                name="add"
+                class="btn-primary pdp__cta text-center disabled:opacity-50 disabled:cursor-not-allowed"
+                {% unless current_variant.available %}disabled{% endunless %}
+                data-add-to-cart-btn
+                data-add-label="{{ 'products.add_to_cart' | t | default: 'Add to Cart' }}"
+                data-adding-label="{{ 'products.adding_to_cart' | t }}"
+                data-soldout-label="{{ 'products.sold_out' | t | default: 'Sold Out' }}"
+              >
+                {%- if current_variant.available -%}
+                  {{ 'products.add_to_cart' | t | default: 'Add to Cart' }}
+                {%- else -%}
+                  {{ 'products.sold_out' | t | default: 'Sold Out' }}
+                {%- endif -%}
+              </button>
+            </div>
           </div>
         {% endform %}
       </div>
     </div>
   </div>
-</div>
-
-<style>
-  .variant-pill {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 4.75rem;
-    padding: 0.7rem 1.1rem;
-    border: 1px solid var(--color-line, #e8e4dc);
-    border-radius: 2px;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--color-ink, #1C1917);
-    background: var(--color-surface, #FFFFFF);
-    cursor: pointer;
-    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
-  }
-  .variant-pill:hover { border-color: var(--color-brand, #C5A059); }
-  .variant-pill.is-selected {
-    border-color: var(--color-brand, #C5A059);
-    background: var(--color-brand, #C5A059);
-    color: var(--color-ink, #1C1917);
-  }
-  .variant-pill.is-disabled { opacity: 0.4; cursor: not-allowed; text-decoration: line-through; }
-  .variant-pill input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
-  .variant-pill input:focus-visible ~ span { outline: 2px solid var(--color-brand, #C5A059); outline-offset: 3px; }
-</style>
+</section>
 
 <script>
-(function(){
-  var picker = document.querySelector('[data-variant-picker]');
-  if(!picker) return;
-  var priceEl = document.querySelector('[data-product-price]');
-  var addBtn = document.querySelector('[data-add-to-cart-btn]');
+(function () {
+  var root = document.querySelector('[data-pdp]');
+  if (!root) return;
 
-  picker.addEventListener('change', function(e){
-    if(!e.target || e.target.name !== 'id') return;
-    var input = e.target;
+  var picker = root.querySelector('[data-variant-picker]');
+  var priceEl = root.querySelector('[data-product-price]');
+  var addBtn = root.querySelector('[data-add-to-cart-btn]');
+  var mainImg = root.querySelector('[data-pdp-main-img]');
+  var thumbs = root.querySelectorAll('[data-pdp-thumb]');
 
-    picker.querySelectorAll('.variant-pill').forEach(function(pill){
-      pill.classList.remove('is-selected');
+  if (picker) {
+    picker.addEventListener('change', function (e) {
+      if (!e.target || e.target.name !== 'id') return;
+      var input = e.target;
+      picker.querySelectorAll('.pdp-variant').forEach(function (pill) {
+        pill.classList.remove('is-selected');
+      });
+      var selectedPill = input.closest('.pdp-variant');
+      if (selectedPill) selectedPill.classList.add('is-selected');
+      if (priceEl && input.dataset.variantPrice) priceEl.textContent = input.dataset.variantPrice;
+      if (addBtn) {
+        addBtn.disabled = input.disabled;
+        addBtn.textContent = input.disabled ? addBtn.dataset.soldoutLabel : addBtn.dataset.addLabel;
+      }
     });
-    var selectedPill = input.closest('.variant-pill');
-    if(selectedPill) selectedPill.classList.add('is-selected');
+  }
 
-    if(priceEl && input.dataset.variantPrice){
-      priceEl.textContent = input.dataset.variantPrice;
-    }
-
-    if(addBtn){
-      addBtn.disabled = input.disabled;
-      addBtn.textContent = input.disabled ? addBtn.dataset.soldoutLabel : addBtn.dataset.addLabel;
-    }
+  thumbs.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      thumbs.forEach(function (t) { t.classList.remove('is-active'); });
+      btn.classList.add('is-active');
+      if (mainImg && btn.dataset.full) {
+        mainImg.src = btn.dataset.full;
+        if (btn.dataset.alt) mainImg.alt = btn.dataset.alt;
+        if (mainImg.srcset) mainImg.removeAttribute('srcset');
+      }
+    });
   });
+
+  var qtyWrap = root.querySelector('[data-pdp-qty]');
+  if (qtyWrap) {
+    var qtyInput = qtyWrap.querySelector('[data-qty-input]');
+    var minus = qtyWrap.querySelector('[data-qty-minus]');
+    var plus = qtyWrap.querySelector('[data-qty-plus]');
+    function setQty(n) {
+      var v = Math.max(1, parseInt(n, 10) || 1);
+      qtyInput.value = String(v);
+    }
+    if (minus) minus.addEventListener('click', function () { setQty((parseInt(qtyInput.value, 10) || 1) - 1); });
+    if (plus) plus.addEventListener('click', function () { setQty((parseInt(qtyInput.value, 10) || 1) + 1); });
+    if (qtyInput) qtyInput.addEventListener('change', function () { setQty(qtyInput.value); });
+  }
 })();
 </script>
 
