@@ -1,9 +1,4 @@
 <style>
-  /* Mobile-centered logo: written as plain CSS, not Tailwind utility
-     classes, because this theme's Tailwind build is precompiled — new
-     utility combinations (e.g. left-1/2 + -translate-x-1/2) that weren't
-     already present elsewhere in the theme have no generated CSS and
-     silently do nothing. */
   .tcw-header__mobile-logo {
     position: absolute;
     left: 50%;
@@ -12,9 +7,21 @@
     pointer-events: auto;
   }
   @media (min-width: 1024px) {
-    .tcw-header__mobile-logo {
-      display: none;
-    }
+    .tcw-header__mobile-logo { display: none; }
+  }
+
+  /* Sticky header group pins announcement + header + trust nav together */
+  #header-group { position: sticky; top: 0; z-index: 50; }
+  #header-group .home-trust-bar-section { background: transparent; }
+  .tcw-header { transition: box-shadow 0.3s ease; border-bottom-color: transparent; }
+  .tcw-header__inner { transition: height 0.3s ease; }
+  .tcw-logo__img { transition: max-height 0.3s ease; }
+  .tcw-header.is-compact { box-shadow: 0 6px 24px rgba(26, 26, 26, 0.06); }
+  .tcw-header.is-compact .tcw-header__inner { height: 3.5rem; }
+  .tcw-header.is-compact .tcw-logo__img { max-height: 2.25rem; }
+  @media (min-width: 1024px) {
+    .tcw-header.is-compact .tcw-header__inner { height: 4.25rem; }
+    .tcw-header.is-compact .tcw-logo__img { max-height: 2.75rem; }
   }
 </style>
 
@@ -35,25 +42,22 @@
           </svg>
         </button>
 
-        <!-- Desktop: logo sits inline next to the (hidden-on-desktop) hamburger slot -->
         <div class="hidden lg:block">
           {% render 'logo', loading: 'eager' %}
         </div>
       </div>
 
-      <!-- Mobile: logo is absolutely centered in the header bar via the
-           plain-CSS class above — stays centered regardless of how wide
-           the hamburger or the icon group on the right are. -->
       <div class="tcw-header__mobile-logo">
         {% render 'logo', loading: 'eager' %}
       </div>
 
       <nav class="hidden lg:block" aria-label="{{ 'accessibility.menu' | t }}">
         {% render 'nav-menu',
-          menu_handle: section.settings.menu,
+          menu_handle: '',
           list_class: 'flex items-center gap-8',
           link_class: 'nav-link',
-          fallback: 'main'
+          fallback: 'main',
+          shop_link: section.settings.shop_link
         %}
       </nav>
 
@@ -93,21 +97,50 @@
   <div id="mobile-menu" class="hidden border-t border-line bg-white lg:hidden" data-mobile-menu>
     <nav class="site-container py-4" aria-label="{{ 'accessibility.menu' | t }}">
       {% render 'nav-menu',
-        menu_handle: section.settings.menu,
+        menu_handle: '',
         list_class: 'flex flex-col gap-1',
         link_class: 'nav-link block py-3',
-        fallback: 'main'
+        fallback: 'main',
+        shop_link: section.settings.shop_link
       %}
     </nav>
   </div>
 </header>
+
+<script>
+  (function () {
+    var header = document.querySelector('[data-header]');
+    if (!header) return;
+    var ticking = false;
+    /* Publish the header's target height as a CSS var so sticky bars below it
+       (e.g. the collection toolbar) can pin flush and transition in lockstep. */
+    var setH = function () {
+      var lg = window.matchMedia('(min-width: 1024px)').matches;
+      var compact = header.classList.contains('is-compact');
+      var h = compact ? (lg ? 68 : 56) : (lg ? 96 : 80);
+      document.documentElement.style.setProperty('--tcw-header-h', h + 'px');
+    };
+    var update = function () {
+      ticking = false;
+      var y = window.pageYOffset || document.documentElement.scrollTop;
+      /* Header stays pinned; just shrink once past the top */
+      header.classList.toggle('is-compact', y > 40);
+      setH();
+    };
+    var onScroll = function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', setH);
+  })();
+</script>
 
 {% schema %}
 {
   "name": "Header",
   "class": "header-section",
   "settings": [
-    { "type": "link_list", "id": "menu", "label": "Main menu", "default": "main-menu" }
+    { "type": "link_list", "id": "menu", "label": "Main menu", "default": "main-menu" },
+    { "type": "url", "id": "shop_link", "label": "SHOP link target", "info": "Where the SHOP nav item goes. Default: /collections/all-beans" }
   ]
 }
 {% endschema %}

@@ -23,54 +23,6 @@
         "trust_line": ""
       }
     },
-    "home_trust": {
-      "type": "home-trust-bar",
-      "blocks": {
-        "trust_1": {
-          "type": "item",
-          "settings": {
-            "label": "Single Origin"
-          }
-        },
-        "trust_2": {
-          "type": "item",
-          "settings": {
-            "label": "Micro-Lot"
-          }
-        },
-        "trust_3": {
-          "type": "item",
-          "settings": {
-            "label": "Exotic"
-          }
-        },
-        "trust_4": {
-          "type": "item",
-          "settings": {
-            "label": "Capsules"
-          }
-        },
-        "trust_5": {
-          "type": "item",
-          "settings": {
-            "label": "Drip"
-          }
-        }
-      },
-      "block_order": [
-        "trust_1",
-        "trust_2",
-        "trust_3",
-        "trust_4",
-        "trust_5"
-      ],
-      "settings": {
-        "enable_marquee": true,
-        "marquee_speed": 40,
-        "pause_on_hover": true,
-        "aria_label": "Bean categories"
-      }
-    },
     "coffee_bean_roast": {
       "type": "coffee-bean-roast",
       "settings": {
@@ -195,12 +147,13 @@
     },
     "visit_workshop": {
       "type": "visit-workshop",
-      "settings": {}
+      "settings": {
+        "description": "Visit our specialty coffee workshop in Ras Al Khaimah — a hidden treasure for ethically conscious coffee, creative beverages, and one of the region's most desired blends."
+      }
     }
   },
   "order": [
     "hero",
-    "home_trust",
     "coffee_bean_roast",
     "origin_story",
     "brand_story",

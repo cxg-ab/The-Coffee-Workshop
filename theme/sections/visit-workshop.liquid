@@ -1,4 +1,3 @@
-<!-- visit-modern 2026-07-17T15:48:12.8925950+04:00 -->
 {%- liquid
   assign visit_align = section.settings.content_align | default: 'left'
   if visit_align != 'left' and visit_align != 'right'
@@ -23,6 +22,104 @@
     assign visit_cta = 'visit.directions' | t
   endif
 -%}
+
+{%- comment -%} Wide glass Visit panel — scoped styles override assets/application.css {%- endcomment -%}
+<style>
+  #visit-workshop.visit-modern {
+    position: relative;
+    padding-block: 3.5rem;
+    background:
+      radial-gradient(ellipse 62% 60% at 8% 12%, color-mix(in srgb, var(--color-brand, #8B5E3C) 18%, transparent), transparent 60%),
+      radial-gradient(ellipse 55% 65% at 96% 88%, color-mix(in srgb, var(--color-brand-light, #C9A962) 20%, transparent), transparent 62%),
+      linear-gradient(160deg, var(--color-bg, #FAFAF8) 0%, color-mix(in srgb, var(--color-bg, #FAFAF8) 82%, var(--color-border, #E8E4DC)) 100%);
+  }
+  @media (min-width: 1024px) { #visit-workshop.visit-modern { padding-block: 4.5rem; } }
+
+  #visit-workshop .visit-modern__panel {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    padding: 2rem 1.5rem;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.58);
+    background: rgba(255, 255, 255, 0.42);
+    -webkit-backdrop-filter: blur(22px) saturate(1.35);
+    backdrop-filter: blur(22px) saturate(1.35);
+    box-shadow: 0 20px 60px rgba(139, 94, 60, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  }
+  @media (min-width: 768px) { #visit-workshop .visit-modern__panel { padding: 2.75rem 3rem; border-radius: 1.75rem; } }
+  @media (min-width: 1024px) { #visit-workshop .visit-modern__panel { padding: 3.25rem 3.5rem; border-radius: 2rem; } }
+
+  #visit-workshop .visit-modern__header {
+    display: flex; flex-direction: column; gap: 0.75rem;
+    margin-bottom: 1.25rem; padding-bottom: 1.25rem;
+    border-bottom: 1px solid rgba(139, 94, 60, 0.18);
+  }
+  @media (min-width: 768px) {
+    #visit-workshop .visit-modern__header { flex-direction: row; align-items: flex-end; justify-content: space-between; gap: 1.5rem; }
+    #visit-workshop.visit-modern--right .visit-modern__header { flex-direction: row-reverse; }
+  }
+  #visit-workshop .visit-modern__eyebrow {
+    margin: 0 0 0.5rem; font-size: 0.6875rem; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-brand, #8B5E3C);
+  }
+  #visit-workshop .visit-modern__title {
+    margin: 0; max-width: 22ch;
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-size: 1.25rem; font-weight: 700;
+    line-height: 1.25; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--color-text, #1A1A1A);
+  }
+  @media (min-width: 640px) { #visit-workshop .visit-modern__title { font-size: 1.5rem; } }
+  @media (min-width: 1024px) { #visit-workshop .visit-modern__title { font-size: 1.65rem; } }
+  #visit-workshop.visit-modern--right .visit-modern__title { margin-left: auto; }
+  #visit-workshop .visit-modern__est {
+    margin: 0; flex-shrink: 0; font-size: 0.65rem; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: color-mix(in srgb, var(--color-brand, #8B5E3C) 75%, transparent);
+  }
+  #visit-workshop .visit-modern__lead {
+    margin: 0 0 1.5rem; max-width: 60ch; font-size: 0.875rem; line-height: 1.625;
+    color: var(--color-text-muted, #6B6B6B);
+  }
+  #visit-workshop.visit-modern--right .visit-modern__lead { margin-left: auto; }
+
+  #visit-workshop .visit-modern__list {
+    display: grid; grid-template-columns: 1fr; gap: 0; margin: 0; padding: 0; list-style: none;
+    border-top: 1px solid rgba(139, 94, 60, 0.18); text-align: start;
+  }
+  @media (min-width: 640px) { #visit-workshop .visit-modern__list { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 1024px) { #visit-workshop .visit-modern__list { grid-template-columns: repeat(4, 1fr); border-top: none; } }
+
+  #visit-workshop .visit-modern__row {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 0.35rem;
+    padding: 0.9rem 0; border-bottom: 1px solid rgba(139, 94, 60, 0.18); text-align: start;
+  }
+  @media (min-width: 1024px) {
+    #visit-workshop .visit-modern__row {
+      justify-content: center; gap: 0.45rem; min-height: 4rem; padding: 0.35rem 1.5rem;
+      border-bottom: none; border-inline-start: 1px solid rgba(139, 94, 60, 0.18);
+    }
+    #visit-workshop .visit-modern__row:first-child { padding-inline-start: 0; border-inline-start: none; }
+  }
+  #visit-workshop .visit-modern__label {
+    font-size: 0.625rem; font-weight: 700; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--color-brand, #8B5E3C);
+  }
+  #visit-workshop .visit-modern__value {
+    font-size: 0.875rem; line-height: 1.5; color: var(--color-text, #1A1A1A);
+    text-decoration: none; transition: color 0.2s ease; text-align: start;
+  }
+  #visit-workshop a.visit-modern__value:hover { color: var(--color-brand, #8B5E3C); }
+  #visit-workshop .visit-modern__value--text { color: var(--color-text-muted, #6B6B6B); }
+
+  #visit-workshop .visit-modern__actions {
+    display: flex; margin-top: 2rem; padding-top: 1.75rem;
+    border-top: 1px solid rgba(139, 94, 60, 0.18); justify-content: flex-start;
+  }
+  #visit-workshop.visit-modern--right .visit-modern__actions { justify-content: flex-end; }
+  #visit-workshop .visit-modern__cta { min-height: 2.75rem; }
+</style>
 
 <div
   id="visit-workshop"
