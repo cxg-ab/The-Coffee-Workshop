@@ -1,0 +1,36 @@
+<section class="about-page bg-canvas py-12 lg:py-16">
+  <div class="site-container">
+    <div data-reveal>
+      <p class="section-eyebrow mb-4">{{ 'about.eyebrow' | t }}</p>
+      <h1 class="section-title">{{ page.title | default: 'about.heading' | t }}</h1>
+    </div>
+
+    <div class="prose-brand mx-auto mt-10 max-w-3xl space-y-6" data-reveal data-reveal-delay="0.15">
+      {%- if page.content != blank -%}
+        {{ page.content }}
+      {%- else -%}
+        <p>{{ 'about.lead' | t }}</p>
+        <p>{{ 'about.mission' | t }}</p>
+        <p>{{ 'about.roasting' | t }}</p>
+        <p>{{ 'about.promise' | t }}</p>
+      {%- endif -%}
+    </div>
+
+    <div class="mx-auto mt-12 max-w-3xl border border-line bg-surface p-8" data-reveal data-reveal-delay="0.25">
+      <h2 class="mb-4 text-sm font-bold uppercase tracking-[0.12em] text-brand">{{ 'visit.heading' | t }}</h2>
+      <ul class="space-y-3 text-sm text-muted">
+        <li><a href="tel:{{ settings.contact_phone | replace: ' ', '' }}" class="hover:text-brand">{{ settings.contact_phone }}</a></li>
+        <li><a href="mailto:{{ settings.contact_email }}" class="hover:text-brand">{{ settings.contact_email }}</a></li>
+        <li>{{ settings.contact_address }}</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "About page",
+  "tag": "section",
+  "settings": []
+}
+{% endschema %}

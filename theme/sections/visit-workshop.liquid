@@ -1,0 +1,79 @@
+<section class="bg-surface py-16 lg:py-24">
+  <div class="site-container">
+    <div class="grid gap-10 lg:grid-cols-2 lg:items-center">
+      <div data-reveal>
+        <p class="section-eyebrow mb-4">{{ 'visit.eyebrow' | t }}</p>
+        <h2 class="section-title">{{ 'visit.heading' | t }}</h2>
+        <p class="prose-brand mt-6">{{ section.settings.description }}</p>
+
+        <ul class="mt-8 space-y-4 text-sm text-muted">
+          <li class="flex gap-3">
+            <span class="font-semibold uppercase tracking-[0.1em] text-brand">{{ 'visit.phone' | t }}</span>
+            <a href="tel:{{ settings.contact_phone | replace: ' ', '' }}" class="hover:text-brand" dir="ltr">
+              <span dir="ltr">{{ settings.contact_phone }}</span>
+            </a>
+          </li>
+          <li class="flex gap-3">
+            <span class="font-semibold uppercase tracking-[0.1em] text-brand">{{ 'visit.email' | t }}</span>
+            <a href="mailto:{{ settings.contact_email }}" class="hover:text-brand">
+              {{ settings.contact_email }}
+            </a>
+          </li>
+          <li class="flex gap-3">
+            <span class="font-semibold uppercase tracking-[0.1em] text-brand">{{ 'visit.web' | t }}</span>
+            <a href="https://{{ settings.contact_website | remove: 'https://' | remove: 'http://' | remove: 'www.' }}" class="hover:text-brand" target="_blank" rel="noopener noreferrer">
+              {{ settings.contact_website }}
+            </a>
+          </li>
+          <li class="flex gap-3">
+            <span class="shrink-0 font-semibold uppercase tracking-[0.1em] text-brand">{{ 'visit.address' | t }}</span>
+            <span>{{ settings.contact_address }}</span>
+          </li>
+        </ul>
+
+        {%- if settings.maps_url != blank -%}
+          <a href="{{ settings.maps_url }}" class="btn-outline mt-10 inline-flex" target="_blank" rel="noopener noreferrer">
+            {{ 'visit.directions' | t }}
+          </a>
+        {%- endif -%}
+      </div>
+
+      <div class="brand-card flex min-h-[280px] items-center justify-center bg-canvas text-center" data-reveal data-reveal-delay="0.2">
+        {%- if section.settings.image != blank -%}
+          {{
+            section.settings.image
+            | image_url: width: 800
+            | image_tag: class: 'h-full w-full object-cover', loading: 'lazy', alt: 'The Coffee Workshop'
+          }}
+        {%- else -%}
+          <div class="p-8">
+            <p class="font-display text-2xl font-bold uppercase tracking-[0.12em] text-brand">The Coffee Workshop</p>
+            <p class="mt-2 text-sm uppercase tracking-[0.16em] text-muted">{{ settings.brand_tagline }}</p>
+            <p class="mt-4 text-xs text-muted">RAK · UAE</p>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Visit workshop",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Visit our specialty coffee workshop in Ras Al Khaimah — a hidden treasure for ethically conscious coffee, creative beverages, and one of the region's most desired blends."
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    }
+  ],
+  "presets": [{ "name": "Visit workshop" }]
+}
+{% endschema %}

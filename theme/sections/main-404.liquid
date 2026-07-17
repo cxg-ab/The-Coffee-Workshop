@@ -1,0 +1,14 @@
+<div class="site-container flex min-h-[50vh] flex-col items-center justify-center py-20 text-center">
+  <p class="section-eyebrow mb-4">404</p>
+  <h1 class="section-title">{{ 'general.404.title' | t }}</h1>
+  <p class="prose-brand mt-4 max-w-md">{{ 'general.404.subtext' | t }}</p>
+  <a href="{{ routes.root_url }}" class="btn-primary mt-8">{{ 'general.404.link' | t }}</a>
+</div>
+
+{% schema %}
+{
+  "name": "404",
+  "class": "error-section",
+  "settings": []
+}
+{% endschema %}

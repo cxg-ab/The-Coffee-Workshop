@@ -1,0 +1,52 @@
+<div class="site-container py-12 lg:py-16">
+  <p class="section-eyebrow mb-4">{{ 'faq.eyebrow' | t }}</p>
+  <h1 class="section-title">{{ page.title | default: 'faq.heading' | t }}</h1>
+
+  <div class="mx-auto mt-10 max-w-3xl divide-y divide-line border border-line bg-surface">
+    {%- if section.blocks.size > 0 -%}
+      {%- for block in section.blocks -%}
+        <details class="group p-6" {{ block.shopify_attributes }}>
+          <summary class="cursor-pointer list-none text-sm font-semibold uppercase tracking-[0.08em] text-ink marker:content-none">
+            <span class="flex items-center justify-between gap-4">
+              {{ block.settings.question }}
+              <span class="text-brand transition-transform group-open:rotate-45">+</span>
+            </span>
+          </summary>
+          <div class="prose-brand mt-4 faq-answer">{{ block.settings.answer }}</div>
+        </details>
+      {%- endfor -%}
+    {%- elsif page.content != blank -%}
+      <div class="prose-brand p-6">{{ page.content }}</div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "FAQ page",
+  "tag": "section",
+  "class": "faq-section",
+  "settings": [],
+  "blocks": [
+    {
+      "type": "question",
+      "name": "Question",
+      "settings": [
+        { "type": "text", "id": "question", "label": "Question", "default": "Do you ship across the UAE?" },
+        { "type": "textarea", "id": "answer", "label": "Answer", "default": "Yes. We ship within the United Arab Emirates. Free shipping on orders over AED 300." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "FAQ page",
+      "blocks": [
+        { "type": "question", "settings": { "question": "Do you ship across the UAE?", "answer": "Yes. We ship within the United Arab Emirates. Free shipping on orders over AED 300." }},
+        { "type": "question", "settings": { "question": "Where are you located?", "answer": "Al Nahdah St, Dafan Al Khor, Ras Al Khaimah, UAE. Phone: +971 7 222 4466." }},
+        { "type": "question", "settings": { "question": "Do you offer subscriptions?", "answer": "Yes. Single bean or rotating selection. Monthly or bi-weekly. Save 10% as a subscriber." }},
+        { "type": "question", "settings": { "question": "What payment methods do you accept?", "answer": "Apple Pay, Google Pay, and Cash on Delivery (UAE)." }}
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,13 @@
+node_modules/
+.DS_Store
+*.log
+.shopify
+theme/assets/application.css.map
+.cursor/
+theme-check/
+theme-pull2/
+theme-pull-tmp/
+unzipped_files/
+files.zip
+*.mp4
+*.mp4.mp4

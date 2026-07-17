@@ -1,0 +1,51 @@
+<div class="collection-header relative overflow-hidden bg-surface py-24 lg:py-32 border-b border-line">
+  <div class="hero-clip absolute inset-0 z-0 opacity-60">
+    {% render 'hero-arabic-bg' %}
+  </div>
+  
+  <div class="site-container relative z-10 text-center">
+    <p class="section-eyebrow mb-6 inline-block px-4 py-1 border border-brand/30 text-brand rounded-full bg-brand/5 backdrop-blur-sm" data-reveal>
+      Shop Our Coffee
+    </p>
+    <h1 class="hero-heading text-5xl lg:text-7xl mb-6 tracking-tight" data-reveal>{{ collection.title }}</h1>
+    
+    {%- if collection.description != blank -%}
+      <div class="prose-brand mx-auto max-w-2xl text-muted/90 text-lg lg:text-xl font-light leading-relaxed" data-reveal>
+        {{ collection.description }}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+<div class="site-container py-16 lg:py-24">
+  <div class="flex items-center justify-between mb-12 border-b border-line/30 pb-6" data-reveal>
+    <p class="text-xs font-bold tracking-[0.15em] uppercase text-muted">
+      {{ collection.products_count }} {{ 'collections.products' | t | default: 'Products' }}
+    </p>
+  </div>
+
+  {%- if collection.products.size > 0 -%}
+    <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {%- for product in collection.products -%}
+        <div data-reveal style="transition-delay: {{ forloop.index0 | times: 100 }}ms;">
+          {% render 'product-card', card_product: product %}
+        </div>
+      {%- endfor -%}
+    </div>
+  {%- else -%}
+    <div class="border border-line bg-surface/30 px-8 py-32 text-center rounded-2xl backdrop-blur-sm">
+      <p class="text-2xl text-muted font-light mb-8">No products found in this collection.</p>
+      <a href="{{ routes.all_products_collection_url }}" class="btn-primary inline-flex items-center px-10 py-4 text-sm tracking-widest uppercase font-bold">
+        Continue Shopping
+      </a>
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Collection",
+  "class": "collection-section",
+  "settings": []
+}
+{% endschema %}

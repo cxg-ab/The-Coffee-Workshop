@@ -1,0 +1,38 @@
+<div class="site-container py-12 lg:py-16">
+  <h1 class="section-title mb-8">{{ 'templates.search.title' | t }}</h1>
+
+  <form action="{{ routes.search_url }}" method="get" role="search" class="mb-10 flex gap-3">
+    <label class="sr-only" for="search-input">{{ 'general.search' | t }}</label>
+    <input
+      id="search-input"
+      type="search"
+      name="q"
+      value="{{ search.terms | escape }}"
+      placeholder="{{ 'general.search' | t }}"
+      class="flex-1 border border-line bg-surface px-4 py-3 text-sm outline-none focus:border-brand"
+    >
+    <button type="submit" class="btn-primary">{{ 'general.search' | t }}</button>
+  </form>
+
+  {%- if search.performed -%}
+    {%- if search.results_count > 0 -%}
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {%- for item in search.results -%}
+          {%- if item.object_type == 'product' -%}
+            {% render 'product-card', card_product: item %}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <p class="text-muted">{{ 'search.no_results' | t }}</p>
+    {%- endif -%}
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Search",
+  "class": "search-section",
+  "settings": []
+}
+{% endschema %}

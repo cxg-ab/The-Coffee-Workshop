@@ -1,0 +1,81 @@
+{%- liquid
+  assign menu = nil
+  if menu_handle != blank
+    assign menu = linklists[menu_handle]
+  endif
+-%}
+
+{%- if menu != blank and menu.links.size > 0 -%}
+  <ul class="{{ list_class }}" role="list">
+    {%- for link in menu.links -%}
+      {%- if link.links != blank -%}
+        <li class="tcw-dropdown-trigger relative" data-mobile-dropdown>
+          <div class="flex items-center justify-between">
+            <a
+              href="{{ link.url }}"
+              class="{{ link_class }}{% if link.active %} text-brand{% endif %} flex items-center gap-1 justify-start whitespace-nowrap"
+              {% if link.current %}aria-current="page"{% endif %}
+            >
+              {{ link.title }}
+              <svg class="w-3 h-3 opacity-50 tcw-dropdown-icon transition-transform hidden lg:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </a>
+            <button class="lg:hidden p-3 -mr-3 text-[#1C1917]/50 hover:text-brand transition-colors" data-mobile-dropdown-toggle>
+              <svg class="w-4 h-4 transition-transform duration-300" data-mobile-dropdown-icon fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+          <ul class="tcw-dropdown-menu hidden lg:flex flex-col pl-4 mt-2 space-y-2 lg:pl-0 lg:mt-0 lg:space-y-0" data-mobile-dropdown-menu>
+            {%- for sublink in link.links -%}
+              <li class="tcw-dropdown-item" style="transition-delay: {{ forloop.index | times: 50 }}ms;">
+                <a href="{{ sublink.url }}" class="group relative flex items-center justify-between px-2 py-2 lg:px-6 lg:py-3.5 text-[12px] font-bold tracking-[0.15em] uppercase text-[#1C1917]/80 lg:text-[#1C1917]/70 transition-all duration-300 hover:text-[#C5A059] lg:rounded-lg overflow-hidden">
+                  <!-- Dynamic background swipe -->
+                  <span class="absolute inset-0 w-0 bg-gradient-to-r from-[#C5A059]/10 to-transparent transition-all duration-500 ease-out group-hover:w-full rounded-lg z-0"></span>
+
+                  <span class="relative z-10 transition-transform duration-300 lg:group-hover:translate-x-2 lg:group-hover:scale-105 origin-left {% if sublink.active %} text-[#C5A059]{% endif %}">{{ sublink.title }}</span>
+                  
+                  <!-- Modern Long Arrow -->
+                  <svg class="w-5 h-5 opacity-0 -translate-x-4 transition-all duration-500 group-hover:opacity-100 group-hover:translate-x-0 text-[#C5A059] hidden lg:block relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </a>
+              </li>
+            {%- endfor -%}
+          </ul>
+        </li>
+      {%- else -%}
+        <li>
+          <a
+            href="{{ link.url }}"
+            class="{{ link_class }}{% if link.active %} text-brand{% endif %} whitespace-nowrap"
+            {% if link.current %}aria-current="page"{% endif %}
+          >
+            {{ link.title }}
+          </a>
+        </li>
+      {%- endif -%}
+    {%- endfor -%}
+  </ul>
+{%- elsif fallback == 'shop' -%}
+  <ul class="{{ list_class }}" role="list">
+    <li><a href="/collections/beans" class="{{ link_class }}">{{ 'header.shop_beans' | t }}</a></li>
+    <li><a href="/collections/accessories" class="{{ link_class }}">{{ 'header.accessories' | t }}</a></li>
+    <li><a href="/pages/subscriptions" class="{{ link_class }}">{{ 'header.subscriptions' | t }}</a></li>
+  </ul>
+{%- elsif fallback == 'main' -%}
+  <ul class="{{ list_class }}" role="list">
+    <li><a href="/collections/beans" class="{{ link_class }}">{{ 'header.shop_beans' | t }}</a></li>
+    <li><a href="/collections/accessories" class="{{ link_class }}">{{ 'header.accessories' | t }}</a></li>
+    <li><a href="/pages/subscriptions" class="{{ link_class }}">{{ 'header.subscriptions' | t }}</a></li>
+    <li><a href="/pages/about" class="{{ link_class }}">{{ 'header.about' | t }}</a></li>
+    <li><a href="/pages/faq" class="{{ link_class }}">{{ 'header.faq' | t }}</a></li>
+  </ul>
+{%- elsif fallback == 'support' -%}
+  <ul class="{{ list_class }}" role="list">
+    <li><a href="/pages/about" class="{{ link_class }}">{{ 'header.about' | t }}</a></li>
+    <li><a href="/pages/faq" class="{{ link_class }}">{{ 'header.faq' | t }}</a></li>
+    <li><a href="mailto:{{ settings.contact_email }}" class="{{ link_class }}">{{ 'footer.contact' | t }}</a></li>
+  </ul>
+{%- endif -%}

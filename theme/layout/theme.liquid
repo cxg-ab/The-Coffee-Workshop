@@ -1,0 +1,82 @@
+<!doctype html>
+<html
+  class="no-js{% if request.design_mode %} shopify-design-mode{% endif %}"
+  lang="{{ request.locale.iso_code }}"
+  dir="{% if request.locale.iso_code == 'ar' %}rtl{% else %}ltr{% endif %}"
+  data-theme="the-coffee-workshop"
+>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="{{ settings.color_background | default: '#FAFAF8' }}">
+    <meta name="theme-id" content="the-coffee-workshop-v1">
+
+    <link rel="canonical" href="{{ canonical_url }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Noto+Kufi+Arabic:wght@700;800;900&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    >
+
+    {%- if settings.favicon != blank -%}
+      <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+    {%- elsif settings.logo != blank -%}
+      <link rel="icon" type="image/png" href="{{ settings.logo | image_url: width: 32, height: 32 }}">
+    {%- endif -%}
+
+    <title>
+      {{ page_title }}
+      {%- if current_page != 1 %} &ndash; {{ 'general.meta.page' | t: page: current_page }}{% endif -%}
+      {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
+    </title>
+
+    {%- if page_description -%}
+      <meta name="description" content="{{ page_description | escape }}">
+    {%- endif -%}
+
+    {%- render 'meta-tags' -%}
+    {%- render 'css-variables' -%}
+
+    {{ content_for_header }}
+
+    {{ 'application.css' | asset_url | stylesheet_tag }}
+
+    <script>
+      document.documentElement.classList.replace('no-js', 'js');
+    </script>
+  </head>
+
+  <body
+    class="template-{{ template.name | handle }} bg-white text-[#1C1917] antialiased"
+    data-animations="{% if settings.animations_enabled %}true{% else %}false{% endif %}"
+  >
+  <!-- The Coffee Workshop Theme · the-coffee-workshop v1.2 -->
+
+    <a class="skip-link" href="#main-content">{{ 'accessibility.skip_to_content' | t }}</a>
+
+    <div class="page-wrapper flex min-h-screen flex-col">
+      <div id="header-group" class="header-group">
+        {% sections 'header-group' %}
+      </div>
+
+      <main id="main-content" class="flex-1" role="main" tabindex="-1">
+        {{ content_for_layout }}
+      </main>
+
+      <div id="footer-group" class="footer-group">
+        {% sections 'footer-group' %}
+      </div>
+    </div>
+
+    {%- render 'cart-drawer' -%}
+
+    <div id="page-transition" class="page-transition" aria-hidden="true"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js" defer></script>
+    <script src="{{ 'application.js' | asset_url }}" defer></script>
+    <script src="{{ 'animations.js' | asset_url }}" defer></script>
+  </body>
+</html>

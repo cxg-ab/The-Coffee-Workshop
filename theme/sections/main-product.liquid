@@ -1,0 +1,161 @@
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign is_limited = product.metafields.coffee.is_limited.value
+-%}
+
+<div class="relative overflow-hidden bg-[#1C1917] text-white">
+  <!-- Full background subtle watermark -->
+  <div class="absolute inset-0 z-0 opacity-20 pointer-events-none">
+    {% render 'hero-arabic-bg' %}
+  </div>
+
+  <div class="site-container relative z-10 py-16 lg:py-32">
+    <div class="grid gap-12 lg:grid-cols-2 lg:gap-24 items-center">
+      
+      <!-- Product Image -->
+      <div class="space-y-4" data-reveal>
+        {%- if product.media.size > 0 -%}
+          <div class="group relative overflow-hidden rounded-[2rem] bg-black/20 backdrop-blur-md border border-white/5 aspect-[4/5] flex items-center justify-center p-8 lg:p-16 transition-all duration-700 hover:border-brand/30 hover:shadow-[0_0_60px_rgba(197,160,89,0.15)]">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-50 z-0"></div>
+            {{
+              product.featured_media
+              | image_url: width: 1200
+              | image_tag:
+                class: 'relative z-10 h-full w-full object-contain filter drop-shadow-2xl transition-transform duration-1000 ease-out group-hover:scale-[1.15]',
+                loading: 'eager',
+                widths: '600, 900, 1200',
+                sizes: '(max-width: 1024px) 100vw, 50vw',
+                alt: product.featured_media.alt | default: product.title
+            }}
+          </div>
+        {%- endif -%}
+      </div>
+
+      <!-- Product Details -->
+      <div data-reveal data-reveal-delay="0.15" class="flex flex-col h-full justify-center lg:py-10">
+        <p class="section-eyebrow mb-6 inline-block px-4 py-1.5 border border-brand/30 text-brand rounded-full bg-brand/5 backdrop-blur-sm self-start text-[10px] tracking-[0.2em] font-bold uppercase">
+          {{ settings.brand_tagline | default: 'Specialty Coffee' }}
+        </p>
+        
+        <h1 class="font-display text-4xl lg:text-6xl font-bold uppercase tracking-[0.04em] text-white mb-6 leading-tight">
+          {{ product.title }}
+        </h1>
+
+        <div class="flex flex-wrap gap-3 mb-6">
+          {%- if is_limited -%}
+            <span class="inline-flex items-center justify-center rounded-sm bg-brand px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#1C1917]">
+              {{ 'products.limited_batch' | t | default: 'Limited Batch' }}
+            </span>
+          {%- endif -%}
+          {%- unless current_variant.available -%}
+            <span class="inline-flex items-center justify-center rounded-sm bg-black/80 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white border border-white/10">
+              {{ 'products.sold_out' | t | default: 'Sold Out' }}
+            </span>
+          {%- endunless -%}
+        </div>
+
+        <p class="text-3xl lg:text-4xl font-light tracking-wide text-brand mb-12">{{ current_variant.price | money }}</p>
+
+        <!-- Glassmorphism Specifications Grid -->
+        {%- if product.metafields.coffee.process != blank
+          or product.metafields.coffee.roast_level != blank
+          or product.metafields.coffee.flavor_notes != blank
+          or product.metafields.coffee.origin != blank
+        -%}
+          <div class="grid grid-cols-2 gap-4 mb-12">
+            {%- if product.metafields.coffee.origin != blank -%}
+              <div class="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-md transition-colors duration-300 hover:bg-white/10">
+                <dt class="text-[9px] font-bold uppercase tracking-[0.25em] text-brand/80 mb-2">{{ 'products.origin' | t | default: 'Origin' }}</dt>
+                <dd class="text-sm lg:text-base font-medium text-white">{{ product.metafields.coffee.origin }}</dd>
+              </div>
+            {%- endif -%}
+            {%- if product.metafields.coffee.process != blank -%}
+              <div class="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-md transition-colors duration-300 hover:bg-white/10">
+                <dt class="text-[9px] font-bold uppercase tracking-[0.25em] text-brand/80 mb-2">{{ 'products.process' | t | default: 'Process' }}</dt>
+                <dd class="text-sm lg:text-base font-medium text-white">{{ product.metafields.coffee.process }}</dd>
+              </div>
+            {%- endif -%}
+            {%- if product.metafields.coffee.roast_level != blank -%}
+              <div class="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-md transition-colors duration-300 hover:bg-white/10">
+                <dt class="text-[9px] font-bold uppercase tracking-[0.25em] text-brand/80 mb-2">{{ 'products.roast_level' | t | default: 'Roast' }}</dt>
+                <dd class="text-sm lg:text-base font-medium text-white">{{ product.metafields.coffee.roast_level }}</dd>
+              </div>
+            {%- endif -%}
+            {%- if product.metafields.coffee.flavor_notes != blank -%}
+              <div class="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-md transition-colors duration-300 hover:bg-white/10 col-span-2">
+                <dt class="text-[9px] font-bold uppercase tracking-[0.25em] text-brand/80 mb-2">{{ 'products.flavor_notes' | t | default: 'Tasting Notes' }}</dt>
+                <dd class="text-sm lg:text-base font-medium text-white">{{ product.metafields.coffee.flavor_notes.value | join: ' &bull; ' }}</dd>
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+
+        <div class="prose-brand text-white/70 font-light leading-relaxed mb-12 max-w-none text-base lg:text-lg">
+          {{ product.description }}
+        </div>
+
+        {% form 'product', product, class: 'mt-auto space-y-8', id: 'product-form' %}
+          {%- if product.variants.size > 1 -%}
+            <div>
+              <label class="mb-3 block text-[10px] font-bold uppercase tracking-[0.2em] text-white/70" for="variant-select">
+                {{ 'products.variant' | t | default: 'Select Variant' }}
+              </label>
+              <div class="relative">
+                <select
+                  id="variant-select"
+                  name="id"
+                  class="w-full appearance-none border border-white/20 bg-black/40 px-6 py-4 text-sm font-medium text-white outline-none focus:border-brand rounded-xl backdrop-blur-md transition-colors hover:bg-white/5 cursor-pointer"
+                >
+                  {%- for variant in product.variants -%}
+                    <option
+                      value="{{ variant.id }}"
+                      class="bg-[#1C1917] text-white"
+                      {% if variant == current_variant %}selected{% endif %}
+                      {% unless variant.available %}disabled{% endunless %}
+                    >
+                      {{ variant.title }} — {{ variant.price | money }}{% unless variant.available %} ({{ 'products.sold_out' | t | default: 'Sold Out' }}){% endunless %}
+                    </option>
+                  {%- endfor -%}
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-6 text-white/50">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          {%- else -%}
+            <input type="hidden" name="id" value="{{ current_variant.id }}">
+          {%- endif -%}
+
+          <div class="flex flex-col sm:flex-row gap-4 pt-4 border-t border-white/10">
+            <button
+              type="submit"
+              name="add"
+              class="flex-1 rounded-xl bg-brand py-5 px-8 text-xs font-bold uppercase tracking-[0.2em] text-[#1C1917] transition-all duration-300 hover:bg-white hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
+              {% unless current_variant.available %}disabled{% endunless %}
+            >
+              {%- if current_variant.available -%}
+                {{ 'products.add_to_cart' | t | default: 'Add to Cart' }}
+              {%- else -%}
+                {{ 'products.sold_out' | t | default: 'Sold Out' }}
+              {%- endif -%}
+            </button>
+            
+            <a href="/pages/subscriptions" class="flex-1 flex justify-center items-center rounded-xl border border-white/20 bg-transparent py-5 px-8 text-center text-xs font-bold uppercase tracking-[0.2em] text-white transition-all duration-300 hover:bg-white/10 hover:border-white/40 hover:scale-[1.02]">
+              {{ 'products.subscribe' | t | default: 'Subscribe' }}
+            </a>
+          </div>
+        {% endform %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Product",
+  "class": "product-section",
+  "settings": []
+}
+{% endschema %}

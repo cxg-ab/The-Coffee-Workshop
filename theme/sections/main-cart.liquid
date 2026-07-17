@@ -1,0 +1,98 @@
+<div class="site-container py-12 lg:py-16">
+  <h1 class="section-title mb-10">{{ 'cart.title' | t }}</h1>
+
+  {%- if cart.item_count == 0 -%}
+    <div class="mx-auto max-w-lg py-16 text-center">
+      <p class="text-muted">{{ 'cart.empty' | t }}</p>
+      <a href="{{ routes.all_products_collection_url }}" class="btn-primary mt-8 inline-flex">
+        {{ 'general.continue_shopping' | t }}
+      </a>
+    </div>
+  {%- else -%}
+    {%- liquid
+      assign free_shipping_threshold = 30000
+      assign remaining = free_shipping_threshold | minus: cart.total_price
+    -%}
+
+    {%- if cart.total_price < free_shipping_threshold -%}
+      <div class="mb-8 border border-line bg-white px-6 py-4 text-sm text-muted">
+        {{ 'cart.free_shipping_remaining' | t: amount: remaining | money }}
+      </div>
+    {%- else -%}
+      <div class="mb-8 border border-brand/20 bg-brand/5 px-6 py-4 text-sm text-brand">
+        {{ 'cart.free_shipping_qualified' | t }}
+      </div>
+    {%- endif -%}
+
+    <form action="{{ routes.cart_url }}" method="post" id="cart-form">
+      <div class="overflow-hidden border border-line bg-white">
+        <table class="w-full text-sm">
+          <thead class="hidden border-b border-line bg-canvas sm:table-header-group">
+            <tr>
+              <th class="px-6 py-4 text-start font-semibold uppercase tracking-[0.12em] text-muted" colspan="2">Product</th>
+              <th class="px-6 py-4 text-start font-semibold uppercase tracking-[0.12em] text-muted">Qty</th>
+              <th class="px-6 py-4 text-end font-semibold uppercase tracking-[0.12em] text-muted">Total</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-line">
+            {%- for item in cart.items -%}
+              <tr>
+                <td class="px-6 py-6" colspan="2">
+                  <div class="flex gap-4">
+                    {%- if item.image -%}
+                      <a href="{{ item.url }}" class="shrink-0">
+                        {{ item.image | image_url: width: 160 | image_tag: class: 'h-24 w-24 object-cover', loading: 'lazy' }}
+                      </a>
+                    {%- endif -%}
+                    <div>
+                      <a href="{{ item.url }}" class="font-medium text-ink hover:text-brand">{{ item.product.title }}</a>
+                      {%- unless item.variant.title == 'Default Title' -%}
+                        <p class="mt-1 text-xs text-muted">{{ item.variant.title }}</p>
+                      {%- endunless -%}
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-6">
+                  <input
+                    type="number"
+                    name="updates[]"
+                    value="{{ item.quantity }}"
+                    min="0"
+                    class="w-20 border border-line px-3 py-2 text-center"
+                    aria-label="Quantity for {{ item.product.title }}"
+                  >
+                </td>
+                <td class="px-6 py-6 text-end font-semibold text-brand">
+                  {{ item.final_line_price | money }}
+                </td>
+              </tr>
+            {%- endfor -%}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-8 flex flex-col items-end gap-4 sm:flex-row sm:justify-between">
+        <button type="submit" name="update" class="btn-outline">
+          Update cart
+        </button>
+        <div class="w-full max-w-sm border border-line bg-white p-6 sm:w-auto">
+          <div class="flex items-center justify-between">
+            <span class="text-sm uppercase tracking-[0.12em] text-muted">{{ 'cart.subtotal' | t }}</span>
+            <span class="text-xl font-semibold text-ink">{{ cart.total_price | money }}</span>
+          </div>
+          <button type="submit" name="checkout" class="btn-primary mt-6 w-full">
+            {{ 'cart.checkout' | t }}
+          </button>
+        </div>
+      </div>
+    </form>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Cart",
+  "tag": "section",
+  "settings": []
+}
+{% endschema %}

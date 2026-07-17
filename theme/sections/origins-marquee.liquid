@@ -1,0 +1,201 @@
+<style>
+  .custom-marquee-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 1rem;
+    padding-bottom: 1.5rem;
+  }
+  .custom-marquee-dot-wrapper {
+    position: relative;
+    display: flex;
+    height: 12px;
+    width: 12px;
+    margin-right: 12px;
+  }
+  html[dir="rtl"] .custom-marquee-dot-wrapper {
+    margin-right: 0;
+    margin-left: 12px;
+  }
+  .custom-marquee-dot-ping {
+    position: absolute;
+    display: inline-flex;
+    height: 100%;
+    width: 100%;
+    border-radius: 50%;
+    background-color: #f87171;
+    opacity: 0.75;
+    animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  .custom-marquee-dot-solid {
+    position: relative;
+    display: inline-flex;
+    border-radius: 50%;
+    height: 12px;
+    width: 12px;
+    background-color: #ef4444;
+  }
+  @keyframes ping {
+    75%, 100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+  .origins-kinetic-row {
+    width: 100%;
+    overflow: hidden;
+  }
+  .origins-kinetic-track {
+    display: flex;
+    width: max-content;
+    animation: scroll-marquee 25s linear infinite;
+  }
+  @keyframes scroll-marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  html[dir="rtl"] .origins-kinetic-track {
+    animation-name: scroll-marquee-rtl;
+  }
+  @keyframes scroll-marquee-rtl {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(50%); }
+  }
+  .origins-kinetic-set {
+    display: flex;
+    white-space: nowrap;
+    align-items: center;
+  }
+  .custom-marquee-item {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    font-size: 1.25rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  @media (min-width: 768px) {
+    .custom-marquee-item {
+      font-size: 1.5rem;
+    }
+  }
+  .custom-marquee-sep {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  .custom-marquee-muted {
+    opacity: 0.5;
+  }
+  .custom-marquee-caption {
+    text-align: center;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+    margin-top: 1.5rem;
+  }
+</style>
+
+<section class="origins-kinetic-section overflow-hidden border-y border-[#1C1917]/20 bg-[#C5A059] text-[#1C1917]">
+  <div class="site-container custom-marquee-container">
+    {% if section.settings.show_live_dot %}
+      <span class="custom-marquee-dot-wrapper">
+        <span class="custom-marquee-dot-ping"></span>
+        <span class="custom-marquee-dot-solid"></span>
+      </span>
+    {% endif %}
+    <p class="section-eyebrow m-0">{{ section.settings.eyebrow }}</p>
+  </div>
+
+  {%- assign origins = section.settings.origins | split: '|' -%}
+
+  <div class="origins-kinetic-row origins-kinetic-row--a" aria-hidden="true">
+    <div class="origins-kinetic-track">
+      {%- for i in (1..4) -%}
+        <div class="origins-kinetic-set">
+          {%- for origin in origins -%}
+            <span class="origins-kinetic-item custom-marquee-item">{{ origin | strip }}</span>
+            <span class="origins-kinetic-sep custom-marquee-sep">{% if section.settings.separator == 'dot' %}·{% else %}—{% endif %}</span>
+          {%- endfor -%}
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+
+  {% if section.settings.show_second_track %}
+  <div class="origins-kinetic-row origins-kinetic-row--b" style="margin-top: 1rem;" aria-hidden="true">
+    <div class="origins-kinetic-track origins-kinetic-track--reverse" data-origins-track-b>
+      {%- for i in (1..4) -%}
+        <div class="origins-kinetic-set">
+          {%- for origin in origins -%}
+            <span class="origins-kinetic-item custom-marquee-item custom-marquee-muted">{{ origin | strip }}</span>
+            <span class="origins-kinetic-sep custom-marquee-sep">—</span>
+          {%- endfor -%}
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if section.settings.caption != blank %}
+  <p class="origins-kinetic-caption custom-marquee-caption site-container">{{ section.settings.caption }}</p>
+  {% endif %}
+</section>
+
+{% schema %}
+{
+  "name": "Dynamic Marquee",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow / Status",
+      "default": "Live Roasting in RAK"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_live_dot",
+      "label": "Show pulsing 'Live' dot",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "bg_color",
+      "label": "Background Color",
+      "options": [
+        { "value": "canvas", "label": "Canvas (Default)" },
+        { "value": "gold", "label": "Gold Highlight" }
+      ],
+      "default": "canvas"
+    },
+    {
+      "type": "textarea",
+      "id": "origins",
+      "label": "Scrolling Text (pipe-separated)",
+      "default": "Ethiopian Yirgacheffe — Ships Tomorrow|Colombian Huila — Roasting Now|Panama Geisha — Limited Slots"
+    },
+    {
+      "type": "select",
+      "id": "separator",
+      "label": "Separator Style",
+      "options": [
+        { "value": "dot", "label": "Dot (·)" },
+        { "value": "dash", "label": "Dash (—)" }
+      ],
+      "default": "dot"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_second_track",
+      "label": "Show second reverse track",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "caption",
+      "label": "Caption (Optional)",
+      "default": "Freshly roasted to order. Ships within 24 hours."
+    }
+  ],
+  "presets": [{ "name": "Dynamic Marquee" }]
+}
+{% endschema %}
