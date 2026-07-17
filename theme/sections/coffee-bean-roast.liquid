@@ -14,42 +14,52 @@
     --bean-h: {{ section.settings.bean_height }}vh;
     --bean-max-w: {{ section.settings.bean_max_width }}px;
     --bean-max-h: {{ section.settings.bean_max_height }}px;
+    --br-canvas: var(--color-bg, #FAFAF8);
+    --br-bronze: var(--color-brand, #8B5E3C);
+    --br-line: var(--color-border, #E8E4DC);
+    background: var(--br-canvas);
+    isolation: isolate;
   }
   @media (max-width: 768px) {
     #beanRoast-{{ sid }} { --scrub-vh: {{ mobile_scrub_vh }}; }
     #beanRoast-{{ sid }} .br-stage{
       align-items:center;
       justify-content:center;
-      padding:11vh 0 9vh;
+      padding:6vh 0 5vh;
+      height:100svh;
     }
     #beanRoast-{{ sid }} .br-head{
-      top:4vh;
+      top:3vh;
       padding:0 16px;
     }
     #beanRoast-{{ sid }} .br-view{
-      width:min(82vw, var(--bean-w), 96vw);
-      height:min(50vh, var(--bean-h), 58vh);
+      width:min(96vw, var(--bean-w));
+      height:min(88svh, var(--bean-h));
       margin:0 auto;
       flex:0 0 auto;
     }
     #beanRoast-{{ sid }} .br-caption{
-      bottom:5vh;
+      bottom:4vh;
     }
   }
   #beanRoast-{{ sid }} .br-track{position:relative;height:calc(var(--scrub-vh) * 1vh)}
   #beanRoast-{{ sid }} .br-stage{
-    position:sticky;top:0;height:65vh;
-    display:flex;align-items:flex-end;justify-content:center;
+    position:sticky;top:0;height:100svh;
+    display:flex;align-items:center;justify-content:center;
     overflow:hidden;
+    background:
+      radial-gradient(ellipse 68% 52% at 50% 78%, rgba(139, 94, 60, 0.07), transparent 72%),
+      radial-gradient(ellipse 100% 80% at 50% 35%, transparent 45%, rgba(232, 228, 220, 0.4) 100%),
+      var(--br-canvas);
   }
   #beanRoast-{{ sid }} .br-head{
-    position:absolute;left:0;right:0;top:5vh;text-align:center;padding:0 24px;
+    position:absolute;left:0;right:0;top:4vh;text-align:center;padding:0 24px;
     pointer-events:none;z-index:4;
   }
   #beanRoast-{{ sid }} .br-view{
     position:relative;z-index:2;
-    width:min(var(--bean-w), var(--bean-max-w), 96vw);
-    height:min(var(--bean-h), var(--bean-max-h), 58vh);
+    width:min(var(--bean-w), var(--bean-max-w), 100vw);
+    height:min(var(--bean-h), var(--bean-max-h), 100svh);
     flex:0 0 auto;
     border:none;outline:none;box-shadow:none;background:transparent;
   }
@@ -73,7 +83,7 @@
   }
 </style>
 
-<section id="beanRoast-{{ sid }}" class="coffee-bean-roast bg-white">
+<section id="beanRoast-{{ sid }}" class="coffee-bean-roast">
   <div class="br-track" data-br-track>
     <div class="br-stage" data-br-stage>
       {%- if section.settings.heading != blank or section.settings.subheading != blank -%}
@@ -138,7 +148,6 @@
       var ready = false;
       var cur = -1;
       var pending = false;
-      var canProcessPixels = true;
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       var mobileMq = window.matchMedia('(max-width: 768px)');
       var stopIdx = Math.max(0, Math.min(N - 1, cfg.frameStop - 1));
@@ -189,45 +198,6 @@
         return Math.min(stopIdx, Math.floor(p * (stopIdx + 1)));
       }
 
-      function toneDownWhites(x, y, w, h){
-        if(!canProcessPixels || w <= 0 || h <= 0) return;
-
-        var dpr = cv.width / Math.max(1, cv.getBoundingClientRect().width);
-        var sx = Math.max(0, Math.floor(x * dpr));
-        var sy = Math.max(0, Math.floor(y * dpr));
-        var sw = Math.min(cv.width - sx, Math.ceil(w * dpr));
-        var sh = Math.min(cv.height - sy, Math.ceil(h * dpr));
-        if(sw <= 0 || sh <= 0) return;
-
-        try {
-          var imgData = ctx.getImageData(sx, sy, sw, sh);
-          var data = imgData.data;
-
-          for(var i = 0; i < data.length; i += 4){
-            var a = data[i + 3];
-            if(a < 24) continue;
-
-            var r = data[i];
-            var g = data[i + 1];
-            var b = data[i + 2];
-            var max = Math.max(r, g, b);
-            var min = Math.min(r, g, b);
-
-            // Target washed-out white/cream highlights, not transparent space.
-            if(r > 198 && g > 190 && b > 170 && max - min < 70){
-              var strength = max > 228 ? 0.62 : 0.48;
-              data[i] = Math.round(r * (1 - strength) + 150 * strength);
-              data[i + 1] = Math.round(g * (1 - strength) + 116 * strength);
-              data[i + 2] = Math.round(b * (1 - strength) + 74 * strength);
-            }
-          }
-
-          ctx.putImageData(imgData, sx, sy);
-        } catch(e) {
-          canProcessPixels = false;
-        }
-      }
-
       function size(){
         var dpr = Math.min(devicePixelRatio || 1, maxDpr());
         var r = cv.getBoundingClientRect();
@@ -270,7 +240,6 @@
 
         ctx.clearRect(0, 0, cw, ch);
         ctx.drawImage(im, dx, dy, dw, dh);
-        toneDownWhites(dx, dy, dw, dh);
       }
 
       function render(){
@@ -380,15 +349,15 @@
       "type": "number",
       "id": "frame_count",
       "label": "Total frames (max)",
-      "default": 203,
+      "default": 217,
       "info": "All exported frames in theme assets (bean_001 to bean_N). Set to 0 until new frames are uploaded."
     },
     {
       "type": "number",
       "id": "frame_stop",
       "label": "Stop frames at",
-      "default": 203,
-      "info": "Last frame to show during scroll (1–203). Recommended: 203."
+      "default": 217,
+      "info": "Last frame to show during scroll (1–N)."
     },
     { "type": "header", "content": "Bean display" },
     {
@@ -398,7 +367,7 @@
       "min": 40,
       "max": 100,
       "step": 1,
-      "default": 78,
+      "default": 100,
       "unit": "%"
     },
     {
@@ -406,9 +375,9 @@
       "id": "bean_height",
       "label": "Height",
       "min": 40,
-      "max": 95,
+      "max": 100,
       "step": 1,
-      "default": 72,
+      "default": 100,
       "unit": "vh"
     },
     {
@@ -416,9 +385,9 @@
       "id": "bean_max_width",
       "label": "Max width",
       "min": 400,
-      "max": 1600,
+      "max": 2400,
       "step": 20,
-      "default": 1200,
+      "default": 2400,
       "unit": "px"
     },
     {
@@ -426,9 +395,9 @@
       "id": "bean_max_height",
       "label": "Max height",
       "min": 400,
-      "max": 1200,
+      "max": 2000,
       "step": 20,
-      "default": 1000,
+      "default": 2000,
       "unit": "px"
     },
     { "type": "header", "content": "Motion" },
