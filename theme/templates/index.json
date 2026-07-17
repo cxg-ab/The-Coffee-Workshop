@@ -28,8 +28,8 @@
       "settings": {
         "frame_source": "assets",
         "custom_base": "https://your-cdn.com/bean-frames/",
-        "frame_count": 203,
-        "frame_stop": 203,
+        "frame_count": 0,
+        "frame_stop": 0,
         "bean_width": 100,
         "bean_height": 95,
         "bean_max_width": 1600,
