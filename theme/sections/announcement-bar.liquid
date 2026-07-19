@@ -1,25 +1,31 @@
-{%- if section.settings.message != blank -%}
-  <div
-    class="border-b border-[#2A2624] bg-[#1C1917] py-2.5 text-center text-xs font-medium uppercase tracking-[0.16em] text-[#C5A059]"
-    role="region"
-    aria-label="{{ 'announcement.default' | t }}"
-  >
-    <div class="site-container">
-      {%- if section.settings.link != blank -%}
-        <a href="{{ section.settings.link }}" class="transition-colors hover:text-white">
+{%- unless template.name == 'collection' -%}
+  {%- if section.settings.message != blank -%}
+    <div
+      class="border-b border-[#2A2624] bg-[#1C1917] py-2.5 text-center text-xs font-medium uppercase tracking-[0.16em] text-[#C5A059]"
+      role="region"
+      aria-label="{{ 'announcement.default' | t }}"
+    >
+      <div class="site-container">
+        {%- if section.settings.link != blank -%}
+          <a href="{{ section.settings.link }}" class="transition-colors hover:text-white">
+            {{ section.settings.message }}
+          </a>
+        {%- else -%}
           {{ section.settings.message }}
-        </a>
-      {%- else -%}
-        {{ section.settings.message }}
-      {%- endif -%}
+        {%- endif -%}
+      </div>
     </div>
-  </div>
-{%- endif -%}
+  {%- endif -%}
+{%- endunless -%}
 
 {% schema %}
 {
   "name": "Announcement bar",
   "settings": [
+    {
+      "type": "paragraph",
+      "content": "Hidden on collection/shop pages to free mobile space for products."
+    },
     {
       "type": "text",
       "id": "message",
