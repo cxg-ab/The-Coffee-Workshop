@@ -1,0 +1,292 @@
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign is_limited = product.metafields.coffee.is_limited.value
+  assign country = product.metafields.coffee.country.value
+  assign region = product.metafields.coffee.region.value
+  assign variety = product.metafields.coffee.variety.value
+  assign altitude = product.metafields.coffee.altitude.value
+  assign process = product.metafields.coffee.process.value
+  assign roast_level = product.metafields.coffee.roast_level.value
+  assign flavor_notes = product.metafields.coffee.flavor_notes.value
+
+  # Roast scale: 4 options only — Light=1 dot, Medium-Light=2, Medium=3,
+  # Dark=full (5). Matches the metafield's "choices" validation list.
+  assign roast_step = 0
+  case roast_level
+    when 'Light'
+      assign roast_step = 1
+    when 'Medium-Light'
+      assign roast_step = 2
+    when 'Medium'
+      assign roast_step = 3
+    when 'Dark'
+      assign roast_step = 5
+  endcase
+-%}
+
+<style>
+  /* Coffee spec badges: bold dark pill labels, matching the reference
+     coffee-bag label design. Plain CSS (not Tailwind arbitrary values)
+     since this theme's build is precompiled. */
+  .coffee-spec-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-ink, #1C1917);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    margin-bottom: 0.5rem;
+  }
+  .coffee-spec-value {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-ink, #1C1917);
+  }
+  .coffee-roast-dot {
+    display: inline-block;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-ink, #1C1917);
+    margin-inline-end: 0.35rem;
+  }
+  .coffee-roast-dot.is-filled {
+    background: var(--color-ink, #1C1917);
+  }
+</style>
+
+<div class="relative overflow-hidden bg-surface text-ink">
+  <div class="absolute inset-0 z-0 opacity-60 pointer-events-none">
+    {% render 'hero-arabic-bg' %}
+  </div>
+
+  <div class="site-container relative z-10 py-16 lg:py-32">
+    <div class="grid gap-12 lg:grid-cols-2 lg:gap-24 items-center lg:items-start">
+
+      <div class="space-y-4 lg:sticky lg:top-28" data-reveal data-product-gallery>
+        {%- if product.media.size > 0 -%}
+          <div class="group relative overflow-hidden border border-line bg-canvas aspect-[4/5] flex items-center justify-center p-8 lg:p-16 transition-shadow duration-300 hover:shadow-brand">
+            {{
+              product.featured_media
+              | image_url: width: 1200
+              | image_tag:
+                class: 'relative z-10 h-full w-full object-contain transition-transform duration-700 ease-out group-hover:scale-105',
+                loading: 'eager',
+                widths: '600, 900, 1200',
+                sizes: '(max-width: 1024px) 100vw, 50vw',
+                alt: product.featured_media.alt | default: product.title
+            }}
+          </div>
+        {%- endif -%}
+      </div>
+
+      <div data-reveal data-reveal-delay="0.15" class="flex flex-col h-full justify-center lg:py-10">
+        <p class="section-eyebrow mb-6">
+          {{ settings.brand_tagline | default: 'Specialty Coffee' }}
+        </p>
+
+        <h1 class="font-display text-4xl lg:text-6xl font-bold uppercase tracking-[0.04em] text-ink mb-6 leading-tight">
+          {{ product.title }}
+        </h1>
+
+        <div class="flex flex-wrap gap-3 mb-6">
+          {%- if is_limited -%}
+            <span class="inline-flex items-center justify-center rounded-sm bg-brand px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-ink">
+              {{ 'products.limited_batch' | t | default: 'Limited Batch' }}
+            </span>
+          {%- endif -%}
+          {%- unless current_variant.available -%}
+            <span class="inline-flex items-center justify-center rounded-sm bg-ink px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white">
+              {{ 'products.sold_out' | t | default: 'Sold Out' }}
+            </span>
+          {%- endunless -%}
+        </div>
+
+        <p class="text-3xl lg:text-4xl font-light tracking-wide text-brand mb-10" data-product-price>{{ current_variant.price | money }}</p>
+
+        <!-- Country, bold + large, like the reference label -->
+        {%- if country != blank -%}
+          <h2 class="font-display text-2xl lg:text-3xl font-bold uppercase tracking-wide text-ink mb-2">{{ country }}</h2>
+        {%- endif -%}
+
+        <!-- Short description — product's own description copy serves this role -->
+        <div class="prose-brand leading-relaxed mb-8 max-w-none text-base lg:text-lg">
+          {{ product.description }}
+        </div>
+
+        <!-- Altitude / Variety / Region: bold dark pill badges -->
+        {%- if altitude != blank or variety != blank or region != blank -%}
+          <div class="grid grid-cols-3 gap-4 mb-10">
+            {%- if altitude != blank -%}
+              <div>
+                <span class="coffee-spec-badge">{{ 'products.altitude' | t | default: 'Altitude' }}</span>
+                <p class="coffee-spec-value">{{ altitude }}</p>
+              </div>
+            {%- endif -%}
+            {%- if variety != blank -%}
+              <div>
+                <span class="coffee-spec-badge">{{ 'products.variety' | t | default: 'Variety' }}</span>
+                <p class="coffee-spec-value">{{ variety }}</p>
+              </div>
+            {%- endif -%}
+            {%- if region != blank -%}
+              <div>
+                <span class="coffee-spec-badge">{{ 'products.region' | t | default: 'Region' }}</span>
+                <p class="coffee-spec-value">{{ region }}</p>
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+
+        <!-- Tasting Notes + Process + Roast (dots) -->
+        {%- if flavor_notes != blank or process != blank or roast_step > 0 -%}
+          <div class="mb-10 divide-y divide-line border-y border-line text-sm">
+            {%- if flavor_notes != blank -%}
+              <div class="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <dt class="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted">{{ 'products.flavor_notes' | t | default: 'Tasting Notes' }}</dt>
+                <dd class="flex flex-wrap gap-1.5 sm:justify-end">
+                  {%- for note in flavor_notes -%}
+                    <span class="rounded-full bg-canvas px-2.5 py-1 text-xs font-medium text-ink">{{ note }}</span>
+                  {%- endfor -%}
+                </dd>
+              </div>
+            {%- endif -%}
+            {%- if process != blank -%}
+              <div class="flex items-center justify-between gap-4 py-3">
+                <dt class="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted">{{ 'products.process' | t | default: 'Process' }}</dt>
+                <dd class="font-medium text-ink">{{ process }}</dd>
+              </div>
+            {%- endif -%}
+            {%- if roast_step > 0 -%}
+              <div class="flex items-center justify-between gap-4 py-3">
+                <dt class="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted">{{ 'products.roast_level' | t | default: 'Roast' }}</dt>
+                <dd>
+                  {%- for i in (1..5) -%}
+                    <span class="coffee-roast-dot{% if i <= roast_step %} is-filled{% endif %}"></span>
+                  {%- endfor -%}
+                </dd>
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+
+        {% form 'product', product, class: 'mt-auto space-y-8', id: 'product-form', data-ajax-cart: true %}
+          <p class="hidden text-sm text-red-700" data-cart-error role="alert"></p>
+          {%- if product.variants.size > 1 -%}
+            <div>
+              <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+                {{ 'products.variant' | t | default: 'Select weight' }}
+              </p>
+              <div class="flex flex-wrap gap-2" data-variant-picker>
+                {%- for variant in product.variants -%}
+                  <label class="variant-pill{% if variant == current_variant %} is-selected{% endif %}{% unless variant.available %} is-disabled{% endunless %}">
+                    <input
+                      type="radio"
+                      name="id"
+                      value="{{ variant.id }}"
+                      {% if variant == current_variant %}checked{% endif %}
+                      {% unless variant.available %}disabled{% endunless %}
+                      data-variant-price="{{ variant.price | money }}"
+                    >
+                    <span>{{ variant.title }}</span>
+                  </label>
+                {%- endfor -%}
+              </div>
+            </div>
+          {%- else -%}
+            <input type="hidden" name="id" value="{{ current_variant.id }}">
+          {%- endif -%}
+
+          <div class="pt-4 border-t border-line">
+            <button
+              type="submit"
+              name="add"
+              class="btn-primary w-full text-center disabled:opacity-50 disabled:cursor-not-allowed"
+              {% unless current_variant.available %}disabled{% endunless %}
+              data-add-to-cart-btn
+              data-add-label="{{ 'products.add_to_cart' | t | default: 'Add to Cart' }}"
+              data-adding-label="{{ 'products.adding_to_cart' | t }}"
+              data-soldout-label="{{ 'products.sold_out' | t | default: 'Sold Out' }}"
+            >
+              {%- if current_variant.available -%}
+                {{ 'products.add_to_cart' | t | default: 'Add to Cart' }}
+              {%- else -%}
+                {{ 'products.sold_out' | t | default: 'Sold Out' }}
+              {%- endif -%}
+            </button>
+          </div>
+        {% endform %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .variant-pill {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 4.75rem;
+    padding: 0.7rem 1.1rem;
+    border: 1px solid var(--color-line, #e8e4dc);
+    border-radius: 2px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-ink, #1C1917);
+    background: var(--color-surface, #FFFFFF);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  }
+  .variant-pill:hover { border-color: var(--color-brand, #C5A059); }
+  .variant-pill.is-selected {
+    border-color: var(--color-brand, #C5A059);
+    background: var(--color-brand, #C5A059);
+    color: var(--color-ink, #1C1917);
+  }
+  .variant-pill.is-disabled { opacity: 0.4; cursor: not-allowed; text-decoration: line-through; }
+  .variant-pill input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+  .variant-pill input:focus-visible ~ span { outline: 2px solid var(--color-brand, #C5A059); outline-offset: 3px; }
+</style>
+
+<script>
+(function(){
+  var picker = document.querySelector('[data-variant-picker]');
+  if(!picker) return;
+  var priceEl = document.querySelector('[data-product-price]');
+  var addBtn = document.querySelector('[data-add-to-cart-btn]');
+
+  picker.addEventListener('change', function(e){
+    if(!e.target || e.target.name !== 'id') return;
+    var input = e.target;
+
+    picker.querySelectorAll('.variant-pill').forEach(function(pill){
+      pill.classList.remove('is-selected');
+    });
+    var selectedPill = input.closest('.variant-pill');
+    if(selectedPill) selectedPill.classList.add('is-selected');
+
+    if(priceEl && input.dataset.variantPrice){
+      priceEl.textContent = input.dataset.variantPrice;
+    }
+
+    if(addBtn){
+      addBtn.disabled = input.disabled;
+      addBtn.textContent = input.disabled ? addBtn.dataset.soldoutLabel : addBtn.dataset.addLabel;
+    }
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Product",
+  "class": "product-section",
+  "settings": []
+}
+{% endschema %}

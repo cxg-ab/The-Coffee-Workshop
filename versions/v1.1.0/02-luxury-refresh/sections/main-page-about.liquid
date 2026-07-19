@@ -1,0 +1,80 @@
+<section class="about-page bg-canvas py-16 lg:py-24">
+  <div class="site-container">
+    <div class="grid gap-12 lg:grid-cols-2 lg:gap-20 items-center">
+
+      <!-- Photo column: real image if set, otherwise an elegant monogram
+           placeholder (matches the pattern already used in origin-sticky)
+           rather than leaving a blank gap. Add a photo any time via
+           Theme editor → About page → Photo. -->
+      <div data-reveal class="order-1">
+        <div class="aspect-[4/5] overflow-hidden border border-line">
+          {%- if section.settings.image != blank -%}
+            {{
+              section.settings.image
+              | image_url: width: 1000
+              | image_tag: class: 'h-full w-full object-cover', loading: 'lazy', alt: page.title
+            }}
+          {%- else -%}
+            <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand/15 to-transparent">
+              <span class="font-display text-7xl font-bold uppercase tracking-widest text-brand/25">TCW</span>
+            </div>
+          {%- endif -%}
+        </div>
+      </div>
+
+      <!-- Copy column -->
+      <div data-reveal data-reveal-delay="0.15" class="order-2">
+        <p class="section-eyebrow mb-4">{{ 'about.eyebrow' | t }}</p>
+        <h1 class="section-title mb-8">{%- if page.title != blank -%}{{ page.title }}{%- else -%}{{ 'about.heading' | t }}{%- endif -%}</h1>
+
+        <div class="prose-brand space-y-6">
+          {%- if page.content != blank -%}
+            {{ page.content }}
+          {%- else -%}
+            <p>{{ 'about.lead' | t }}</p>
+            <p>{{ 'about.mission' | t }}</p>
+            <p>{{ 'about.roasting' | t }}</p>
+            <p>{{ 'about.promise' | t }}</p>
+          {%- endif -%}
+        </div>
+
+        <!-- Visit us: inline icon rows instead of a separate boxed list,
+             so it reads as part of the same story rather than an
+             afterthought tacked underneath. -->
+        <div class="mt-10 border-t border-line pt-8">
+          <h2 class="mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-brand">{{ 'visit.heading' | t }}</h2>
+          <div class="flex flex-col gap-3 text-sm text-muted">
+            <a href="tel:{{ settings.contact_phone | replace: ' ', '' }}" class="inline-flex items-center gap-3 transition-colors hover:text-brand">
+              <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+              <span dir="ltr">{{ settings.contact_phone }}</span>
+            </a>
+            <a href="mailto:{{ settings.contact_email }}" class="inline-flex items-center gap-3 transition-colors hover:text-brand">
+              <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              {{ settings.contact_email }}
+            </a>
+            <div class="inline-flex items-start gap-3">
+              <svg class="h-4 w-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span>{{ settings.contact_address }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "About page",
+  "settings": [
+    { "type": "image_picker", "id": "image", "label": "Photo", "info": "Roastery, team, or workshop photo. Shows an elegant placeholder until one is added." }
+  ]
+}
+{% endschema %}

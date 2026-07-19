@@ -1,0 +1,80 @@
+<section class="home-trust-bar" data-home-trust aria-label="{{ 'home.trust.aria' | t }}">
+  <div class="site-container">
+    <ul class="home-trust-bar__list">
+      {%- if section.blocks.size > 0 -%}
+        {%- for block in section.blocks limit: 5 -%}
+          <li class="home-trust-bar__item" {{ block.shopify_attributes }}>
+            <span class="home-trust-bar__dot" aria-hidden="true"></span>
+            {%- if block.settings.link != blank -%}
+              <a href="{{ block.settings.link }}" class="home-trust-bar__link">{{ block.settings.label }}</a>
+            {%- else -%}
+              {{ block.settings.label }}
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+      {%- else -%}
+        <li class="home-trust-bar__item">
+          <span class="home-trust-bar__dot" aria-hidden="true"></span>
+          {{ 'header.single_origin' | t }}
+        </li>
+        <li class="home-trust-bar__item">
+          <span class="home-trust-bar__dot" aria-hidden="true"></span>
+          {{ 'header.micro_lot' | t }}
+        </li>
+        <li class="home-trust-bar__item">
+          <span class="home-trust-bar__dot" aria-hidden="true"></span>
+          {{ 'header.exotic' | t }}
+        </li>
+        <li class="home-trust-bar__item">
+          <span class="home-trust-bar__dot" aria-hidden="true"></span>
+          {{ 'home.trust.capsules' | t }}
+        </li>
+        <li class="home-trust-bar__item">
+          <span class="home-trust-bar__dot" aria-hidden="true"></span>
+          {{ 'home.trust.drip' | t }}
+        </li>
+      {%- endif -%}
+    </ul>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Home trust bar",
+  "tag": "section",
+  "class": "home-trust-bar-section",
+  "max_blocks": 5,
+  "settings": [],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Name",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Name",
+          "default": "Single Origin"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link (optional)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Home trust bar",
+      "blocks": [
+        { "type": "item", "settings": { "label": "Single Origin" } },
+        { "type": "item", "settings": { "label": "Micro-Lot" } },
+        { "type": "item", "settings": { "label": "Exotic" } },
+        { "type": "item", "settings": { "label": "Capsules" } },
+        { "type": "item", "settings": { "label": "Drip" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,44 @@
+# ── Dependencies / build ─────────────────────────────────
+node_modules/
+dist/
+build/
+*.log
+
+# ── OS noise ─────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Shopify CLI ──────────────────────────────────────────
+.shopify/
+*.shopifytheme
+
+# ── Duplicate AI-tool skill folders ──────────────────────
+# The same skills were installed into every editor's config dir.
+# Keep .claude and .gemini tracked if you want them shared;
+# everything else is local tooling and must never be committed.
+.agents/
+.augment/
+.codebuddy/
+.codewhale/
+.codex/
+.continue/
+.cursor/
+.factory/
+.kilocode/
+.kiro/
+.opencode/
+.qoder/
+.roo/
+.trae/
+.warp/
+.windsurf/
+
+# ── Google Docs pointer files (not real content) ─────────
+*.gdoc
+*.gsheet
+*.gslides
+
+# ── Archived / superseded ────────────────────────────────
+versions/v1.1.0/01-coming-soon-only/
+_rollback/

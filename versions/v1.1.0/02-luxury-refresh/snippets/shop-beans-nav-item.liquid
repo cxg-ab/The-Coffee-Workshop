@@ -1,0 +1,11 @@
+{%- liquid
+  assign parent_label = parent_title | default: 'collections.shop' | t
+  assign shop_href = shop_link | default: '/collections/all-beans'
+-%}
+{%- comment -%}
+  "SHOP" — direct link to the shop landing (set via Header → "SHOP link target").
+  Category navigation lives on the collection pages as pills under the title.
+{%- endcomment -%}
+<li>
+  <a href="{{ shop_href }}" class="{{ link_class }} whitespace-nowrap">{{ parent_label }}</a>
+</li>

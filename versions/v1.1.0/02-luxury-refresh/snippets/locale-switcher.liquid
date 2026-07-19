@@ -1,0 +1,26 @@
+{%- if localization.available_languages.size > 1 -%}
+  <div class="relative" data-locale-switcher>
+    <label class="sr-only" for="locale-select">{{ 'general.language' | t | default: 'Language' }}</label>
+    <select
+      id="locale-select"
+      class="h-10 cursor-pointer appearance-none border-0 bg-transparent pe-6 ps-2 text-xs font-semibold uppercase tracking-[0.14em] text-ink outline-none"
+      data-locale-select
+    >
+      {%- for language in localization.available_languages -%}
+        <option
+          value="{{ language.iso_code }}"
+          {% if language.iso_code == localization.language.iso_code %}selected{% endif %}
+        >
+          {{ language.iso_code | upcase }}
+        </option>
+      {%- endfor -%}
+    </select>
+  </div>
+
+  <script type="application/json" data-locale-form-data>
+    {
+      "current_locale": {{ localization.language.iso_code | json }},
+      "root_url": {{ routes.root_url | json }}
+    }
+  </script>
+{%- endif -%}

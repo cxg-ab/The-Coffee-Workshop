@@ -1,0 +1,88 @@
+<div
+  class="pointer-events-none fixed inset-0 z-[60] bg-ink/40 opacity-0 transition-opacity duration-300"
+  data-cart-overlay
+  aria-hidden="true"
+></div>
+
+<aside
+  class="fixed inset-y-0 z-[70] flex w-full max-w-md flex-col bg-white shadow-2xl transition-transform duration-500 ease-luxury ltr:right-0 rtl:left-0 ltr:translate-x-full rtl:-translate-x-full"
+  data-cart-drawer
+  role="dialog"
+  aria-modal="true"
+  aria-label="{{ 'cart.title' | t }}"
+  hidden
+>
+  <div class="flex items-center justify-between border-b border-line px-6 py-5">
+    <h2 class="font-display text-lg font-bold uppercase tracking-[0.1em]">
+      {{ 'cart.title' | t }}
+      <span class="text-muted" data-cart-drawer-count>({{ cart.item_count }})</span>
+    </h2>
+    <button
+      type="button"
+      class="inline-flex h-10 w-10 items-center justify-center text-ink transition-colors hover:text-brand"
+      data-cart-close
+      aria-label="{{ 'accessibility.close' | t }}"
+    >
+      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  {%- if cart.item_count > 0 -%}
+    <div class="border-b border-line bg-canvas px-6 py-3 text-xs text-muted">
+      {{ 'cart.flat_shipping_note' | t }}
+    </div>
+  {%- endif -%}
+
+  <div class="flex-1 overflow-y-auto px-6 py-4" data-cart-drawer-items>
+    {%- if cart.item_count == 0 -%}
+      <p class="py-12 text-center text-sm text-muted">{{ 'cart.empty' | t }}</p>
+    {%- else -%}
+      <ul class="divide-y divide-line">
+        {%- for item in cart.items -%}
+          <li class="flex gap-4 py-4" data-cart-line-item="{{ item.key }}">
+            {%- if item.image -%}
+              <a href="{{ item.url }}" class="shrink-0">
+                {{
+                  item.image
+                  | image_url: width: 160
+                  | image_tag: class: 'h-20 w-20 object-cover', loading: 'lazy', alt: item.product.title
+                }}
+              </a>
+            {%- endif -%}
+            <div class="min-w-0 flex-1">
+              <a href="{{ item.url }}" class="block text-sm font-medium text-ink hover:text-brand">
+                {{ item.product.title }}
+              </a>
+              {%- unless item.variant.title == 'Default Title' -%}
+                <p class="mt-1 text-xs text-muted">{{ item.variant.title }}</p>
+              {%- endunless -%}
+              <div class="mt-2 flex items-center justify-between gap-2">
+                <span class="text-sm font-semibold text-brand">{{ item.final_line_price | money }}</span>
+                <span class="text-xs text-muted">× {{ item.quantity }}</span>
+              </div>
+            </div>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </div>
+
+  <div class="border-t border-line px-6 py-5">
+    <div class="mb-4 flex items-center justify-between">
+      <span class="text-sm uppercase tracking-[0.12em] text-muted">{{ 'cart.subtotal' | t }}</span>
+      <span class="text-lg font-semibold text-ink" data-cart-subtotal>{{ cart.total_price | money }}</span>
+    </div>
+    <div class="flex flex-col gap-3">
+      <a href="{{ routes.cart_url }}" class="btn-outline w-full text-center">
+        {{ 'cart.view_cart' | t }}
+      </a>
+      <form action="{{ routes.cart_url }}" method="post">
+        <button type="submit" name="checkout" class="btn-primary w-full"{% if cart.item_count == 0 %} disabled{% endif %}>
+          {{ 'cart.checkout' | t }}
+        </button>
+      </form>
+    </div>
+  </div>
+</aside>

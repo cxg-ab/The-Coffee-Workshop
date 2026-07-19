@@ -1,0 +1,190 @@
+<style>
+  /* D-038 — size trim for the sticky intro + fade transition.
+     Verified against the reconciled live file (2026-07-19): live has no
+     <style> block here, so this is a clean addition, not a conflict.
+     Scoped here rather than application.css (84KB, not API-writable). */
+  .origin-sticky-section .origin-sticky-heading {
+    font-size: clamp(1.25rem, 3.1vw, 1.85rem);
+    letter-spacing: 0.04em;
+    margin: 0.4rem 0 0.6rem;
+  }
+  .origin-sticky-section .origin-sticky-sub {
+    font-size: 0.82rem;
+    line-height: 1.55;
+    max-width: 34ch;
+  }
+  .origin-sticky-section .origin-sticky-eyebrow { font-size: 0.68rem; }
+  .origin-sticky-section .origin-sticky-progress {
+    font-size: 0.58rem;
+    margin-top: 0.85rem;
+    padding: 0.32rem 0.55rem;
+  }
+  /* Shrink the fade / gradient transition block */
+  .origin-sticky-section + .origin-section-transition,
+  .origin-section-transition {
+    height: 2rem;
+    margin-top: 1.5rem;
+  }
+  @media (min-width: 1024px) {
+    .origin-sticky-section .origin-sticky-heading {
+      font-size: clamp(1.35rem, 2.6vw, 1.95rem);
+    }
+    .origin-sticky-section .origin-sticky-sub { font-size: 0.85rem; }
+    .origin-section-transition {
+      height: 2.5rem;
+      margin-top: 2rem;
+    }
+  }
+  @media (max-width: 1023px) {
+    .origin-sticky-section .origin-sticky-heading {
+      font-size: clamp(1.1rem, 4.6vw, 1.4rem);
+      margin: 0.3rem 0 0.45rem;
+    }
+    .origin-sticky-section .origin-sticky-sub { font-size: 0.75rem; }
+  }
+</style>
+
+<section class="origin-sticky-section" data-origin-sticky-section>
+  {%- assign origin_total = section.blocks.size | prepend: '0' | slice: -2, 2 -%}
+
+  <div class="site-container origin-sticky-stage">
+    <div class="origin-sticky-intro">
+      <p class="section-eyebrow origin-sticky-eyebrow" data-reveal data-reveal-y="24" data-reveal-scale="1">{{ section.settings.eyebrow }}</p>
+      <h2 class="origin-sticky-heading" data-split-title>{{ section.settings.heading }}</h2>
+      <p class="origin-sticky-sub prose-brand" data-reveal data-reveal-y="28" data-reveal-scale="1" data-reveal-delay="0.15">{{ section.settings.subheading }}</p>
+
+      {%- if section.blocks.size > 0 -%}
+        <p class="origin-sticky-progress" aria-live="polite">
+          <span class="origin-sticky-progress__label">{{ 'home.origin.progress' | t }}</span>
+          <span class="origin-sticky-progress__count">
+            <span data-origin-progress-current>01</span><span aria-hidden="true">/</span><span data-origin-progress-total>{{ origin_total }}</span>
+          </span>
+        </p>
+      {%- endif -%}
+    </div>
+
+    <div class="origin-sticky-cards">
+      {%- for block in section.blocks -%}
+        {%- assign origin_product = block.settings.product -%}
+        {%- assign origin_name = block.settings.name -%}
+        {%- assign origin_note = block.settings.note -%}
+        {%- assign origin_image = block.settings.image -%}
+        {%- assign origin_url = blank -%}
+
+        {%- if origin_product != blank -%}
+          {%- if origin_name == blank -%}
+            {%- assign origin_name = origin_product.title -%}
+          {%- endif -%}
+          {%- if origin_image == blank and origin_product.featured_media != blank -%}
+            {%- assign origin_image = origin_product.featured_media.preview_image -%}
+          {%- endif -%}
+          {%- if origin_note == blank and origin_product.description != blank -%}
+            {%- assign origin_note = origin_product.description | strip_html | truncate: 140 -%}
+          {%- endif -%}
+          {%- assign origin_url = origin_product.url -%}
+        {%- endif -%}
+
+        <article class="origin-sticky-card" data-origin-card data-origin-index="{{ forloop.index }}" {{ block.shopify_attributes }}>
+          <div class="origin-sticky-card__media" data-origin-media>
+            {%- if origin_image != blank -%}
+              {%- if origin_url != blank -%}
+                <a href="{{ origin_url }}" class="origin-sticky-card__media-link">
+                  {{
+                    origin_image
+                    | image_url: width: 800
+                    | image_tag:
+                      class: 'origin-sticky-card__img',
+                      loading: 'lazy',
+                      widths: '280, 400, 560, 800',
+                      sizes: '(min-width: 1024px) 280px, min(72vw, 300px)',
+                      alt: origin_name
+                  }}
+                </a>
+              {%- else -%}
+                {{
+                  origin_image
+                  | image_url: width: 800
+                  | image_tag:
+                    class: 'origin-sticky-card__img',
+                    loading: 'lazy',
+                    widths: '280, 400, 560, 800',
+                    sizes: '(min-width: 1024px) 280px, min(72vw, 300px)',
+                    alt: origin_name
+                }}
+              {%- endif -%}
+            {%- else -%}
+              <div class="origin-sticky-card__placeholder">
+                <span class="origin-sticky-placeholder-text">{{ origin_name | slice: 0, 2 | upcase }}</span>
+              </div>
+            {%- endif -%}
+          </div>
+          <div class="origin-sticky-card__copy" data-origin-copy>
+            {%- if block.settings.region != blank -%}
+              <p class="origin-sticky-card__meta section-eyebrow">( {{ block.settings.region }} )</p>
+            {%- endif -%}
+            <h3 class="origin-sticky-card__name" data-split-title>
+              {%- if origin_url != blank -%}
+                <a href="{{ origin_url }}" class="origin-sticky-card__name-link">{{ origin_name }}</a>
+              {%- else -%}
+                {{ origin_name }}
+              {%- endif -%}
+            </h3>
+            {%- if block.settings.profile != blank -%}
+              <p class="origin-sticky-card__profile">{{ block.settings.profile }}</p>
+            {%- endif -%}
+            {%- if origin_note != blank -%}
+              <p class="origin-sticky-card__note">{{ origin_note }}</p>
+            {%- endif -%}
+          </div>
+        </article>
+      {%- endfor -%}
+    </div>
+  </div>
+
+  <div class="origin-section-transition" aria-hidden="true"></div>
+</section>
+
+{% schema %}
+{
+  "name": "Origin sticky split",
+  "tag": "section",
+  "class": "origin-sticky-split-section",
+  "max_blocks": 12,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Micro-lot origins" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "One origin at a time" },
+    { "type": "textarea", "id": "subheading", "label": "Subheading", "default": "We discover, sample, and reserve green Arabica from micro-lots worldwide — each origin roasted to express its character." }
+  ],
+  "blocks": [
+    {
+      "type": "origin",
+      "name": "Origin / Product",
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product (admin editable)",
+          "info": "Pick a product to auto-fill name, image, and link. Manual fields below override."
+        },
+        { "type": "text", "id": "name", "label": "Display name", "default": "Ethiopia", "info": "Leave blank to use the product title." },
+        { "type": "text", "id": "region", "label": "Region label", "default": "African highlands" },
+        { "type": "text", "id": "profile", "label": "Flavor profile", "default": "Floral · Citrus · Tea-like" },
+        { "type": "textarea", "id": "note", "label": "Story note", "default": "Bright, expressive washed lots from Yirgacheffe and Guji — among the first origins we cup each season." },
+        { "type": "image_picker", "id": "image", "label": "Image override", "info": "Optional. Uses product image when empty." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Origin sticky split",
+      "blocks": [
+        { "type": "origin", "settings": { "name": "Ethiopia", "region": "African highlands", "profile": "Floral · Citrus · Tea-like", "note": "Bright washed lots from Yirgacheffe and Guji — expressive and clean in the cup." }},
+        { "type": "origin", "settings": { "name": "Panama", "region": "Central America", "profile": "Jasmine · Bergamot · Honey", "note": "Geisha and prized micro-lots from Boquete — reserved in small quantities each harvest." }},
+        { "type": "origin", "settings": { "name": "Yemen", "region": "Arabian Peninsula", "profile": "Dried fruit · Spice · Complex", "note": "Ancient terroir, traditional drying — among the most sought-after lots we source." }},
+        { "type": "origin", "settings": { "name": "Colombia", "region": "South America", "profile": "Caramel · Red apple · Balanced", "note": "Small-farm Colombia Huila lots — versatile and sweet, roasted for everyday brewers." }},
+        { "type": "origin", "settings": { "name": "Kenya", "region": "East Africa", "profile": "Blackcurrant · Tomato · Bright", "note": "AA-grade Kenyan auctions — vibrant acidity with a syrupy body when roasted medium." }}
+      ]
+    }
+  ]
+}
+{% endschema %}

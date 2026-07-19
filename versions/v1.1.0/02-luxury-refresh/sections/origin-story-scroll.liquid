@@ -1,0 +1,359 @@
+<section class="origin-story-section" data-origin-story-section>
+
+  <div class="origin-story-pin" data-origin-story-pin>
+
+    <div class="origin-story-vignette" aria-hidden="true"></div>
+
+
+
+    <div class="origin-story-stage site-container">
+
+      <div class="origin-story-intro" data-origin-story-intro>
+
+        <p class="section-eyebrow">{{ section.settings.eyebrow }}</p>
+
+        <h2 class="origin-story-heading">{{ section.settings.heading }}</h2>
+
+        <p class="origin-story-sub prose-brand">{{ section.settings.subheading }}</p>
+
+        <div class="origin-story-counter" aria-live="polite">
+
+          <span data-origin-story-current>01</span>
+
+          <span class="origin-story-counter__sep">/</span>
+
+          <span data-origin-story-total>{% if section.blocks.size < 10 %}0{% endif %}{{ section.blocks.size }}</span>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="origin-story-slides" data-origin-story-slides>
+
+        {%- for block in section.blocks -%}
+
+          <article
+
+            class="origin-story-slide{% if forloop.first %} is-active{% endif %}"
+
+            data-origin-slide
+
+            data-origin-index="{{ forloop.index0 }}"
+
+            {{ block.shopify_attributes }}
+
+          >
+
+            <div class="origin-story-slide__media">
+
+              {%- if block.settings.image != blank -%}
+
+                {{
+
+                  block.settings.image
+
+                  | image_url: width: 1200
+
+                  | image_tag:
+
+                    class: 'origin-story-slide__img',
+
+                    loading: 'lazy',
+
+                    alt: block.settings.name
+
+                }}
+
+              {%- else -%}
+                <div class="origin-story-slide__placeholder flex flex-col items-center justify-center" aria-hidden="true" style="background: linear-gradient(135deg, var(--color-surface, #FFFFFF) 0%, var(--color-bg, #FAFAF8) 100%); min-height: 50vh; border-radius: 12px; border: 1px solid var(--color-border, #E8E4DC);">
+                  <span style="font-size: 6rem; font-weight: bold; color: var(--color-brand-light, #C9A962); opacity: 0.15; line-height: 1;">{{ block.settings.name | slice: 0, 2 | upcase }}</span>
+                  <span style="font-size: 0.875rem; color: var(--color-brand, #8B5E3C); text-transform: uppercase; letter-spacing: 0.2em; margin-top: 1rem; font-weight: 500;">Artwork Pending</span>
+                </div>
+              {%- endif -%}
+
+            </div>
+
+
+
+            <div class="origin-story-slide__copy">
+
+              <p class="origin-story-slide__meta section-eyebrow">( {{ block.settings.region }} )</p>
+
+              <h3 class="origin-story-slide__name">{{ block.settings.name }}</h3>
+
+              {%- if block.settings.profile != blank -%}
+
+                <p class="origin-story-slide__profile">{{ block.settings.profile }}</p>
+
+              {%- endif -%}
+
+              {%- if block.settings.note != blank -%}
+
+                <p class="origin-story-slide__note">{{ block.settings.note }}</p>
+
+              {%- endif -%}
+
+            </div>
+
+          </article>
+
+        {%- endfor -%}
+
+      </div>
+
+
+
+      <div class="origin-story-dots" data-origin-story-dots aria-hidden="true">
+
+        {%- for block in section.blocks -%}
+
+          <span class="origin-story-dot{% if forloop.first %} is-active{% endif %}" data-origin-dot></span>
+
+        {%- endfor -%}
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+{% schema %}
+
+{
+
+  "name": "Origin story scroll",
+
+  "tag": "section",
+
+  "class": "origin-story-section",
+
+  "max_blocks": 12,
+
+  "settings": [
+
+    {
+
+      "type": "text",
+
+      "id": "eyebrow",
+
+      "label": "Eyebrow",
+
+      "default": "Micro-lot origins"
+
+    },
+
+    {
+
+      "type": "text",
+
+      "id": "heading",
+
+      "label": "Heading",
+
+      "default": "One origin at a time"
+
+    },
+
+    {
+
+      "type": "textarea",
+
+      "id": "subheading",
+
+      "label": "Subheading",
+
+      "default": "We discover, sample, and reserve green Arabica from micro-lots worldwide — each origin roasted to express its character."
+
+    }
+
+  ],
+
+  "blocks": [
+
+    {
+
+      "type": "origin",
+
+      "name": "Origin",
+
+      "settings": [
+
+        {
+
+          "type": "text",
+
+          "id": "name",
+
+          "label": "Country",
+
+          "default": "Ethiopia"
+
+        },
+
+        {
+
+          "type": "text",
+
+          "id": "region",
+
+          "label": "Region label",
+
+          "default": "African highlands"
+
+        },
+
+        {
+
+          "type": "text",
+
+          "id": "profile",
+
+          "label": "Flavor profile",
+
+          "default": "Floral · Citrus · Tea-like"
+
+        },
+
+        {
+
+          "type": "textarea",
+
+          "id": "note",
+
+          "label": "Story note",
+
+          "default": "Bright, expressive washed lots from Yirgacheffe and Guji — among the first origins we cup each season."
+
+        },
+
+        {
+
+          "type": "image_picker",
+
+          "id": "image",
+
+          "label": "Origin image"
+
+        }
+
+      ]
+
+    }
+
+  ],
+
+  "presets": [
+
+    {
+
+      "name": "Origin story scroll",
+
+      "blocks": [
+
+        {
+
+          "type": "origin",
+
+          "settings": {
+
+            "name": "Ethiopia",
+
+            "region": "African highlands",
+
+            "profile": "Floral · Citrus · Tea-like",
+
+            "note": "Bright washed lots from Yirgacheffe and Guji — expressive and clean in the cup."
+
+          }
+
+        },
+
+        {
+
+          "type": "origin",
+
+          "settings": {
+
+            "name": "Panama",
+
+            "region": "Central America",
+
+            "profile": "Jasmine · Bergamot · Honey",
+
+            "note": "Geisha and prized micro-lots from Boquete — reserved in small quantities each harvest."
+
+          }
+
+        },
+
+        {
+
+          "type": "origin",
+
+          "settings": {
+
+            "name": "Yemen",
+
+            "region": "Arabian Peninsula",
+
+            "profile": "Dried fruit · Spice · Complex",
+
+            "note": "Ancient terroir, traditional drying — among the most sought-after lots we source."
+
+          }
+
+        },
+
+        {
+
+          "type": "origin",
+
+          "settings": {
+
+            "name": "Colombia",
+
+            "region": "South America",
+
+            "profile": "Caramel · Red apple · Balanced",
+
+            "note": "Small-farm Colombia Huila lots — versatile and sweet, roasted for everyday brewers."
+
+          }
+
+        },
+
+        {
+
+          "type": "origin",
+
+          "settings": {
+
+            "name": "Kenya",
+
+            "region": "East Africa",
+
+            "profile": "Blackcurrant · Tomato · Bright",
+
+            "note": "AA-grade Kenyan auctions — vibrant acidity with a syrupy body when roasted medium."
+
+          }
+
+        }
+
+      ]
+
+    }
+
+  ]
+
+}
+
+{% endschema %}
+

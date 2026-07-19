@@ -1,0 +1,316 @@
+<style>
+  .plp-pagination { display: flex; align-items: center; justify-content: center; gap: 0.4rem; margin-top: 5rem; }
+  .plp-pagination__item, .plp-pagination__arrow {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 2.75rem; height: 2.75rem; padding: 0 0.9rem;
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--color-ink, #1A1A1A); border: 1px solid transparent;
+    transition: border-color 0.25s ease, color 0.25s ease, background-color 0.25s ease;
+  }
+  .plp-pagination__item:hover, .plp-pagination__arrow:hover { border-color: var(--color-line, #E8E4DC); color: var(--color-brand, #8B5E3C); }
+  .plp-pagination__item.is-current { background: var(--color-ink, #1A1A1A); color: #fff; pointer-events: none; }
+  .plp-pagination__arrow.is-disabled { opacity: 0.35; pointer-events: none; }
+  .plp-pagination__chevron { width: 0.85rem; height: 0.85rem; }
+  [dir="rtl"] .plp-pagination__chevron { transform: scaleX(-1); }
+  .plp-pagination__gap { min-width: 1.5rem; text-align: center; color: var(--color-muted, #6B6B6B); font-size: 0.7rem; }
+
+  .collection-header .hero-heading { font-size: clamp(1.6rem, 3.2vw, 2.25rem); letter-spacing: 0.06em; line-height: 1.12; }
+  .plp-count { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-muted, #6B6B6B); white-space: nowrap; margin: 0.75rem 0 0; text-align: center; }
+  .plp-empty-filter { padding: 3rem 1rem; text-align: center; color: var(--color-muted, #6B6B6B); font-weight: 300; font-size: 1.1rem; }
+  .plp-item.is-hidden { display: none; }
+</style>
+
+{%- assign per_page = section.settings.products_per_page | default: 12 -%}
+{%- paginate collection.products by per_page -%}
+
+{%- assign known_cats = 'single-origin,micro-lot,exotic,capsules-drip,accessories' | split: ',' -%}
+
+<div class="collection-header relative overflow-hidden bg-surface py-14 lg:py-16 border-b border-line">
+  <div class="hero-clip absolute inset-0 z-0 opacity-60">
+    {% render 'hero-arabic-bg' %}
+  </div>
+
+  <div class="site-container relative z-10">
+    <div class="ch-title text-center">
+      <h1 class="hero-heading text-3xl lg:text-4xl mb-1 tracking-tight" data-split-title>{{ collection.title }}</h1>
+      <p class="plp-count"><span data-plp-count>{{ 'collections.products_count' | t: count: collection.products_count }}</span></p>
+    </div>
+
+    {%- if collection.description != blank -%}
+      <div class="prose-brand mx-auto max-w-2xl text-center text-sm lg:text-base font-light leading-relaxed mt-4" data-reveal data-reveal-y="20" data-reveal-scale="1" data-reveal-delay="0.1">
+        {{ collection.description }}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+<div
+  class="site-container py-14 lg:py-20"
+  data-plp
+  data-base="{{ collection.url }}"
+  data-l-showing="{% if request.locale.iso_code == 'ar' %}عرض{% else %}Showing{% endif %}"
+  data-l-of="{% if request.locale.iso_code == 'ar' %}من{% else %}of{% endif %}"
+  data-l-none="{% if request.locale.iso_code == 'ar' %}لا توجد منتجات مطابقة{% else %}No products match these filters{% endif %}"
+  data-total="{{ collection.products_count }}"
+>
+  {%- if collection.products.size > 0 -%}
+    <div class="grid gap-x-10 gap-y-20 sm:grid-cols-2 lg:grid-cols-3" data-plp-grid>
+      {%- for product in collection.products -%}
+        {%- assign p_origin = product.metafields.coffee.country.value -%}
+        {%- assign p_process = product.metafields.coffee.process.value -%}
+        {%- assign p_notes = '' -%}
+        {%- if product.metafields.coffee.flavor_notes.value -%}
+          {%- assign p_notes = product.metafields.coffee.flavor_notes.value | join: '||' -%}
+        {%- endif -%}
+        {%- assign p_cats = '' -%}
+        {%- for t in product.tags -%}
+          {%- assign th = t | handleize -%}
+          {%- if known_cats contains th -%}{%- assign p_cats = p_cats | append: ' ' | append: th -%}{%- endif -%}
+        {%- endfor -%}
+        {%- if known_cats contains collection.handle and p_cats == '' -%}{%- assign p_cats = collection.handle -%}{%- endif -%}
+        <div class="plp-item" data-cats="{{ p_cats | strip }}" data-origin="{{ p_origin | escape }}" data-process="{{ p_process | escape }}" data-notes="{{ p_notes | escape }}">
+          {% render 'product-card', card_product: product %}
+        </div>
+      {%- endfor -%}
+    </div>
+
+    <div class="plp-empty-filter" data-plp-empty hidden></div>
+
+    {%- if paginate.pages > 1 -%}
+      <nav class="plp-pagination" role="navigation" aria-label="{{ 'collections.pagination_page' | t: number: paginate.current_page }}">
+        {%- if paginate.previous -%}
+          <a href="{{ paginate.previous.url }}" class="plp-pagination__arrow" aria-label="{{ 'collections.pagination_previous' | t }}"><svg class="plp-pagination__chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></a>
+        {%- else -%}
+          <span class="plp-pagination__arrow is-disabled" aria-hidden="true"><svg class="plp-pagination__chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></span>
+        {%- endif -%}
+
+        {%- for part in paginate.parts -%}
+          {%- if part.is_link -%}
+            <a href="{{ part.url }}" class="plp-pagination__item" aria-label="{{ 'collections.pagination_page' | t: number: part.title }}">{{ part.title }}</a>
+          {%- elsif part.title == paginate.current_page -%}
+            <span class="plp-pagination__item is-current" aria-current="page">{{ part.title }}</span>
+          {%- else -%}
+            <span class="plp-pagination__gap">{{ part.title }}</span>
+          {%- endif -%}
+        {%- endfor -%}
+
+        {%- if paginate.next -%}
+          <a href="{{ paginate.next.url }}" class="plp-pagination__arrow" aria-label="{{ 'collections.pagination_next' | t }}"><svg class="plp-pagination__chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></a>
+        {%- else -%}
+          <span class="plp-pagination__arrow is-disabled" aria-hidden="true"><svg class="plp-pagination__chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></span>
+        {%- endif -%}
+      </nav>
+    {%- endif -%}
+  {%- else -%}
+    <div class="brand-card px-8 py-24 text-center">
+      <p class="text-2xl text-muted font-light mb-8">{{ 'collections.empty' | t }}</p>
+      <a href="/collections/all-beans" class="btn-primary inline-flex items-center px-10 py-4 text-sm tracking-widest uppercase font-bold">{{ 'general.continue_shopping' | t }}</a>
+    </div>
+  {%- endif -%}
+</div>
+
+{%- endpaginate -%}
+
+<script>
+  (function () {
+    var root = document.querySelector('[data-plp]');
+    if (!root) return;
+    var grid = root.querySelector('[data-plp-grid]');
+    if (!grid) return;
+    var items = Array.prototype.slice.call(grid.querySelectorAll('.plp-item'));
+    var bar = document.querySelector('[data-shop-trust]');
+
+    var sortForms = document.querySelectorAll('[data-plp-sort]');
+    sortForms.forEach(function (sortForm) {
+      var sel = sortForm.querySelector('select[name="sort_by"]');
+      if (!sel) return;
+      sel.addEventListener('change', function () {
+        var url = new URL(window.location.href);
+        url.searchParams.set('sort_by', sel.value);
+        url.searchParams.delete('page');
+        window.location.href = url.toString();
+      });
+    });
+
+    var countEl = document.querySelector('[data-plp-count]');
+    var emptyEl = root.querySelector('[data-plp-empty]');
+    var total = parseInt(root.getAttribute('data-total'), 10) || items.length;
+    var countTemplate = countEl ? countEl.textContent : '';
+    var lShowing = root.getAttribute('data-l-showing') || 'Showing';
+    var lOf = root.getAttribute('data-l-of') || 'of';
+    var lNone = root.getAttribute('data-l-none') || 'No products match these filters';
+    var base = root.getAttribute('data-base') || window.location.pathname;
+
+    var groups = [
+      { key: 'origin', attr: 'data-origin', multi: false },
+      { key: 'notes', attr: 'data-notes', multi: true, sep: '||' },
+      { key: 'process', attr: 'data-process', multi: false }
+    ];
+    var selected = { origin: [], notes: [], process: [] };
+    var activeCat = 'all';
+
+    function itemValues(item, g) {
+      var raw = (item.getAttribute(g.attr) || '').trim();
+      if (!raw) return [];
+      return g.multi ? raw.split(g.sep).map(function (s) { return s.trim(); }).filter(Boolean) : [raw];
+    }
+    function itemCats(item) {
+      return (item.getAttribute('data-cats') || '').split(/\s+/).filter(Boolean);
+    }
+    function isVisible(item) {
+      if (activeCat !== 'all' && itemCats(item).indexOf(activeCat) === -1) return false;
+      for (var i = 0; i < groups.length; i++) {
+        var g = groups[i];
+        if (!selected[g.key].length) continue;
+        var vals = itemValues(item, g).map(function (s) { return s.toLowerCase(); });
+        var hit = selected[g.key].some(function (s) { return vals.indexOf(s) !== -1; });
+        if (!hit) return false;
+      }
+      return true;
+    }
+
+    function scrollActivePill() {
+      var nav = document.querySelector('[data-shop-pills]');
+      if (!nav) return;
+      var active = nav.querySelector('.shop-pill.is-active');
+      if (active && typeof active.scrollIntoView === 'function') {
+        active.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+      }
+    }
+
+    var badge = document.querySelector('[data-filter-badge]');
+    var clearBtn = document.querySelector('[data-filter-clear]');
+    var backdrop = document.querySelector('[data-filter-backdrop]');
+
+    function apply() {
+      var visible = 0;
+      items.forEach(function (it) {
+        var v = isVisible(it);
+        it.classList.toggle('is-hidden', !v);
+        if (v) visible++;
+      });
+      var mfCount = selected.origin.length + selected.notes.length + selected.process.length;
+      var filtering = mfCount > 0 || activeCat !== 'all';
+      if (badge) { badge.textContent = mfCount; badge.classList.toggle('is-shown', mfCount > 0); }
+      if (clearBtn) clearBtn.hidden = mfCount === 0;
+      if (countEl) countEl.textContent = filtering ? (lShowing + ' ' + visible + ' ' + lOf + ' ' + total) : countTemplate;
+      if (emptyEl) {
+        if (filtering && visible === 0) { emptyEl.textContent = lNone; emptyEl.hidden = false; }
+        else emptyEl.hidden = true;
+      }
+    }
+
+    var allPill = document.querySelector('.shop-pill[data-cat="all"]');
+    var isAggregate = bar && bar.getAttribute('data-aggregate') === 'true';
+    if (allPill && isAggregate) {
+      var catPills = Array.prototype.slice.call(document.querySelectorAll('.shop-pill[data-cat]'));
+      var present = {};
+      items.forEach(function (it) { itemCats(it).forEach(function (c) { present[c] = true; }); });
+
+      catPills.forEach(function (p) {
+        var cat = p.getAttribute('data-cat');
+        p.addEventListener('click', function (e) {
+          if (cat !== 'all' && !present[cat]) return;
+          e.preventDefault();
+          activeCat = cat;
+          catPills.forEach(function (x) { x.classList.toggle('is-active', x.getAttribute('data-cat') === cat); });
+          apply();
+          scrollActivePill();
+          var url = cat === 'all' ? base : ('/collections/' + cat);
+          try { history.pushState({ cat: cat }, '', url); } catch (err) {}
+        });
+      });
+
+      window.addEventListener('popstate', function (e) {
+        var cat = (e.state && e.state.cat) || 'all';
+        activeCat = cat;
+        catPills.forEach(function (x) { x.classList.toggle('is-active', x.getAttribute('data-cat') === cat); });
+        apply();
+        scrollActivePill();
+      });
+    }
+
+    var toggle = document.querySelector('[data-filter-toggle]');
+    var panel = document.querySelector('[data-filter-panel]');
+    var hasAnyFilter = false;
+
+    function setFilterOpen(open) {
+      if (!toggle || !panel) return;
+      toggle.setAttribute('aria-expanded', String(open));
+      panel.hidden = !open;
+      if (backdrop) backdrop.hidden = !open;
+      document.documentElement.classList.toggle('plp-filter-open', open);
+    }
+
+    groups.forEach(function (g) {
+      var groupEl = document.querySelector('[data-filter-group="' + g.key + '"]');
+      var optsEl = document.querySelector('[data-filter-options="' + g.key + '"]');
+      if (!groupEl || !optsEl) return;
+
+      var seen = {};
+      var values = [];
+      items.forEach(function (item) {
+        itemValues(item, g).forEach(function (v) {
+          var lc = v.toLowerCase();
+          if (!seen[lc]) { seen[lc] = true; values.push(v); }
+        });
+      });
+      values.sort(function (a, b) { return a.localeCompare(b); });
+
+      if (values.length < 2) return;
+      hasAnyFilter = true;
+      groupEl.hidden = false;
+
+      values.forEach(function (v) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'plp-filter-opt';
+        btn.textContent = v;
+        btn.addEventListener('click', function () {
+          var val = v.toLowerCase();
+          var idx = selected[g.key].indexOf(val);
+          if (idx === -1) { selected[g.key].push(val); btn.classList.add('is-active'); }
+          else { selected[g.key].splice(idx, 1); btn.classList.remove('is-active'); }
+          apply();
+        });
+        optsEl.appendChild(btn);
+      });
+    });
+
+    if (hasAnyFilter && toggle) {
+      toggle.hidden = false;
+      toggle.addEventListener('click', function () {
+        var open = toggle.getAttribute('aria-expanded') === 'true';
+        setFilterOpen(!open);
+      });
+      if (backdrop) {
+        backdrop.addEventListener('click', function () { setFilterOpen(false); });
+      }
+    }
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function () {
+        selected = { origin: [], notes: [], process: [] };
+        document.querySelectorAll('.plp-filter-opt.is-active').forEach(function (b) { b.classList.remove('is-active'); });
+        apply();
+      });
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Collection",
+  "class": "collection-section",
+  "settings": [
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "Products per page",
+      "min": 6,
+      "max": 24,
+      "step": 3,
+      "default": 12
+    }
+  ]
+}
+{% endschema %}

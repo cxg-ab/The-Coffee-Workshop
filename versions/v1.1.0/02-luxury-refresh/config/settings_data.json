@@ -1,0 +1,34 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "current": {
+    "logo": "shopify://shop_images/tcw_logo_0_dcf01d1a-8b1b-487d-9d2f-3f5216aee361.png",
+    "logo_width": 280,
+    "favicon": "shopify://shop_images/wi2_0.png",
+    "brand_tagline": "Specialty Coffee",
+    "brand_established": "2018",
+    "color_brand": "#8B5E3C",
+    "color_brand_dark": "#6B4428",
+    "color_brand_light": "#C9A962",
+    "color_background": "#FAFAF8",
+    "color_surface": "#FFFFFF",
+    "color_text": "#1A1A1A",
+    "color_text_muted": "#6B6B6B",
+    "color_border": "#E8E4DC",
+    "contact_phone": "+971 7 2224466",
+    "contact_email": "info@thecoffeeworkshop.ae",
+    "contact_website": "www.thecoffeeworkshop.ae",
+    "contact_address": "Al Nahdah St, Dafan Al Khor, Ras Al Khaimah, United Arab Emirates",
+    "maps_url": "https://maps.google.com/?q=Al+Nahdah+St+Dafan+Al+Khor+Ras+Al+Khaimah",
+    "animations_enabled": true,
+    "social_whatsapp": "+97172224466",
+    "content_for_index": []
+  }
+}

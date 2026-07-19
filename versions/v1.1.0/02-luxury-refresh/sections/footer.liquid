@@ -1,0 +1,257 @@
+<footer class="tcw-footer relative overflow-hidden mt-auto border-t border-[#2A2624] bg-[#1C1917] text-white" data-footer-reveal>
+  {% render 'hero-arabic-bg' %}
+  <style>
+    .tcw-footer .hero-arabic-bg__word {
+      color: #ffffff !important;
+      opacity: 0.03 !important;
+    }
+    .tcw-footer .site-container {
+      position: relative;
+      z-index: 10;
+    }
+    .tcw-footer .tcw-logo__img--footer-white .tcw-logo__img {
+      filter: brightness(0) invert(1);
+      max-height: 5.75rem;
+      width: auto;
+      image-rendering: -webkit-optimize-contrast;
+    }
+    @media (min-width: 1024px) {
+      .tcw-footer .tcw-logo__img--footer-white .tcw-logo__img {
+        max-height: 7rem;
+      }
+    }
+
+    /* Mobile accordion for Shop / Support / Legal, desktop always-visible column.
+       Two separate blocks (not a single CSS override) so it's not dependent on
+       browser-specific <details> internals or on Tailwind classes that may not
+       exist in the precompiled stylesheet. */
+    .tcw-footer-mobile-only { display: block; }
+    .tcw-footer-desktop-only { display: none; }
+    @media (min-width: 1024px) {
+      .tcw-footer-mobile-only { display: none; }
+      .tcw-footer-desktop-only { display: block; }
+    }
+
+    .tcw-footer-accordion > summary {
+      list-style: none;
+      cursor: pointer;
+    }
+    .tcw-footer-accordion > summary::marker,
+    .tcw-footer-accordion > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .tcw-footer-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    @media (min-width: 1024px) {
+      .tcw-footer-grid {
+        grid-template-columns: repeat(12, 1fr);
+        gap: 2rem;
+        align-items: start;
+      }
+    }
+    .tcw-footer-col-brand { grid-column: 1 / -1; }
+    .tcw-footer-col-link { grid-column: 1 / -1; }
+    .tcw-footer-col-news { grid-column: 1 / -1; }
+    @media (min-width: 1024px) {
+      .tcw-footer-col-brand { grid-column: span 3; padding-right: 1.5rem; }
+      .tcw-footer-col-link { grid-column: span 2; }
+      .tcw-footer-col-news { grid-column: span 3; }
+    }
+
+    /* Modern link columns: consistent baseline heading, comfortable row rhythm */
+    .tcw-footer-heading {
+      margin-bottom: 1.25rem;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #C5A059;
+    }
+    .tcw-footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .tcw-footer-links a {
+      display: inline-block;
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.7);
+      transition: color 0.2s ease, transform 0.2s ease;
+    }
+    .tcw-footer-links a:hover {
+      color: var(--color-brand, #8B5E3C);
+    }
+    html:not([dir="rtl"]) .tcw-footer-links a:hover { transform: translateX(3px); }
+    html[dir="rtl"] .tcw-footer-links a:hover { transform: translateX(-3px); }
+  </style>
+  <div class="site-container py-10 lg:py-20">
+    <div class="mx-auto max-w-[1150px] px-4 md:px-8">
+      <div class="tcw-footer-grid">
+      <!-- Brand & Contact -->
+      <div class="tcw-footer-col-brand">
+        <div class="tcw-logo__img--footer-white">
+          {% render 'logo' %}
+        </div>
+
+        <p class="mt-4 max-w-sm text-sm leading-relaxed text-white/70">
+          {{ section.settings.tagline }}
+        </p>
+
+        {%- if settings.contact_address != blank -%}
+          <div class="tcw-footer-desktop-only mt-6 text-sm text-white/70">
+            <span class="block mb-2">{{ settings.contact_address }}</span>
+            {%- if settings.maps_url != blank -%}
+              <a href="{{ settings.maps_url }}" class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-brand hover:text-[#C5A059] transition-colors" target="_blank" rel="noopener noreferrer">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                Get Directions
+              </a>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      <!-- Shop Menu -->
+      <div class="tcw-footer-col-link">
+        <details class="tcw-footer-accordion tcw-footer-mobile-only border-b border-[#2A2624] py-4">
+          <summary class="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.16em] text-[#C5A059]">
+            {{ 'footer.shop' | t }}
+            <span class="text-white/40 text-base">+</span>
+          </summary>
+          <div class="mt-4">
+            {% render 'nav-menu',
+              menu_handle: section.settings.menu_shop,
+              list_class: 'tcw-footer-links',
+              link_class: '',
+              fallback: 'shop'
+            %}
+          </div>
+        </details>
+        <div class="tcw-footer-desktop-only">
+          <h2 class="tcw-footer-heading">{{ 'footer.shop' | t }}</h2>
+          {% render 'nav-menu',
+            menu_handle: section.settings.menu_shop,
+            list_class: 'tcw-footer-links',
+            link_class: '',
+            fallback: 'shop'
+          %}
+        </div>
+      </div>
+
+      <!-- Support Menu -->
+      <div class="tcw-footer-col-link">
+        <details class="tcw-footer-accordion tcw-footer-mobile-only border-b border-[#2A2624] py-4">
+          <summary class="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.16em] text-[#C5A059]">
+            {{ 'footer.support' | t }}
+            <span class="text-white/40 text-base">+</span>
+          </summary>
+          <div class="mt-4">
+            {% render 'nav-menu',
+              menu_handle: section.settings.menu_support,
+              list_class: 'tcw-footer-links',
+              link_class: '',
+              fallback: 'support'
+            %}
+          </div>
+        </details>
+        <div class="tcw-footer-desktop-only">
+          <h2 class="tcw-footer-heading">{{ 'footer.support' | t }}</h2>
+          {% render 'nav-menu',
+            menu_handle: section.settings.menu_support,
+            list_class: 'tcw-footer-links',
+            link_class: '',
+            fallback: 'support'
+          %}
+        </div>
+      </div>
+
+      <!-- Legal Menu -->
+      <div class="tcw-footer-col-link">
+        <details class="tcw-footer-accordion tcw-footer-mobile-only border-b border-[#2A2624] py-4">
+          <summary class="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.16em] text-[#C5A059]">
+            {{ 'footer.legal' | t }}
+            <span class="text-white/40 text-base">+</span>
+          </summary>
+          <div class="mt-4">
+            <ul class="tcw-footer-links">
+              <li><a href="/policies/privacy-policy">{{ 'footer.privacy' | t }}</a></li>
+              <li><a href="/policies/refund-policy">{{ 'footer.refund' | t }}</a></li>
+              <li><a href="/policies/shipping-policy">{{ 'footer.shipping' | t }}</a></li>
+              <li><a href="/policies/terms-of-service">{{ 'footer.terms' | t }}</a></li>
+            </ul>
+          </div>
+        </details>
+        <div class="tcw-footer-desktop-only">
+          <h2 class="tcw-footer-heading">{{ 'footer.legal' | t }}</h2>
+          <ul class="tcw-footer-links">
+            <li><a href="/policies/privacy-policy">{{ 'footer.privacy' | t }}</a></li>
+            <li><a href="/policies/refund-policy">{{ 'footer.refund' | t }}</a></li>
+            <li><a href="/policies/shipping-policy">{{ 'footer.shipping' | t }}</a></li>
+            <li><a href="/policies/terms-of-service">{{ 'footer.terms' | t }}</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Newsletter -->
+      <div class="tcw-footer-col-news pt-2 lg:pt-0">
+        <h2 class="tcw-footer-heading">{{ 'footer.newsletter_title' | t }}</h2>
+        <p class="mb-4 text-sm text-white/70">{{ 'footer.newsletter_text' | t }}</p>
+        {% form 'customer', class: 'flex flex-col gap-3' %}
+          <input type="hidden" name="contact[tags]" value="newsletter">
+          <label class="sr-only" for="footer-newsletter-email">{{ 'footer.newsletter_placeholder' | t }}</label>
+          <input
+            id="footer-newsletter-email"
+            type="email"
+            name="contact[email]"
+            class="w-full border border-[#2A2624] bg-white/5 px-4 py-3 text-sm text-white placeholder-white/40 outline-none transition-colors focus:border-[#C5A059]"
+            placeholder="{{ 'footer.newsletter_placeholder' | t }}"
+            required
+            autocomplete="email"
+          >
+          <button type="submit" class="btn-primary w-full lg:w-auto px-4 py-2 text-sm">{{ 'footer.newsletter_submit' | t }}</button>
+        {% endform %}
+      </div>
+    </div>
+
+    <!-- Bottom Footer: Socials & Copyright -->
+    <div class="mt-10 lg:mt-12 flex flex-col items-center gap-6 border-t border-[#2A2624] pt-8 text-center">
+      <!-- Social Icons -->
+      <div class="flex items-center justify-center gap-6 text-white/70">
+        <a href="{{ settings.social_instagram | default: '#' }}" class="hover:text-brand transition-colors p-2" target="_blank" aria-label="Instagram">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        </a>
+        <a href="{{ settings.social_facebook | default: '#' }}" class="hover:text-brand transition-colors p-2" target="_blank" aria-label="Facebook">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z"/></svg>
+        </a>
+        <a href="https://wa.me/{{ settings.social_whatsapp | replace: '+', '' | replace: ' ', '' | default: '' }}" class="hover:text-brand transition-colors p-2" target="_blank" aria-label="WhatsApp">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.891-4.444 9.893-9.892.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.738-.974zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.347-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.876 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+        </a>
+        <a href="mailto:{{ settings.contact_email | default: '#' }}" class="hover:text-brand transition-colors p-2" aria-label="Email">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        </a>
+      </div>
+
+      <p class="text-[11px] text-white/50 tracking-[0.15em] uppercase font-semibold">
+        {% assign year = 'now' | date: '%Y' %}
+        &copy; {{ year }} The Coffee Workshop Co. All rights reserved.
+      </p>
+    </div>
+  </div>
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "Footer",
+  "class": "footer-section",
+  "settings": [
+    { "type": "textarea", "id": "tagline", "label": "Tagline", "default": "Specialty Coffee — locally roasted in Ras Al Khaimah since 2018" },
+    { "type": "link_list", "id": "menu_shop", "label": "Shop menu" },
+    { "type": "link_list", "id": "menu_support", "label": "Support menu" },
+    { "type": "link_list", "id": "menu_legal", "label": "Legal menu" }
+  ]
+}
+{% endschema %}

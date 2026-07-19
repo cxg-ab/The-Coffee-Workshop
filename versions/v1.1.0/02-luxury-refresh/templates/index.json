@@ -1,0 +1,167 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "settings": {
+        "eyebrow": "Est. 2018 · Ras Al Khaimah, UAE",
+        "heading": "Small batches. Master roasted.",
+        "subheading": "We discover, sample, and reserve micro-lot Arabica — roasted in small batches in Ras Al Khaimah for home brewers and advanced enthusiasts.",
+        "cta_primary_label": "Shop beans",
+        "cta_primary_link": "/collections/all-beans",
+        "cta_secondary_label": "Visit us",
+        "cta_secondary_link": "#visit-workshop",
+        "show_trust_line": true,
+        "trust_line": ""
+      }
+    },
+    "home_trust": {
+      "type": "home-trust-bar",
+      "settings": {}
+    },
+    "coffee_bean_roast": {
+      "type": "coffee-bean-roast",
+      "settings": {
+        "frame_source": "assets",
+        "custom_base": "https://your-cdn.com/bean-frames/",
+        "frame_count": 203,
+        "frame_stop": 203,
+        "bean_width": 100,
+        "bean_height": 95,
+        "bean_max_width": 1600,
+        "bean_max_height": 1200,
+        "scrub_vh": 190,
+        "show_caption": false,
+        "captions_json": "[[0,\"Green\"],[0.30,\"Drying\"],[0.55,\"First crack\"],[0.80,\"Developing\"],[0.92,\"Roasted\"]]",
+        "heading": "Roasted to order",
+        "subheading": ""
+      }
+    },
+    "origin_story": {
+      "type": "origin-sticky",
+      "blocks": {
+        "origin_ethiopia": {
+          "type": "origin",
+          "settings": {
+            "name": "Ethiopia",
+            "region": "African highlands",
+            "profile": "Floral · Citrus · Tea-like",
+            "note": "Bright washed lots from Yirgacheffe and Guji — expressive and clean in the cup.",
+            "image": "shopify://shop_images/workshop-coffee_article.webp"
+          }
+        },
+        "origin_panama": {
+          "type": "origin",
+          "settings": {
+            "name": "Panama",
+            "region": "Central America",
+            "profile": "Jasmine · Bergamot · Honey",
+            "note": "Geisha and prized micro-lots from Boquete — reserved in small quantities each harvest.",
+            "image": "shopify://shop_images/caravan-coffee_house.webp"
+          }
+        },
+        "origin_yemen": {
+          "type": "origin",
+          "settings": {
+            "name": "Yemen",
+            "region": "Arabian Peninsula",
+            "profile": "Dried fruit · Spice · Complex",
+            "note": "Ancient terroir, traditional drying — among the most sought-after lots we source.",
+            "image": "shopify://shop_images/atb-coffee_01-brazil-guatemala.webp"
+          }
+        },
+        "origin_colombia": {
+          "type": "origin",
+          "settings": {
+            "name": "Colombia",
+            "region": "South America",
+            "profile": "Caramel · Red apple · Balanced",
+            "note": "Small-farm Colombia Huila lots — versatile and sweet, roasted for everyday brewers.",
+            "image": "shopify://shop_images/lindfield_alma-road_297363b4-5ef2-4017-85ad-5448a5114063.webp"
+          }
+        },
+        "origin_kenya": {
+          "type": "origin",
+          "settings": {
+            "name": "Kenya",
+            "region": "East Africa",
+            "profile": "Blackcurrant · Tomato · Bright",
+            "note": "AA-grade Kenyan auctions — vibrant acidity with a syrupy body when roasted medium.",
+            "image": "shopify://shop_images/pact-coffee_house-espresso.webp"
+          }
+        }
+      },
+      "block_order": [
+        "origin_ethiopia",
+        "origin_panama",
+        "origin_yemen",
+        "origin_colombia",
+        "origin_kenya"
+      ],
+      "settings": {
+        "eyebrow": "Specialty Beans",
+        "heading": "One origin at a time",
+        "subheading": "We discover, sample, and reserve from micro-lots worldwide — each origin roasted to express its character."
+      }
+    },
+    "brand_story": {
+      "type": "brand-story",
+      "blocks": {
+        "value_1": {
+          "type": "value",
+          "settings": {
+            "title": "Micro-lots",
+            "text": "We discover, sample, confirm, and reserve the finest bean kinds from micro lots worldwide."
+          }
+        },
+        "value_2": {
+          "type": "value",
+          "settings": {
+            "title": "Master roasters",
+            "text": "Each origin roasted to achieve the greatest results from every batch."
+          }
+        },
+        "value_3": {
+          "type": "value",
+          "settings": {
+            "title": "UAE specialty",
+            "text": "Raising the quality of specialty coffee available across the Emirates."
+          }
+        }
+      },
+      "block_order": [
+        "value_1",
+        "value_2",
+        "value_3"
+      ],
+      "settings": {
+        "eyebrow": "About us",
+        "heading": "Specialty coffee, roasted with purpose",
+        "paragraph_1": "Founded in 2018, The Coffee Workshop is a team of coffee professionals with deep expertise in serving and roasting green coffee beans.",
+        "paragraph_2": "We roast in small batches on our store roaster — maintaining consistency from batch to batch while bringing out the best qualities of each micro-lot."
+      }
+    },
+    "visit_workshop": {
+      "type": "visit-workshop",
+      "settings": {
+        "description": "Visit our specialty coffee workshop in Ras Al Khaimah — a hidden treasure for ethically conscious coffee, creative beverages, and one of the region's most desired blends."
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "home_trust",
+    "coffee_bean_roast",
+    "origin_story",
+    "brand_story",
+    "visit_workshop"
+  ]
+}

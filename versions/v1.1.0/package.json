@@ -1,0 +1,25 @@
+{
+  "name": "tcw-v1.1.0",
+  "version": "1.1.0",
+  "private": true,
+  "description": "The Coffee Workshop Co. — Shopify theme archive v1.1.0",
+  "scripts": {
+    "build": "npm run build:luxury && npm run build:coming-soon",
+    "build:luxury": "postcss src/styles/application.css -o 02-luxury-refresh/assets/application.css",
+    "build:coming-soon": "postcss src/styles/application.css -o 01-coming-soon-only/assets/application.css",
+    "watch:luxury": "postcss src/styles/application.css -o 02-luxury-refresh/assets/application.css --watch",
+    "watch:coming-soon": "postcss src/styles/application.css -o 01-coming-soon-only/assets/application.css --watch",
+    "dev:luxury": "shopify theme dev --store 7medyz-sn.myshopify.com --path 02-luxury-refresh --theme 140498305120",
+    "dev:coming-soon": "shopify theme dev --store 7medyz-sn.myshopify.com --path 01-coming-soon-only --theme 140499058784",
+    "push:luxury": "shopify theme push --store 7medyz-sn.myshopify.com --path 02-luxury-refresh --theme 140498305120",
+    "push:coming-soon": "shopify theme push --store 7medyz-sn.myshopify.com --path 01-coming-soon-only --theme 140499058784",
+    "pull:luxury": "shopify theme pull --store 7medyz-sn.myshopify.com --path 02-luxury-refresh --theme 140498305120",
+    "pull:coming-soon": "shopify theme pull --store 7medyz-sn.myshopify.com --path 01-coming-soon-only --theme 140499058784"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "postcss-cli": "^11.0.1",
+    "tailwindcss": "^3.4.17"
+  }
+}

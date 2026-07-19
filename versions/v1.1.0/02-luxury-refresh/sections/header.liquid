@@ -1,0 +1,146 @@
+<style>
+  .tcw-header__mobile-logo {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+  }
+  @media (min-width: 1024px) {
+    .tcw-header__mobile-logo { display: none; }
+  }
+
+  /* Sticky header group pins announcement + header + trust nav together */
+  #header-group { position: sticky; top: 0; z-index: 50; }
+  #header-group .home-trust-bar-section { background: transparent; }
+  .tcw-header { transition: box-shadow 0.3s ease; border-bottom-color: transparent; }
+  .tcw-header__inner { transition: height 0.3s ease; }
+  .tcw-logo__img { transition: max-height 0.3s ease; }
+  .tcw-header.is-compact { box-shadow: 0 6px 24px rgba(26, 26, 26, 0.06); }
+  .tcw-header.is-compact .tcw-header__inner { height: 3.5rem; }
+  .tcw-header.is-compact .tcw-logo__img { max-height: 2.25rem; }
+  @media (min-width: 1024px) {
+    .tcw-header.is-compact .tcw-header__inner { height: 4.25rem; }
+    .tcw-header.is-compact .tcw-logo__img { max-height: 2.75rem; }
+  }
+</style>
+
+<header class="tcw-header sticky top-0 z-50 border-b border-line bg-white/95 backdrop-blur-md transition-shadow duration-300" data-header>
+  <div class="site-container">
+    <div class="tcw-header__inner relative flex h-20 items-center justify-between gap-4 lg:h-24" data-header-inner>
+      <div class="flex items-center gap-4 lg:gap-8">
+        <button
+          type="button"
+          class="inline-flex h-10 w-10 items-center justify-center text-ink lg:hidden"
+          aria-expanded="false"
+          aria-controls="mobile-menu"
+          data-mobile-menu-toggle
+        >
+          <span class="sr-only">{{ 'header.open_menu' | t }}</span>
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+        </button>
+
+        <div class="hidden lg:block">
+          {% render 'logo', loading: 'eager' %}
+        </div>
+      </div>
+
+      <div class="tcw-header__mobile-logo">
+        {% render 'logo', loading: 'eager' %}
+      </div>
+
+      <nav class="hidden lg:block" aria-label="{{ 'accessibility.menu' | t }}">
+        {% render 'nav-menu',
+          menu_handle: '',
+          list_class: 'flex items-center gap-8',
+          link_class: 'nav-link',
+          fallback: 'main',
+          shop_link: section.settings.shop_link
+        %}
+      </nav>
+
+      <div class="flex items-center gap-2 sm:gap-4">
+        {% render 'locale-switcher' %}
+
+        <a
+          href="{{ routes.account_url }}"
+          class="inline-flex h-10 w-10 items-center justify-center text-ink transition-colors hover:text-brand"
+          aria-label="{{ 'header.account' | t }}"
+        >
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </a>
+
+        <button
+          type="button"
+          class="relative inline-flex h-10 w-10 items-center justify-center text-ink transition-colors hover:text-brand"
+          aria-label="{{ 'header.cart' | t }}"
+          data-cart-toggle
+        >
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l-1 12H6L5 9z" />
+          </svg>
+          <span
+            class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold text-white{% if cart.item_count == 0 %} hidden{% endif %}"
+            data-cart-count
+          >
+            {{ cart.item_count }}
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="mobile-menu" class="hidden border-t border-line bg-white lg:hidden" data-mobile-menu>
+    <nav class="site-container py-4" aria-label="{{ 'accessibility.menu' | t }}">
+      {% render 'nav-menu',
+        menu_handle: '',
+        list_class: 'flex flex-col gap-1',
+        link_class: 'nav-link block py-3',
+        fallback: 'main',
+        shop_link: section.settings.shop_link
+      %}
+    </nav>
+  </div>
+</header>
+
+<script>
+  (function () {
+    var header = document.querySelector('[data-header]');
+    if (!header) return;
+    var ticking = false;
+    /* Publish the header's target height as a CSS var so sticky bars below it
+       (e.g. the collection toolbar) can pin flush and transition in lockstep. */
+    var setH = function () {
+      var lg = window.matchMedia('(min-width: 1024px)').matches;
+      var compact = header.classList.contains('is-compact');
+      var h = compact ? (lg ? 68 : 56) : (lg ? 96 : 80);
+      document.documentElement.style.setProperty('--tcw-header-h', h + 'px');
+    };
+    var update = function () {
+      ticking = false;
+      var y = window.pageYOffset || document.documentElement.scrollTop;
+      /* Header stays pinned; just shrink once past the top */
+      header.classList.toggle('is-compact', y > 40);
+      setH();
+    };
+    var onScroll = function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', setH);
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Header",
+  "class": "header-section",
+  "settings": [
+    { "type": "link_list", "id": "menu", "label": "Main menu", "default": "main-menu" },
+    { "type": "url", "id": "shop_link", "label": "SHOP link target", "info": "Where the SHOP nav item goes. Default: /collections/all-beans" }
+  ]
+}
+{% endschema %}

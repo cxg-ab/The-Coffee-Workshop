@@ -1,0 +1,36 @@
+{%- if section.settings.message != blank -%}
+  <div
+    class="border-b border-[#2A2624] bg-[#1C1917] py-2.5 text-center text-xs font-medium uppercase tracking-[0.16em] text-[#C5A059]"
+    role="region"
+    aria-label="{{ 'announcement.default' | t }}"
+  >
+    <div class="site-container">
+      {%- if section.settings.link != blank -%}
+        <a href="{{ section.settings.link }}" class="transition-colors hover:text-white">
+          {{ section.settings.message }}
+        </a>
+      {%- else -%}
+        {{ section.settings.message }}
+      {%- endif -%}
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Announcement bar",
+  "settings": [
+    {
+      "type": "text",
+      "id": "message",
+      "label": "Message",
+      "default": "Flat AED 30 shipping across the UAE · Specialty coffee roasted in Ras Al Khaimah since 2018"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "Link"
+    }
+  ]
+}
+{% endschema %}

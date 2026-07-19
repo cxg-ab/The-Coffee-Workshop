@@ -1,0 +1,187 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "general": {
+    "meta": {
+      "tagged": "وسم \"{{ tags }}\"",
+      "page": "صفحة {{ page }}"
+    },
+    "continue_shopping": "متابعة التسوق",
+    "search": "بحث",
+    "404": {
+      "title": "الصفحة غير موجودة",
+      "subtext": "الصفحة التي تبحث عنها غير موجودة أو تم نقلها.",
+      "link": "العودة للرئيسية"
+    }
+  },
+  "accessibility": {
+    "skip_to_content": "تخطي إلى المحتوى",
+    "close": "إغلاق",
+    "menu": "القائمة",
+    "loading": "جاري التحميل"
+  },
+  "header": {
+    "shop_beans": "تسوق البُن",
+    "single_origin": "أحادية المنشأ",
+    "micro_lot": "مايكرو لوت",
+    "exotic": "نادرة",
+    "capsules_drip": "كبسولات وتنقيط",
+    "accessories": "الإكسسوارات",
+    "about": "من نحن",
+    "faq": "الأسئلة الشائعة",
+    "cart": "السلة",
+    "account": "الحساب",
+    "open_menu": "فتح القائمة",
+    "close_menu": "إغلاق القائمة"
+  },
+  "footer": {
+    "tagline": "قهوة مختصة — محمصة محلياً في رأس الخيمة منذ 2018",
+    "shop": "تسوق",
+    "support": "الدعم",
+    "legal": "قانوني",
+    "privacy": "سياسة الخصوصية",
+    "refund": "سياسة الاسترجاع",
+    "shipping": "سياسة الشحن",
+    "terms": "شروط الخدمة",
+    "newsletter_title": "ابق على اطلاع",
+    "newsletter_text": "دفعات محدودة جديدة ونصائح التحضير.",
+    "newsletter_placeholder": "بريدك الإلكتروني",
+    "newsletter_submit": "انضم",
+    "contact": "تواصل",
+    "copyright": "© {{ year }} The Coffee Workshop Co. جميع الحقوق محفوظة."
+  },
+  "cart": {
+    "title": "سلتك",
+    "empty": "سلتك فارغة",
+    "subtotal": "المجموع الفرعي",
+    "checkout": "إتمام الشراء",
+    "view_cart": "عرض السلة",
+    "flat_shipping_note": "الشحن: 30 درهم بسعر ثابت داخل الإمارات",
+    "add_error": "تعذر إضافة هذا المنتج إلى السلة. حاول مرة أخرى."
+  },
+  "collections": {
+    "shop": "تسوق",
+    "shop_eyebrow": "تسوق قهوتنا",
+    "beans": "البُن",
+    "accessories": "الإكسسوارات",
+    "filter": "تصفية",
+    "sort": "ترتيب",
+    "sort_featured": "مميز",
+    "sort_best_selling": "الأكثر مبيعاً",
+    "sort_az": "أبجدياً، أ–ي",
+    "sort_za": "أبجدياً، ي–أ",
+    "sort_price_low": "السعر: من الأقل إلى الأعلى",
+    "sort_price_high": "السعر: من الأعلى إلى الأقل",
+    "sort_newest": "الأحدث أولاً",
+    "sort_oldest": "الأقدم أولاً",
+    "products_count": "{{ count }} منتج",
+    "empty": "لا توجد منتجات في هذا القسم بعد.",
+    "pagination_previous": "السابق",
+    "pagination_next": "التالي",
+    "pagination_page": "صفحة {{ number }}"
+  },
+  "products": {
+    "add_to_cart": "أضف إلى السلة",
+    "sold_out": "نفدت الكمية",
+    "limited_batch": "دفعة محدودة",
+    "flavor_notes": "ملاحظات التذوق",
+    "process": "المعالجة",
+    "roast_level": "التحميص",
+    "origin": "المنشأ",
+    "country": "الدولة",
+    "region": "المنطقة",
+    "variety": "الصنف",
+    "altitude": "الارتفاع",
+    "variant": "الخيار",
+    "from": "من",
+    "no_image": "لا توجد صورة",
+    "signature_roast": "تحميص مميز",
+    "quick_add": "إضافة سريعة",
+    "adding_to_cart": "جاري الإضافة…"
+  },
+  "search": {
+    "no_results": "لم يتم العثور على منتجات. جرّب بحثاً آخر."
+  },
+  "faq": {
+    "eyebrow": "الدعم",
+    "heading": "الأسئلة الشائعة"
+  },
+  "templates": {
+    "search": {
+      "title": "بحث"
+    }
+  },
+  "announcement": {
+    "default": "شحن بسعر ثابت 30 درهم داخل الإمارات · قهوة مختصة محمصة في رأس الخيمة منذ 2018"
+  },
+  "about": {
+    "eyebrow": "من نحن",
+    "heading": "The Coffee Workshop",
+    "lead": "تأسست The Coffee Workshop عام 2018، ونمت لتصبح فريقاً من محترفي القهوة ذوي الخبرة في تقديم وتحميص حبوب القهوة الخضراء.",
+    "mission": "نسعى لتقديم أفضل تجربة لشرب القهوة — نكتشف ونختبر ونحجز أجود أنواع الحبوب من المزارع الصغيرة، مع ضمان الشحن والتخزين السليم.",
+    "roasting": "نحمص قهوتنا على دفعات صغيرة في محمصتنا، مع الحفاظ على جودة ثابتة من دفعة لأخرى. خبراء التحميص لدينا يبرزون أفضل صفات كل أصل.",
+    "promise": "نعد بالاحترافية والوضوح والعمل لمصلحة عملائنا وشركائنا — نقدم أفضل الحبوب ومعدات عالية الجودة في جميع أنحاء الإمارات."
+  },
+  "visit": {
+    "eyebrow": "زورونا",
+    "heading": "The Coffee Workshop in RAK",
+    "phone": "الهاتف",
+    "email": "البريد",
+    "web": "الموقع",
+    "address": "العنوان",
+    "directions": "الاتجاهات"
+  },
+  "home": {
+    "hero": {
+      "trust": "محمصة في رأس الخيمة · شحن في جميع أنحاء الإمارات"
+    },
+    "trust": {
+      "aria": "فئات البُن",
+      "est": "منذ {{ year }}",
+      "roasted": "محمصة في رأس الخيمة",
+      "shipping": "شحن مجاني فوق 300 درهم",
+      "micro_lots": "قهوة مختصة — مايكرو لوت",
+      "capsules": "كبسولات",
+      "drip": "تنقيط"
+    },
+    "shop_strip": {
+      "empty": "المنتجات قريباً — تفضل بالعودة بعد التحميص القادم."
+    },
+    "origin": {
+      "progress": "المنشأ"
+    },
+    "roast": {
+      "heading_default": "محمصة حسب الطلب",
+      "stages_aria": "مراحل التحميص",
+      "loading": "تحميل التحميص",
+      "scroll_hint": "مرر للتحميص"
+    }
+  },
+  "contact": {
+    "eyebrow": "تواصل معنا",
+    "heading": "اتصل بنا",
+    "intro": "يسعدنا التواصل معك. سواء كان لديك سؤال عن قهوتنا أو أي شيء آخر، فريقنا جاهز للإجابة على جميع استفساراتك.",
+    "email_us": "راسلنا",
+    "location": "الموقع",
+    "default_location": "رأس الخيمة، الإمارات العربية المتحدة",
+    "form_heading": "أرسل رسالة",
+    "form_subheading": "املأ النموذج أدناه وسنتواصل معك.",
+    "success_message": "شكراً لتواصلك معنا. سنرد عليك في أقرب وقت ممكن.",
+    "error_heading": "يرجى تعديل ما يلي:",
+    "name_label": "الاسم",
+    "name_placeholder": "محمد أحمد",
+    "email_label": "البريد الإلكتروني",
+    "phone_label": "رقم الهاتف",
+    "phone_placeholder": "+971 50 123 4567",
+    "message_label": "الرسالة",
+    "message_placeholder": "كيف يمكننا مساعدتك؟",
+    "submit": "إرسال الرسالة"
+  }
+}

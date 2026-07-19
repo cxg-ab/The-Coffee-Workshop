@@ -1,0 +1,27 @@
+{%- liquid
+  assign logo_width = settings.logo_width | default: 180
+  assign logo_alt = shop.name
+  if settings.brand_tagline != blank
+    assign logo_alt = shop.name | append: ' — ' | append: settings.brand_tagline
+  endif
+-%}
+
+<a href="{{ routes.root_url }}" class="tcw-logo inline-block shrink-0 transition-opacity hover:opacity-80" aria-label="{{ shop.name }}">
+  {%- if settings.logo != blank -%}
+    {{
+      settings.logo
+      | image_url: width: 560
+      | image_tag:
+        class: 'tcw-logo__img h-auto w-auto max-h-16 lg:max-h-20',
+        widths: '120, 180, 280, 360',
+        sizes: '(max-width: 1024px) 140px, 180px',
+        width: logo_width,
+        alt: logo_alt,
+        loading: loading | default: 'lazy'
+    }}
+  {%- else -%}
+    <span class="font-display text-lg font-bold uppercase tracking-[0.12em] text-brand lg:text-xl">
+      {{ shop.name }}
+    </span>
+  {%- endif -%}
+</a>

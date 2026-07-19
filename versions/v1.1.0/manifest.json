@@ -1,0 +1,19 @@
+{
+  "version": "1.1.0",
+  "archivedAt": "2026-07-17",
+  "store": "7medyz-sn.myshopify.com",
+  "themes": [
+    {
+      "folder": "01-coming-soon-only",
+      "name": "Coming Soon Only",
+      "id": 140499058784,
+      "role": "live"
+    },
+    {
+      "folder": "02-luxury-refresh",
+      "name": "The Coffee Workshop - Luxury Refresh",
+      "id": 140498305120,
+      "role": "unpublished"
+    }
+  ]
+}

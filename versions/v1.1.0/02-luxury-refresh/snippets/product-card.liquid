@@ -1,0 +1,191 @@
+<style>
+  .product-card--luxury { border: none; background: transparent; }
+  .product-card--luxury:hover { box-shadow: none; }
+
+  .product-card__origin-slot { min-height: 1rem; margin-bottom: 0.5rem; }
+  .product-card__title {
+    min-height: 2.75rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    background-image: linear-gradient(var(--color-brand, #C5A059), var(--color-brand, #C5A059));
+    background-size: 0% 1px;
+    background-repeat: no-repeat;
+    background-position: left bottom;
+    transition: background-size 0.4s ease;
+    padding-bottom: 0.15rem;
+  }
+  .product-card:hover .product-card__title { background-size: 100% 1px; }
+
+  .product-card__note-slot { min-height: 2.25rem; margin-top: 0.85rem; }
+
+  .product-card__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255,255,255,0.7);
+    color: #fff;
+    background: rgba(28,25,23,0.55);
+    backdrop-filter: blur(2px);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.7rem;
+  }
+
+  .product-card__roast-dot {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-ink, #1C1917);
+    margin-inline-end: 0.2rem;
+  }
+  .product-card__roast-dot.is-filled { background: var(--color-ink, #1C1917); }
+
+  .product-card__quick-add {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #fff;
+    text-align: center;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid rgba(255,255,255,0.6);
+    display: inline-block;
+    background: transparent;
+  }
+</style>
+
+{%- liquid
+  assign product_url = card_product.url
+  assign featured_image = card_product.featured_media.preview_image
+  assign is_limited = card_product.metafields.coffee.is_limited.value
+  assign country = card_product.metafields.coffee.country.value
+  assign flavor_notes = card_product.metafields.coffee.flavor_notes.value
+  assign roast_level = card_product.metafields.coffee.roast_level.value
+
+  # Roast scale: 4 options only — Light=1 dot, Medium-Light=2, Medium=3,
+  # Dark=full (5). Matches the metafield's "choices" validation list.
+  assign roast_step = 0
+  case roast_level
+    when 'Light'
+      assign roast_step = 1
+    when 'Medium-Light'
+      assign roast_step = 2
+    when 'Medium'
+      assign roast_step = 3
+    when 'Dark'
+      assign roast_step = 5
+  endcase
+-%}
+
+<article class="product-card product-card--luxury group relative flex flex-col">
+  <a href="{{ product_url }}" class="tcw-product-media tcw-product-media--padded tcw-product-media--lift block">
+    {%- if featured_image -%}
+      {{
+        featured_image
+        | image_url: width: 900
+        | image_tag:
+          class: 'tcw-product-media__img product-card__image',
+          loading: 'lazy',
+          widths: '350, 500, 700, 900',
+          sizes: '(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw',
+          alt: card_product.featured_media.alt | default: card_product.title
+      }}
+    {%- else -%}
+      <div class="flex h-full w-full items-center justify-center text-xs uppercase tracking-[0.2em] text-muted">
+        {{ 'products.no_image' | t }}
+      </div>
+    {%- endif -%}
+
+    {%- if is_limited or card_product.available == false -%}
+      <div class="absolute left-4 top-4 flex flex-col gap-2 z-20">
+        {%- if is_limited -%}
+          <span class="product-card__badge">{{ 'products.limited_batch' | t }}</span>
+        {%- endif -%}
+        {%- unless card_product.available -%}
+          <span class="product-card__badge">{{ 'products.sold_out' | t }}</span>
+        {%- endunless -%}
+      </div>
+    {%- endif -%}
+
+    {%- if card_product.available -%}
+      <div class="absolute inset-x-0 bottom-6 z-20 flex justify-center opacity-0 translate-y-2 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 hidden lg:flex">
+        <form method="post" action="{{ routes.cart_add_url }}" data-ajax-cart>
+          <input type="hidden" name="id" value="{{ card_product.selected_or_first_available_variant.id }}">
+          <button
+            type="submit"
+            name="add"
+            class="product-card__quick-add"
+            data-add-label="{{ 'products.quick_add' | t }}"
+            data-adding-label="{{ 'products.adding_to_cart' | t }}"
+          >
+            {{ 'products.quick_add' | t }}
+          </button>
+        </form>
+      </div>
+    {%- endif -%}
+  </a>
+
+  <div class="flex flex-1 flex-col pt-6">
+    <div class="product-card__origin-slot">
+      {%- if country != blank -%}
+        <p class="text-[10px] font-medium uppercase tracking-[0.2em] text-brand">
+          {{ country }}
+        </p>
+      {%- endif -%}
+    </div>
+
+    <a href="{{ product_url }}" class="product-card__title font-display text-lg font-bold uppercase tracking-wide text-ink">
+      {{ card_product.title | remove: '[PLACEHOLDER] ' }}
+    </a>
+
+    <div class="product-card__note-slot">
+      {%- if flavor_notes != blank -%}
+        <p class="text-xs font-light leading-relaxed text-muted line-clamp-2">
+          {{ flavor_notes | join: ' &bull; ' }}
+        </p>
+      {%- endif -%}
+    </div>
+
+    <div class="mt-auto flex items-center justify-between gap-3 pt-7">
+      <div class="flex items-center gap-3">
+        <span class="text-sm font-medium tracking-wide text-ink">
+          {%- if card_product.price_varies -%}
+            {{ 'products.from' | t }} {{ card_product.price_min | money }}
+          {%- else -%}
+            {{ card_product.price | money }}
+          {%- endif -%}
+        </span>
+        {%- if roast_step > 0 -%}
+          <span class="hidden sm:inline-flex items-center" aria-label="{{ 'products.roast_level' | t }}: {{ roast_level }}">
+            {%- for i in (1..5) -%}
+              <span class="product-card__roast-dot{% if i <= roast_step %} is-filled{% endif %}"></span>
+            {%- endfor -%}
+          </span>
+        {%- endif -%}
+      </div>
+
+      {%- if card_product.available -%}
+        <form method="post" action="{{ routes.cart_add_url }}" class="lg:hidden" data-ajax-cart>
+          <input type="hidden" name="id" value="{{ card_product.selected_or_first_available_variant.id }}">
+          <button
+            type="submit"
+            name="add"
+            class="flex h-11 w-11 items-center justify-center rounded-full bg-brand/10 text-brand transition-colors hover:bg-brand hover:text-ink"
+            aria-label="{{ 'products.quick_add' | t }}"
+            data-add-label="+"
+            data-adding-label="…"
+          >
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+        </form>
+      {%- endif -%}
+    </div>
+  </div>
+</article>
