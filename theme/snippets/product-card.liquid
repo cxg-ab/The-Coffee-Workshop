@@ -82,7 +82,7 @@
   endcase
 -%}
 
-<article class="product-card product-card--luxury group relative flex flex-col">
+<article class="product-card product-card--luxury group relative flex flex-col{% unless card_product.available %} is-rested{% endunless %}">
   <a href="{{ product_url }}" class="tcw-product-media tcw-product-media--padded tcw-product-media--lift block">
     {%- if featured_image -%}
       {{
@@ -106,9 +106,10 @@
         {%- if is_limited -%}
           <span class="product-card__badge">{{ 'products.limited_batch' | t }}</span>
         {%- endif -%}
-        {%- unless card_product.available -%}
-          <span class="product-card__badge">{{ 'products.sold_out' | t }}</span>
-        {%- endunless -%}
+       {%- unless card_product.available -%}
+  <span class="product-card__badge product-card__badge--rested">OUT OF STOCK</span>
+{%- endunless -%}
+
       </div>
     {%- endif -%}
 
