@@ -83,21 +83,16 @@
     border: 1px solid var(--pdp-line);
   }
 
-  /* Branded bag as the default gallery image for bean products — the clip's
-     dolly/zoom recreated in CSS on the still (Ken Burns), no video weight.
-     The bag is 4:5 like the media box, so it fills edge-to-edge. */
-  @keyframes tcw-bean-kenburns {
-    0%   { transform: scale(1.05) translateY(0); }
-    50%  { transform: scale(1.15) translateY(-1.5%); }
-    100% { transform: scale(1.05) translateY(0); }
-  }
-  .pdp__bean-default {
+  /* Bean products show the product video as the PDP main media (a single,
+     focused video is appropriate here — unlike a repeated grid). The poster is
+     the branded bag still, so it paints instantly before playback; the video
+     is 9:16 and the media box is 4:5, so cover keeps the centred bag in frame. */
+  .pdp__bean-video {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    animation: tcw-bean-kenburns 14s ease-in-out infinite;
-    will-change: transform;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .pdp__bean-default { animation: none; }
+    display: block;
+    background: var(--pdp-canvas);
   }
   .pdp__thumbs {
     display: flex;
@@ -400,16 +395,31 @@
       <div class="pdp__gallery" data-product-gallery>
         {%- if use_bean_default -%}
           <div class="tcw-product-media tcw-product-media--lift pdp__main-media" data-pdp-main>
-            <img
-              src="{{ 'bean-default.jpg' | asset_url }}"
-              alt="{{ product.title | escape }}"
-              class="tcw-product-media__img pdp__bean-default"
-              width="1122"
-              height="1402"
-              loading="eager"
-              fetchpriority="high"
+            <video
+              id="pdp-bean-video-{{ section.id }}"
+              class="tcw-product-media__img pdp__bean-video"
+              muted
+              loop
+              playsinline
+              preload="metadata"
+              poster="{{ 'bean-default.jpg' | asset_url }}"
+              width="360"
+              height="640"
+              aria-label="{{ product.title | escape }}"
             >
+              <source src="{{ 'pdp-bean-video.mp4' | asset_url }}" type="video/mp4">
+            </video>
           </div>
+          <script>
+            (function () {
+              var v = document.getElementById('pdp-bean-video-{{ section.id }}');
+              if (!v) return;
+              /* Respect reduced-motion: leave the poster still, don't play. */
+              if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+              var p = v.play();
+              if (p && p.catch) p.catch(function () {});
+            })();
+          </script>
         {%- elsif product.media.size > 0 -%}
           <div class="tcw-product-media tcw-product-media--padded tcw-product-media--lift pdp__main-media" data-pdp-main>
             {{
