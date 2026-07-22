@@ -94,6 +94,12 @@
   function initLenis() {
     if (!enabled() || isDesignMode() || typeof Lenis === 'undefined') return null;
 
+    /* Touch devices (iPad, phones) get native momentum scrolling. Lenis
+       intercepts touch scroll and makes it feel heavy/laggy on mobile, so
+       smooth-scroll is desktop (fine-pointer) only. ScrollTrigger animations
+       still work — they just read native scroll instead of Lenis. */
+    if (window.matchMedia('(pointer: coarse)').matches) return null;
+
     lenis = new Lenis({
       lerp: 0.1,
       smoothWheel: true,
