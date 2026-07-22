@@ -21,7 +21,8 @@
     "header": {
       "type": "header",
       "settings": {
-        "menu": "main-menu"
+        "menu": "main-menu",
+        "shop_link": ""
       }
     },
     "trust_nav": {
@@ -45,7 +46,7 @@
           "type": "item",
           "settings": {
             "label": "Exotic",
-            "link": "/collections/exotic"
+            "link": "shopify://collections/exotic"
           }
         },
         "trust_4": {
@@ -58,8 +59,8 @@
         "trust_5": {
           "type": "item",
           "settings": {
-            "label": "Accessories",
-            "link": "/collections/accessories"
+            "label": "Barista Tools",
+            "link": "shopify://collections/accessories"
           }
         }
       },

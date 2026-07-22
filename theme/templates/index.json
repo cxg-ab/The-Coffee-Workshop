@@ -19,7 +19,7 @@
         "cta_primary_link": "/collections/all-beans",
         "cta_secondary_label": "Visit us",
         "cta_secondary_link": "#visit-workshop",
-        "show_trust_line": true,
+        "show_trust_line": false,
         "trust_line": ""
       }
     },
@@ -34,10 +34,10 @@
         "bean_height": 100,
         "bean_max_width": 2400,
         "bean_max_height": 2000,
-        "scrub_vh": 190,
+        "scrub_vh": 480,
         "show_caption": false,
         "captions_json": "[[0,\"Green\"],[0.30,\"Drying\"],[0.55,\"First crack\"],[0.80,\"Developing\"],[0.92,\"Roasted\"]]",
-        "heading": "Roasted to order",
+        "heading": "",
         "subheading": ""
       }
     },
@@ -47,6 +47,7 @@
         "origin_ethiopia": {
           "type": "origin",
           "settings": {
+            "product": "",
             "name": "Ethiopia",
             "region": "African highlands",
             "profile": "Floral · Citrus · Tea-like",
@@ -57,6 +58,7 @@
         "origin_panama": {
           "type": "origin",
           "settings": {
+            "product": "",
             "name": "Panama",
             "region": "Central America",
             "profile": "Jasmine · Bergamot · Honey",
@@ -67,6 +69,7 @@
         "origin_yemen": {
           "type": "origin",
           "settings": {
+            "product": "",
             "name": "Yemen",
             "region": "Arabian Peninsula",
             "profile": "Dried fruit · Spice · Complex",
@@ -77,6 +80,7 @@
         "origin_colombia": {
           "type": "origin",
           "settings": {
+            "product": "",
             "name": "Colombia",
             "region": "South America",
             "profile": "Caramel · Red apple · Balanced",
@@ -87,6 +91,7 @@
         "origin_kenya": {
           "type": "origin",
           "settings": {
+            "product": "",
             "name": "Kenya",
             "region": "East Africa",
             "profile": "Blackcurrant · Tomato · Bright",
@@ -148,7 +153,11 @@
     "visit_workshop": {
       "type": "visit-workshop",
       "settings": {
-        "description": "Visit our specialty coffee workshop in Ras Al Khaimah — a hidden treasure for ethically conscious coffee, creative beverages, and one of the region's most desired blends."
+        "content_align": "left",
+        "eyebrow": "Visit us",
+        "heading": "The Coffee Workshop in RAK",
+        "paragraph_1": "Visit our specialty coffee workshop in Ras Al Khaimah — a hidden treasure for ethically conscious coffee, creative beverages, and one of the region's most desired blends.",
+        "cta_label": "Get directions"
       }
     }
   },
