@@ -34,6 +34,7 @@
     "exotic": "نادرة",
     "capsules_drip": "كبسولات وتنقيط",
     "accessories": "الإكسسوارات",
+    "barista_tools": "أدوات الباريستا",
     "about": "من نحن",
     "faq": "الأسئلة الشائعة",
     "cart": "السلة",
@@ -64,7 +65,24 @@
     "checkout": "إتمام الشراء",
     "view_cart": "عرض السلة",
     "flat_shipping_note": "الشحن: 30 درهم بسعر ثابت داخل الإمارات",
-    "add_error": "تعذر إضافة هذا المنتج إلى السلة. حاول مرة أخرى."
+    "add_error": "تعذر إضافة هذا المنتج إلى السلة. حاول مرة أخرى.",
+    "items_count": {
+      "zero": "لا منتجات",
+      "one": "منتج واحد",
+      "two": "منتجان",
+      "few": "{{ count }} منتجات",
+      "many": "{{ count }} منتجاً",
+      "other": "{{ count }} منتج"
+    },
+    "order_summary": "ملخص الطلب",
+    "remove": "إزالة",
+    "empty_category_prompt": "ابدأ باختيار فئة",
+    "summary_note": "الشحن 30 درهم داخل الإمارات. قد تختلف المناطق النائية. تُحتسب الضرائب عند الدفع.",
+    "unit_each": "{{ price }} للوحدة",
+    "decrease_quantity": "إنقاص كمية {{ product }}",
+    "increase_quantity": "زيادة كمية {{ product }}",
+    "quantity_for": "كمية {{ product }}",
+    "remove_item": "إزالة {{ product }} من السلة"
   },
   "collections": {
     "shop": "تسوق",

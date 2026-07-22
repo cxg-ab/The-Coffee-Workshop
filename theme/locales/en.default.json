@@ -34,6 +34,7 @@
     "exotic": "Exotic",
     "capsules_drip": "Capsules & Drip",
     "accessories": "Accessories",
+    "barista_tools": "Barista Tools",
     "about": "About",
     "faq": "FAQ",
     "cart": "Cart",
@@ -64,7 +65,20 @@
     "checkout": "Checkout",
     "view_cart": "View cart",
     "flat_shipping_note": "Shipping: flat AED 30 across the UAE",
-    "add_error": "Could not add this item to your cart. Please try again."
+    "add_error": "Could not add this item to your cart. Please try again.",
+    "items_count": {
+      "one": "{{ count }} item",
+      "other": "{{ count }} items"
+    },
+    "order_summary": "Order summary",
+    "remove": "Remove",
+    "empty_category_prompt": "Start with a category",
+    "summary_note": "Shipping AED 30 across the UAE. Remote areas may vary. Taxes calculated at checkout.",
+    "unit_each": "{{ price }} each",
+    "decrease_quantity": "Decrease quantity for {{ product }}",
+    "increase_quantity": "Increase quantity for {{ product }}",
+    "quantity_for": "Quantity for {{ product }}",
+    "remove_item": "Remove {{ product }} from cart"
   },
   "collections": {
     "shop": "Shop",

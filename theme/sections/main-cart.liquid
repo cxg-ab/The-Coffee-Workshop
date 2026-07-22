@@ -156,7 +156,7 @@
       <h1 class="cart-head__title">{{ 'cart.title' | t }}</h1>
       {%- if cart.item_count > 0 -%}
         <span class="cart-head__count">
-          {{ cart.item_count }}{% if cart.item_count == 1 %} item{% else %} items{% endif %}
+          {{ 'cart.items_count' | t: count: cart.item_count }}
         </span>
       {%- endif -%}
     </div>
@@ -167,13 +167,13 @@
 
     <div class="cart-empty">
       <p class="cart-empty__title">{{ 'cart.empty' | t }}</p>
-      <p class="cart-empty__sub">Start with a category</p>
+      <p class="cart-empty__sub">{{ 'cart.empty_category_prompt' | t }}</p>
       <div class="cart-empty__links">
-        <a href="/collections/single-origin">Single Origin</a>
-        <a href="/collections/micro-lot">Micro-Lot</a>
-        <a href="/collections/exotic">Exotic</a>
-        <a href="/collections/capsules-drip">Capsules &amp; Drip</a>
-        <a href="/collections/accessories">Barista Tools</a>
+        <a href="/collections/single-origin">{{ 'header.single_origin' | t }}</a>
+        <a href="/collections/micro-lot">{{ 'header.micro_lot' | t }}</a>
+        <a href="/collections/exotic">{{ 'header.exotic' | t }}</a>
+        <a href="/collections/capsules-drip">{{ 'header.capsules_drip' | t }}</a>
+        <a href="/collections/accessories">{{ 'header.barista_tools' | t }}</a>
       </div>
       <a href="/collections/all-beans" class="btn-primary cart-empty__cta">
         {{ 'general.continue_shopping' | t }}
@@ -199,23 +199,24 @@
                 {%- unless item.variant.title == 'Default Title' -%}
                   <p class="cart-line__variant">{{ item.variant.title }}</p>
                 {%- endunless -%}
-                <p class="cart-line__unit">{{ item.original_price | money }} each</p>
+                {%- capture unit_price -%}{{ item.original_price | money }}{%- endcapture -%}
+                <p class="cart-line__unit">{{ 'cart.unit_each' | t: price: unit_price }}</p>
               </div>
 
               <div class="cart-line__controls">
                 <div class="qty-stepper" data-qty>
-                  <button type="button" class="qty-stepper__btn" data-qty-minus aria-label="Decrease quantity for {{ item.product.title }}">&minus;</button>
-                  <input class="qty-stepper__input" data-qty-input type="number" inputmode="numeric" min="0" value="{{ item.quantity }}" aria-label="Quantity for {{ item.product.title }}">
-                  <button type="button" class="qty-stepper__btn" data-qty-plus aria-label="Increase quantity for {{ item.product.title }}">+</button>
+                  <button type="button" class="qty-stepper__btn" data-qty-minus aria-label="{{ 'cart.decrease_quantity' | t: product: item.product.title }}">&minus;</button>
+                  <input class="qty-stepper__input" data-qty-input type="number" inputmode="numeric" min="0" value="{{ item.quantity }}" aria-label="{{ 'cart.quantity_for' | t: product: item.product.title }}">
+                  <button type="button" class="qty-stepper__btn" data-qty-plus aria-label="{{ 'cart.increase_quantity' | t: product: item.product.title }}">+</button>
                 </div>
 
                 <span class="cart-line__price" data-line-price>{{ item.final_line_price | money }}</span>
 
-                <button type="button" class="cart-line__remove" data-line-remove aria-label="Remove {{ item.product.title }} from cart">
+                <button type="button" class="cart-line__remove" data-line-remove aria-label="{{ 'cart.remove_item' | t: product: item.product.title }}">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                  <span>Remove</span>
+                  <span>{{ 'cart.remove' | t }}</span>
                 </button>
               </div>
             </div>
@@ -224,12 +225,12 @@
       </ul>
 
       <aside class="cart-summary">
-        <h2 class="cart-summary__title">Order summary</h2>
+        <h2 class="cart-summary__title">{{ 'cart.order_summary' | t }}</h2>
         <div class="cart-summary__row">
           <span>{{ 'cart.subtotal' | t }}</span>
           <span class="cart-summary__value" data-cart-subtotal>{{ cart.total_price | money }}</span>
         </div>
-        <p class="cart-summary__note">Shipping AED 30 across the UAE. Remote areas may vary. Taxes calculated at checkout.</p>
+        <p class="cart-summary__note">{{ 'cart.summary_note' | t }}</p>
         <form action="{{ routes.cart_url }}" method="post">
           <button type="submit" name="checkout" class="btn-primary cart-summary__cta">{{ 'cart.checkout' | t }}</button>
         </form>

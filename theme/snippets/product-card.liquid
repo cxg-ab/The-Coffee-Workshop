@@ -106,10 +106,9 @@
         {%- if is_limited -%}
           <span class="product-card__badge">{{ 'products.limited_batch' | t }}</span>
         {%- endif -%}
-       {%- unless card_product.available -%}
-  <span class="product-card__badge product-card__badge--rested">OUT OF STOCK</span>
-{%- endunless -%}
-
+        {%- unless card_product.available -%}
+          <span class="product-card__badge product-card__badge--rested">{{ 'products.sold_out' | t }}</span>
+        {%- endunless -%}
       </div>
     {%- endif -%}
 
