@@ -57,6 +57,21 @@
     display: inline-block;
     background: transparent;
   }
+
+  /* Branded bag used as the default image for bean products. Shown whole
+     (contain) and given a slow, subtle float for a premium feel. */
+  @keyframes tcw-bean-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-7px); }
+  }
+  .product-card__bean-default {
+    object-fit: contain;
+    animation: tcw-bean-float 4.5s ease-in-out infinite;
+    will-change: transform;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .product-card__bean-default { animation: none; }
+  }
 </style>
 
 {%- liquid
@@ -80,11 +95,34 @@
     when 'Dark'
       assign roast_step = 5
   endcase
+
+  # Use the branded bag as the default image for bean products (single-origin,
+  # micro-lot, exotic). Only active when the caller opts in via `bean_default`
+  # (the shop grid). Detected per-product so a capsule/accessory that also sits
+  # in All Beans keeps its own image.
+  assign use_bean_default = false
+  if bean_default
+    for c in card_product.collections
+      if c.handle == 'single-origin' or c.handle == 'micro-lot' or c.handle == 'exotic'
+        assign use_bean_default = true
+        break
+      endif
+    endfor
+  endif
 -%}
 
 <article class="product-card product-card--luxury group relative flex flex-col{% unless card_product.available %} is-rested{% endunless %}">
   <a href="{{ product_url }}" class="tcw-product-media tcw-product-media--padded tcw-product-media--lift block">
-    {%- if featured_image -%}
+    {%- if use_bean_default -%}
+      <img
+        src="{{ 'bean-default.jpg' | asset_url }}"
+        alt="{{ card_product.title | escape }}"
+        class="tcw-product-media__img product-card__image product-card__bean-default"
+        loading="lazy"
+        width="1122"
+        height="1402"
+      >
+    {%- elsif featured_image -%}
       {{
         featured_image
         | image_url: width: 900
