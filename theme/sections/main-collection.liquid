@@ -69,7 +69,7 @@
         {%- endfor -%}
         {%- if known_cats contains collection.handle and p_cats == '' -%}{%- assign p_cats = collection.handle -%}{%- endif -%}
         <div class="plp-item" data-cats="{{ p_cats | strip }}" data-origin="{{ p_origin | escape }}" data-process="{{ p_process | escape }}" data-notes="{{ p_notes | escape }}">
-          {% render 'product-card', card_product: product %}
+          {% render 'product-card', card_product: product, bean_default: true %}
         </div>
       {%- endfor -%}
     </div>

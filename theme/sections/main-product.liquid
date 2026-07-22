@@ -83,31 +83,21 @@
     border: 1px solid var(--pdp-line);
   }
 
-  /* Bean products: the branded bag on a cream backdrop with the busy lifestyle
-     background "hidden" in CSS — a soft radial mask feathers the props and
-     edges away so the bag reads as a floating product (a stand-in for a real
-     cutout). Backdrop matches the image cream so the fade is seamless; a slow
-     zoom keeps it alive. */
-  .pdp__bean-media {
-    border: none;
-    background: #ECE0D1;
-  }
+  /* Bean products: branded lifestyle image as the PDP main media, full-bleed
+     (image is 4:5, same as the box, so it fills edge-to-edge). Slow cinematic
+     zoom; reduced-motion safe. */
   .pdp__bean-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center 48%;
     display: block;
-    transform: scale(1.1);
-    -webkit-mask-image: radial-gradient(ellipse 60% 58% at 50% 52%, #000 50%, rgba(0,0,0,0.35) 74%, transparent 100%);
-            mask-image: radial-gradient(ellipse 60% 58% at 50% 52%, #000 50%, rgba(0,0,0,0.35) 74%, transparent 100%);
     animation: tcw-bean-kenburns 16s ease-in-out infinite;
     will-change: transform;
   }
   @keyframes tcw-bean-kenburns {
-    0%   { transform: scale(1.10); }
-    50%  { transform: scale(1.18); }
-    100% { transform: scale(1.10); }
+    0%   { transform: scale(1.04); }
+    50%  { transform: scale(1.12); }
+    100% { transform: scale(1.04); }
   }
   @media (prefers-reduced-motion: reduce) {
     .pdp__bean-img { animation: none; }
@@ -412,7 +402,7 @@
     <div class="pdp__grid">
       <div class="pdp__gallery" data-product-gallery>
         {%- if use_bean_default -%}
-          <div class="tcw-product-media tcw-product-media--lift pdp__main-media pdp__bean-media" data-pdp-main>
+          <div class="tcw-product-media tcw-product-media--lift pdp__main-media" data-pdp-main>
             <img
               src="{{ 'bean-default.webp' | asset_url }}"
               alt="{{ product.title | escape }}"

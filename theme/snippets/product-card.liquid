@@ -120,12 +120,12 @@
   <a href="{{ product_url }}" class="tcw-product-media{% unless use_bean_default %} tcw-product-media--padded{% endunless %} tcw-product-media--lift block">
     {%- if use_bean_default -%}
       <img
-        src="{{ 'bean-default.jpg' | asset_url }}"
+        src="{{ 'bean-default.webp' | asset_url }}"
         alt="{{ card_product.title | escape }}"
         class="tcw-product-media__img product-card__image product-card__bean-default"
         loading="lazy"
-        width="1122"
-        height="1402"
+        width="820"
+        height="1024"
       >
     {%- elsif featured_image -%}
       {{
