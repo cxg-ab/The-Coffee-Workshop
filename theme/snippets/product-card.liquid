@@ -58,11 +58,16 @@
     background: transparent;
   }
 
-  /* Bean default image on the shop grid — static (no looping motion),
-     full-bleed. The image is 4:5 like the card box, so it fills edge-to-edge.
-     The standard card hover-lift still applies. */
+  /* Bean default image on the shop grid — static, zoomed out 20% (shown at 80%
+     inside the 4:5 card so there's a small margin around it). Hover-lift is
+     pinned to the same scale so it stays still. */
   .product-card__bean-default {
     object-fit: cover;
+    transform: scale(0.8);
+  }
+  .tcw-product-media--lift:hover .product-card__bean-default,
+  .group:hover .tcw-product-media--lift .product-card__bean-default {
+    transform: scale(0.8);
   }
 </style>
 
