@@ -11,6 +11,3 @@ unzipped_files/
 files.zip
 *.mp4
 *.mp4.mp4
-
-# Bean PDP product video (deployed via theme asset)
-!theme/assets/pdp-bean-video.mp4
