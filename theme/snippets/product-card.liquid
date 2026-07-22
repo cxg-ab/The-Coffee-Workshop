@@ -58,18 +58,20 @@
     background: transparent;
   }
 
-  /* Branded bag used as the default image for bean products. The image is 4:5,
-     the same as the card media box, so it fills edge-to-edge with no padded
-     stage around it (which is what looked like a box-on-a-box). A gentle
-     vertical drift keeps it alive; the base scale gives the drift room so card
-     edges are never revealed. */
-  @keyframes tcw-bean-float {
-    0%, 100% { transform: scale(1.08) translateY(-1.6%); }
-    50%      { transform: scale(1.08) translateY(1.6%); }
+  /* "Video motion without the video": the uploaded clip is just a slow
+     dolly/zoom on the bag, so we recreate that as CSS on the high-res still
+     (a Ken Burns effect). Near-zero weight, no autoplay cost, loops
+     seamlessly. The image is 4:5 like the card box, so it fills edge-to-edge;
+     the base scale keeps it covering at every keyframe so card edges never
+     show. Slow + eased = cinematic, not distracting. */
+  @keyframes tcw-bean-kenburns {
+    0%   { transform: scale(1.05) translateY(0); }
+    50%  { transform: scale(1.15) translateY(-1.5%); }
+    100% { transform: scale(1.05) translateY(0); }
   }
   .product-card__bean-default {
     object-fit: cover;
-    animation: tcw-bean-float 5s ease-in-out infinite;
+    animation: tcw-bean-kenburns 14s ease-in-out infinite;
     will-change: transform;
   }
   @media (prefers-reduced-motion: reduce) {
