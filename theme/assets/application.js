@@ -126,24 +126,40 @@ function updateCartCount(count) {
   });
 }
 
+/* Escape untrusted values before they are interpolated into innerHTML.
+   Cart line data (product/variant titles, urls) is merchant/catalog sourced,
+   but line-item properties and app-injected titles can carry markup — escape
+   so a title like `<img onerror=...>` renders as text, never as HTML. */
+function escapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function buildCartLineHtml(item) {
+  const url = escapeHtml(item.url);
+  const title = escapeHtml(item.product_title);
+  const key = escapeHtml(item.key);
   const image = item.image
-    ? `<a href="${item.url}" class="shrink-0"><img src="${item.image}" alt="${item.product_title}" class="h-20 w-20 object-cover" loading="lazy" width="80" height="80"></a>`
+    ? `<a href="${url}" class="shrink-0"><img src="${escapeHtml(item.image)}" alt="${title}" class="h-20 w-20 object-cover" loading="lazy" width="80" height="80"></a>`
     : '';
   const variant =
     item.variant_title && item.variant_title !== 'Default Title'
-      ? `<p class="mt-1 text-xs text-muted">${item.variant_title}</p>`
+      ? `<p class="mt-1 text-xs text-muted">${escapeHtml(item.variant_title)}</p>`
       : '';
 
   return `
-    <li class="flex gap-4 py-4" data-cart-line-item="${item.key}">
+    <li class="flex gap-4 py-4" data-cart-line-item="${key}">
       ${image}
       <div class="min-w-0 flex-1">
-        <a href="${item.url}" class="block text-sm font-medium text-ink hover:text-brand">${item.product_title}</a>
+        <a href="${url}" class="block text-sm font-medium text-ink hover:text-brand">${title}</a>
         ${variant}
         <div class="mt-2 flex items-center justify-between gap-2">
           <span class="text-sm font-semibold text-brand">${formatMoney(item.final_line_price, moneyFormat())}</span>
-          <span class="text-xs text-muted">× ${item.quantity}</span>
+          <span class="text-xs text-muted">× ${escapeHtml(item.quantity)}</span>
         </div>
       </div>
     </li>
