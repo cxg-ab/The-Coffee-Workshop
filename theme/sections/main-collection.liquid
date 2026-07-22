@@ -18,6 +18,21 @@
   .plp-count { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-muted, #6B6B6B); white-space: nowrap; margin: 0.75rem 0 0; text-align: center; }
   .plp-empty-filter { padding: 3rem 1rem; text-align: center; color: var(--color-muted, #6B6B6B); font-weight: 300; font-size: 1.1rem; }
   .plp-item.is-hidden { display: none; }
+
+  /* Responsive product grid: 2 columns on phones (minimum), 3 on tablets,
+     4 on desktop. Explicit CSS (not Tailwind classes) so it doesn't depend on
+     the precompiled utility set. */
+  .plp-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem 1rem;
+  }
+  @media (min-width: 768px) {
+    .plp-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3.5rem 1.75rem; }
+  }
+  @media (min-width: 1280px) {
+    .plp-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5rem 2.5rem; }
+  }
 </style>
 
 {%- assign per_page = section.settings.products_per_page | default: 12 -%}
@@ -54,7 +69,7 @@
   data-total="{{ collection.products_count }}"
 >
   {%- if collection.products.size > 0 -%}
-    <div class="grid gap-x-10 gap-y-20 sm:grid-cols-2 lg:grid-cols-3" data-plp-grid>
+    <div class="plp-grid" data-plp-grid>
       {%- for product in collection.products -%}
         {%- assign p_origin = product.metafields.coffee.country.value -%}
         {%- assign p_process = product.metafields.coffee.process.value -%}
