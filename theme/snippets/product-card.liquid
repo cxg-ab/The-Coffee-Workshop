@@ -58,15 +58,18 @@
     background: transparent;
   }
 
-  /* Branded bag used as the default image for bean products. Shown whole
-     (contain) and given a slow, subtle float for a premium feel. */
+  /* Branded bag used as the default image for bean products. The image is 4:5,
+     the same as the card media box, so it fills edge-to-edge with no padded
+     stage around it (which is what looked like a box-on-a-box). A gentle
+     vertical drift keeps it alive; the base scale gives the drift room so card
+     edges are never revealed. */
   @keyframes tcw-bean-float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-7px); }
+    0%, 100% { transform: scale(1.08) translateY(-1.6%); }
+    50%      { transform: scale(1.08) translateY(1.6%); }
   }
   .product-card__bean-default {
-    object-fit: contain;
-    animation: tcw-bean-float 4.5s ease-in-out infinite;
+    object-fit: cover;
+    animation: tcw-bean-float 5s ease-in-out infinite;
     will-change: transform;
   }
   @media (prefers-reduced-motion: reduce) {
@@ -112,7 +115,7 @@
 -%}
 
 <article class="product-card product-card--luxury group relative flex flex-col{% unless card_product.available %} is-rested{% endunless %}">
-  <a href="{{ product_url }}" class="tcw-product-media tcw-product-media--padded tcw-product-media--lift block">
+  <a href="{{ product_url }}" class="tcw-product-media{% unless use_bean_default %} tcw-product-media--padded{% endunless %} tcw-product-media--lift block">
     {%- if use_bean_default -%}
       <img
         src="{{ 'bean-default.jpg' | asset_url }}"
