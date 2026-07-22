@@ -23,7 +23,7 @@
       aria-label="{{ section.settings.aria_label | default: 'Bean categories' }}"
     >
       <div class="shop-trust-bar__row">
-        {%- if collection.products_count > 1 -%}
+        {%- if collection.products_count > 0 -%}
           <form class="plp-sort plp-sort--desktop" data-plp-sort>
             <label class="sr-only" for="plp-sort-select">{{ 'collections.sort' | t }}</label>
             <div class="plp-sort__control">
@@ -96,7 +96,7 @@
           </nav>
         </div>
 
-        {%- if collection.products_count > 1 -%}
+        {%- if collection.products_count > 0 -%}
           <div class="plp-sort plp-sort--mobile" data-plp-sort>
             <label class="sr-only" for="plp-sort-select-mobile">{{ 'collections.sort' | t }}</label>
             <div class="plp-tool-btn plp-sort__icon-hit">
