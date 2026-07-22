@@ -1,3 +1,11 @@
+/*
+ * Tailwind source for theme/assets/application.css.
+ *
+ * The COMPILED output (theme/assets/application.css) is committed and is the
+ * file Shopify actually serves. Run `npm run build` after editing this file.
+ * Keep the :root font tokens below in sync with the compiled output — a
+ * mismatch here silently changes the live typography on the next rebuild.
+ */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -12,9 +20,9 @@
     --color-text: #1a1a1a;
     --color-text-muted: #6b6b6b;
     --color-border: #e8e4dc;
-    --font-display: 'DM Sans', system-ui, sans-serif;
-    --font-body: 'DM Sans', system-ui, sans-serif;
-    --font-arabic: 'Noto Sans Arabic', 'DM Sans', system-ui, sans-serif;
+    --font-display: 'Playfair Display', serif;
+    --font-body: 'Montserrat', sans-serif;
+    --font-arabic: 'Noto Sans Arabic', 'Montserrat', sans-serif;
     --font-arabic-display: 'Noto Kufi Arabic', 'Noto Sans Arabic', system-ui, sans-serif;
   }
 
