@@ -576,6 +576,7 @@
     const cards = section.querySelectorAll('[data-origin-card]');
     const progressCurrent = section.querySelector('[data-origin-progress-current]');
     const padIndex = (n) => String(n).padStart(2, '0');
+    const isMobile = window.matchMedia('(max-width: 1023px)').matches;
 
     if (progressCurrent && cards.length) {
       const updateProgress = (index) => {
@@ -600,36 +601,38 @@
       const img = media?.querySelector('img');
       const copyItems = card.querySelectorAll('[data-origin-copy] > *:not([data-split-title])');
 
-      /* Clip + scale reveal of the media frame */
+      /* Scale + opacity reveal — avoids clip-path repaints during scroll */
       if (media) {
         gsap.fromTo(
           media,
-          { clipPath: 'inset(14% 10% 14% 10% round 12px)', scale: 0.96, autoAlpha: 0.4 },
+          { scale: 0.96, autoAlpha: 0.35 },
           {
-            clipPath: 'inset(0% 0% 0% 0% round 12px)',
             scale: 1,
             autoAlpha: 1,
             duration: 1.1,
             ease: 'power3.out',
+            force3D: true,
             scrollTrigger: { trigger: card, start: 'top 82%', once: true },
           }
         );
       }
 
-      /* Inner-image parallax while the card passes the viewport */
-      if (img) {
+      /* Inner-image parallax — desktop only; scrub on every card is the main mobile jank source */
+      if (img && !isMobile) {
+        gsap.set(img, { force3D: true });
         gsap.fromTo(
           img,
-          { scale: 1.15, yPercent: -7 },
+          { scale: 1.08, y: -12 },
           {
-            scale: 1.15,
-            yPercent: 7,
+            scale: 1.08,
+            y: 12,
             ease: 'none',
+            force3D: true,
             scrollTrigger: {
               trigger: card,
               start: 'top bottom',
               end: 'bottom top',
-              scrub: 0.6,
+              scrub: 1,
             },
           }
         );
