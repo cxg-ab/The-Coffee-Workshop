@@ -804,20 +804,20 @@
                 {%- for line in detail_lines -%}
                   {%- assign row = line | strip -%}
                   {%- if row != blank -%}
-                    {%- comment -%} A note line. Only split into Label / Value if the admin used a colon; otherwise show the whole line as one note inside the Details list (commas stay as written). {%- endcomment -%}
+                    {%- comment -%} Each line is a labeled Details row. A colon sets a custom label (Label: Value); without one the row is labeled "Note" and the whole line (commas kept) is the value. {%- endcomment -%}
                     {%- assign row_parts = row | split: ':' -%}
                     {%- if row_parts.size > 1 -%}
                       {%- assign row_label = row_parts[0] | strip -%}
                       {%- assign row_value = row | remove_first: row_label | remove_first: ':' | strip -%}
-                      <div class="pdp__spec">
-                        <dt>{{ row_label | escape }}</dt>
-                        <dd>{{ row_value | escape }}</dd>
-                      </div>
                     {%- else -%}
-                      <div class="pdp__spec pdp__spec--full pdp__spec--note">
-                        <dd>{{ row | escape }}</dd>
-                      </div>
+                      {%- assign row_label = 'Note' -%}
+                      {%- if request.locale.iso_code == 'ar' -%}{%- assign row_label = 'ملاحظة' -%}{%- endif -%}
+                      {%- assign row_value = row -%}
                     {%- endif -%}
+                    <div class="pdp__spec">
+                      <dt>{{ row_label | escape }}</dt>
+                      <dd>{{ row_value | escape }}</dd>
+                    </div>
                   {%- endif -%}
                 {%- endfor -%}
               {%- endif -%}
