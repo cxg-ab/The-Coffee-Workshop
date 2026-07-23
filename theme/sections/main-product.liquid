@@ -388,10 +388,119 @@
       backdrop-filter: blur(10px);
     }
   }
+
+  /* ── Breadcrumb (skill: breadcrumb-web — orient on 3+ level hierarchies) ── */
+  .pdp__breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--pdp-muted);
+  }
+  .pdp__breadcrumb a { color: var(--pdp-muted); transition: color 0.2s ease; }
+  .pdp__breadcrumb a:hover { color: var(--pdp-brand); }
+  .pdp__breadcrumb [aria-current] { color: var(--pdp-ink); }
+  .pdp__breadcrumb svg { width: 0.7rem; height: 0.7rem; opacity: 0.5; flex: 0 0 auto; }
+  [dir="rtl"] .pdp__breadcrumb svg { transform: scaleX(-1); }
+
+  /* Price: tabular figures so it never reflows (skill: number-tabular) */
+  .pdp__price { font-variant-numeric: tabular-nums; }
+  .pdp__unit {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    color: var(--pdp-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Stock urgency for limited batches */
+  .pdp__stock {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #b45309;
+  }
+
+  /* Reassurance row (skill: primary-action support + trust; SVG icons, no emoji) */
+  .pdp__trust {
+    display: grid;
+    gap: 0.65rem;
+    margin-top: 0.25rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--pdp-line);
+  }
+  .pdp__trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: var(--pdp-ink);
+  }
+  .pdp__trust-item svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    flex: 0 0 auto;
+    color: var(--pdp-brand);
+    stroke-width: 1.6;
+  }
+
+  /* Related products (skill: content-priority + AOV cross-sell) */
+  .pdp__related { border-top: 1px solid var(--pdp-line); }
+  .pdp__related-inner {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 3rem 1rem 4rem;
+  }
+  .pdp__related-head {
+    margin: 0 0 1.75rem;
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--pdp-ink);
+  }
+  .pdp__related-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem 1rem;
+  }
+  @media (min-width: 1024px) {
+    .pdp__related-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 2.5rem 1.5rem;
+    }
+  }
 </style>
 
 <section class="pdp" data-pdp>
   <div class="pdp__shell site-container">
+    {%- liquid
+      assign crumb_collection = null
+      for c in product.collections
+        if c.handle == 'single-origin' or c.handle == 'micro-lot' or c.handle == 'exotic' or c.handle == 'capsules' or c.handle == 'barista-tools'
+          assign crumb_collection = c
+          break
+        endif
+      endfor
+    -%}
+    <nav class="pdp__breadcrumb" aria-label="Breadcrumb">
+      <a href="{{ routes.root_url }}">{% if request.locale.iso_code == 'ar' %}الرئيسية{% else %}Home{% endif %}</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      {%- if crumb_collection -%}
+        <a href="{{ crumb_collection.url }}">{{ crumb_collection.title }}</a>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      {%- endif -%}
+      <span aria-current="page">{{ product.title | remove: '[PLACEHOLDER] ' }}</span>
+    </nav>
     <div class="pdp__grid">
       <div class="pdp__gallery" data-product-gallery>
         {%- if use_bean_default -%}
@@ -468,6 +577,19 @@
             <span class="pdp__badge pdp__badge--sold">{{ 'products.sold_out' | t | default: 'Sold Out' }}</span>
           {%- endunless -%}
         </div>
+
+        {%- liquid
+          assign inv = current_variant.inventory_quantity
+          assign show_stock = false
+          if current_variant.available and current_variant.inventory_management != blank and inv > 0 and inv <= 10
+            assign show_stock = true
+          endif
+        -%}
+        {%- if show_stock -%}
+          <p class="pdp__stock" role="status">
+            {%- if request.locale.iso_code == 'ar' -%}بقي {{ inv }} فقط{%- else -%}Only {{ inv }} left{%- endif -%}
+          </p>
+        {%- endif -%}
 
         {%- if country != blank -%}
           <p class="pdp__origin">
@@ -606,10 +728,55 @@
             </div>
           </div>
         {% endform %}
+
+        <div class="pdp__trust" role="list">
+          <div class="pdp__trust-item" role="listitem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3c1.5 2.5 4 3.5 4 6.5A4 4 0 0 1 12 13a4 4 0 0 1-4-3.5C8 6.5 10.5 5.5 12 3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M7 13a5 5 0 0 0 10 0M6 21h12"/></svg>
+            <span>{% if request.locale.iso_code == 'ar' %}محمّص عند الطلب لأقصى درجات الطزاجة{% else %}Roasted to order for peak freshness{% endif %}</span>
+          </div>
+          <div class="pdp__trust-item" role="listitem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7h11v8H3zM14 10h4l3 3v2h-7z"/><circle cx="7" cy="17" r="1.6"/><circle cx="17.5" cy="17" r="1.6"/></svg>
+            <span>{% if request.locale.iso_code == 'ar' %}شحن بسعر ثابت داخل الإمارات{% else %}Flat-rate shipping across the UAE{% endif %}</span>
+          </div>
+          <div class="pdp__trust-item" role="listitem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+            <span>{% if request.locale.iso_code == 'ar' %}دفع آمن ومشفّر{% else %}Secure, encrypted checkout{% endif %}</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
+
+{%- liquid
+  assign rel_collection = null
+  for c in product.collections
+    if c.handle == 'single-origin' or c.handle == 'micro-lot' or c.handle == 'exotic' or c.handle == 'capsules' or c.handle == 'barista-tools'
+      if c.all_products_count > 1
+        assign rel_collection = c
+        break
+      endif
+    endif
+  endfor
+-%}
+{%- if rel_collection -%}
+  <section class="pdp__related">
+    <div class="pdp__related-inner site-container">
+      <h2 class="pdp__related-head">
+        {%- if request.locale.iso_code == 'ar' -%}قد يعجبك أيضاً{%- else -%}You may also like{%- endif -%}
+      </h2>
+      <div class="pdp__related-grid">
+        {%- assign shown = 0 -%}
+        {%- for p in rel_collection.products -%}
+          {%- if p.id != product.id and shown < 4 -%}
+            {% render 'product-card', card_product: p, bean_default: true %}
+            {%- assign shown = shown | plus: 1 -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  </section>
+{%- endif -%}
 
 <script>
 (function () {
