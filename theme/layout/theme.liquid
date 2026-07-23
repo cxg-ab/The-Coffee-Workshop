@@ -76,11 +76,20 @@
         .min-h-screen { min-height: 100dvh; }
       }
 
-      /* Stop the whole page from scrolling sideways. The category pills bar has
-         its own internal horizontal scroller, but any sub-pixel spill made the
-         document itself scrollable — so on load the pills' scrollIntoView nudged
-         the page right, showing a white strip beside the header until a scroll
-         repaint reset it. Clip (not hidden) so sticky headers keep working. */
+      /* Stop the whole page from scrolling sideways / the white gap on the
+         right. Two things cause it:
+           1. The category pills' scrollIntoView nudging a sub-pixel-wide page.
+           2. The cart drawer — it's position:fixed and lives OUTSIDE
+              .page-wrapper, and when closed it's translateX(100%): one panel
+              width past the right edge. On iOS Safari an off-canvas fixed
+              element to the right makes the page horizontally pannable, which
+              expands the layout viewport. Full-width bars (header, announcement)
+              then only cover the visual viewport, leaving white to the right,
+              and the product column gets clipped at the screen edge.
+         .page-wrapper clip can't contain the drawer (it's a sibling), so clip at
+         the ROOT too — that contains everything, fixed siblings included. Clip,
+         not hidden, so position:sticky headers/galleries keep working. */
+      html, body { overflow-x: clip; }
       .page-wrapper { overflow-x: clip; }
 
       /* Product images sit on clean white, not the page's off-white (#FAFAF8).
