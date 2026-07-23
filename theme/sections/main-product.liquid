@@ -352,13 +352,23 @@
   }
   .pdp__spec:first-child { border-top: 1px solid var(--pdp-line); }
   .pdp__spec--full { grid-template-columns: 1fr; }
-  /* A label-less custom note line — reads as a note within the Details list,
-     not a bold standalone row. */
-  .pdp__spec--note dd {
+  /* Free-text admin note: full-width block — the "Details" label on its own
+     line, the note text below at a readable width. Distinct from the short
+     2-column specs above so the repeated word doesn't read as a duplicate. */
+  .pdp__spec--stack { grid-template-columns: 1fr; gap: 0.45rem 0; }
+  .pdp__spec--stack dd {
     font-weight: 400;
-    color: var(--pdp-muted);
-    line-height: 1.55;
+    color: var(--pdp-ink);
+    line-height: 1.6;
+    max-width: 40rem;
   }
+  .pdp__note-line {
+    margin: 0 0 0.4rem;
+    font-weight: 400;
+    color: var(--pdp-ink);
+    line-height: 1.6;
+  }
+  .pdp__note-line:last-child { margin: 0; }
   .pdp__spec dt {
     margin: 0;
     font-size: 0.625rem;
@@ -802,25 +812,37 @@
               {%- comment -%} Admin custom rows: one line per row, "Label: Value" (a line with no colon spans full width). {%- endcomment -%}
               {%- if custom_details != blank -%}
                 {%- assign detail_lines = custom_details | newline_to_br | split: '<br />' -%}
+                {%- assign note_block = '' -%}
                 {%- for line in detail_lines -%}
                   {%- assign row = line | strip -%}
                   {%- if row != blank -%}
-                    {%- comment -%} Each line is a labeled Details row. A colon sets a custom label (Label: Value); without one the row is labeled "Note" and the whole line (commas kept) is the value. {%- endcomment -%}
                     {%- assign row_parts = row | split: ':' -%}
                     {%- if row_parts.size > 1 -%}
+                      {%- comment -%} "Label: Value" → a normal 2-column spec row. {%- endcomment -%}
                       {%- assign row_label = row_parts[0] | strip -%}
                       {%- assign row_value = row | remove_first: row_label | remove_first: ':' | strip -%}
+                      <div class="pdp__spec">
+                        <dt>{{ row_label | escape }}</dt>
+                        <dd>{{ row_value | escape }}</dd>
+                      </div>
                     {%- else -%}
-                      {%- assign row_label = 'Details' -%}
-                      {%- if request.locale.iso_code == 'ar' -%}{%- assign row_label = 'التفاصيل' -%}{%- endif -%}
-                      {%- assign row_value = row -%}
+                      {%- comment -%} Free-text note → gathered into one full-width Details block below. {%- endcomment -%}
+                      {%- assign note_block = note_block | append: row | append: '|~|' -%}
                     {%- endif -%}
-                    <div class="pdp__spec">
-                      <dt>{{ row_label | escape }}</dt>
-                      <dd>{{ row_value | escape }}</dd>
-                    </div>
                   {%- endif -%}
                 {%- endfor -%}
+                {%- if note_block != blank -%}
+                  <div class="pdp__spec pdp__spec--stack">
+                    <dt>{% if request.locale.iso_code == 'ar' %}التفاصيل{% else %}Details{% endif %}</dt>
+                    <dd>
+                      {%- assign note_lines = note_block | split: '|~|' -%}
+                      {%- for n in note_lines -%}
+                        {%- assign n2 = n | strip -%}
+                        {%- if n2 != blank -%}<p class="pdp__note-line">{{ n2 | escape }}</p>{%- endif -%}
+                      {%- endfor -%}
+                    </dd>
+                  </div>
+                {%- endif -%}
               {%- endif -%}
             </dl>
           </div>
