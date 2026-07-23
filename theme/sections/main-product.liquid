@@ -351,6 +351,13 @@
   }
   .pdp__spec:first-child { border-top: 1px solid var(--pdp-line); }
   .pdp__spec--full { grid-template-columns: 1fr; }
+  /* A label-less custom note line — reads as a note within the Details list,
+     not a bold standalone row. */
+  .pdp__spec--note dd {
+    font-weight: 400;
+    color: var(--pdp-muted);
+    line-height: 1.55;
+  }
   .pdp__spec dt {
     margin: 0;
     font-size: 0.625rem;
@@ -797,22 +804,17 @@
                 {%- for line in detail_lines -%}
                   {%- assign row = line | strip -%}
                   {%- if row != blank -%}
-                    {%- comment -%} Split into Label / Value on the first colon, or a comma when there's no colon. {%- endcomment -%}
-                    {%- assign row_sep = ':' -%}
+                    {%- comment -%} A note line. Only split into Label / Value if the admin used a colon; otherwise show the whole line as one note inside the Details list (commas stay as written). {%- endcomment -%}
                     {%- assign row_parts = row | split: ':' -%}
-                    {%- if row_parts.size == 1 -%}
-                      {%- assign row_parts = row | split: ',' -%}
-                      {%- assign row_sep = ',' -%}
-                    {%- endif -%}
                     {%- if row_parts.size > 1 -%}
                       {%- assign row_label = row_parts[0] | strip -%}
-                      {%- assign row_value = row | remove_first: row_label | remove_first: row_sep | strip -%}
+                      {%- assign row_value = row | remove_first: row_label | remove_first: ':' | strip -%}
                       <div class="pdp__spec">
                         <dt>{{ row_label | escape }}</dt>
                         <dd>{{ row_value | escape }}</dd>
                       </div>
                     {%- else -%}
-                      <div class="pdp__spec pdp__spec--full">
+                      <div class="pdp__spec pdp__spec--full pdp__spec--note">
                         <dd>{{ row | escape }}</dd>
                       </div>
                     {%- endif -%}
