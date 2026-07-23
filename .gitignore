@@ -11,6 +11,3 @@ unzipped_files/
 files.zip
 *.mp4
 *.mp4.mp4
-
-# Bean PDP spin video (deployed via theme asset)
-!theme/assets/pdp-bean-spin.mp4

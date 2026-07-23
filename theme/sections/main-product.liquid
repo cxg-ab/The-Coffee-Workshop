@@ -83,11 +83,12 @@
     border: 1px solid var(--pdp-line);
   }
 
-  /* Bean products: square (1:1) 360° spin video as the PDP main media. The MP4
-     is 720x720 so it fills the 1:1 box exactly. Poster paints instantly;
-     playback is JS-gated so reduced-motion users just see the poster still. */
+  /* Bean products: square (1:1) 360° spin as an animated WebP <img>, so it
+     autoplays with no click/JS and no video autoplay-policy issues. Fills the
+     1:1 box. Reduced-motion users get the static poster via <picture>. */
   .pdp__bean-square { aspect-ratio: 1 / 1; }
-  .pdp__bean-video {
+  .pdp__bean-square picture { display: block; width: 100%; height: 100%; }
+  .pdp__bean-spin {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -395,41 +396,25 @@
       <div class="pdp__gallery" data-product-gallery>
         {%- if use_bean_default -%}
           <div class="tcw-product-media tcw-product-media--lift pdp__main-media pdp__bean-square" data-pdp-main>
-            <video
-              id="pdp-bean-spin-{{ section.id }}"
-              class="pdp__bean-video"
-              autoplay
-              muted
-              loop
-              playsinline
-              webkit-playsinline
-              preload="auto"
-              poster="{{ 'pdp-bean-spin-poster.webp' | asset_url }}"
-              width="720"
-              height="720"
-              aria-label="{{ product.title | escape }}"
-            >
-              <source src="{{ 'pdp-bean-spin.mp4' | asset_url }}" type="video/mp4">
-            </video>
+            {%- comment -%}
+              Animated WebP (an <img>, not <video>) so the 360 spin autoplays
+              everywhere with no click and no JS — image animation isn't subject
+              to video autoplay policies (works even in iOS Low Power Mode).
+              Reduced-motion users get the static poster via <picture>.
+            {%- endcomment -%}
+            <picture>
+              <source srcset="{{ 'pdp-bean-spin-poster.webp' | asset_url }}" media="(prefers-reduced-motion: reduce)">
+              <img
+                src="{{ 'pdp-bean-spin.webp' | asset_url }}"
+                class="pdp__bean-spin"
+                width="720"
+                height="720"
+                loading="eager"
+                fetchpriority="high"
+                alt="{{ product.title | escape }} — 360° view"
+              >
+            </picture>
           </div>
-          <script>
-            (function () {
-              var v = document.getElementById('pdp-bean-spin-{{ section.id }}');
-              if (!v) return;
-              if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                v.removeAttribute('autoplay');
-                v.pause();
-                return;
-              }
-              v.muted = true; /* required for autoplay on Safari/iOS */
-              var kick = function () { var p = v.play(); if (p && p.catch) p.catch(function () {}); };
-              kick();
-              document.addEventListener('DOMContentLoaded', kick);
-              window.addEventListener('load', kick);
-              /* re-arm after Shopify section re-render in the editor */
-              document.addEventListener('shopify:section:load', kick);
-            })();
-          </script>
         {%- elsif product.media.size > 0 -%}
           <div class="tcw-product-media tcw-product-media--padded tcw-product-media--lift pdp__main-media" data-pdp-main>
             {{
