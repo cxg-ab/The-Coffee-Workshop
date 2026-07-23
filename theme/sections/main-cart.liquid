@@ -187,11 +187,13 @@
       <ul class="cart-lines" data-cart-lines>
         {%- for item in cart.items -%}
           <li class="cart-line" data-cart-line="{{ forloop.index }}">
-            {%- if item.image -%}
-              <a href="{{ item.url }}" class="tcw-product-media tcw-product-media--thumb cart-line__media">
+            <a href="{{ item.url }}" class="tcw-product-media tcw-product-media--thumb cart-line__media">
+              {%- if item.image -%}
                 {{ item.image | image_url: width: 300 | image_tag: class: 'tcw-product-media__img', loading: 'lazy', alt: item.product.title }}
-              </a>
-            {%- endif -%}
+              {%- else -%}
+                <img src="{{ 'product-placeholder.webp' | asset_url }}" class="tcw-product-media__img" style="object-fit:cover" loading="lazy" alt="{{ item.product.title | escape }}">
+              {%- endif -%}
+            </a>
 
             <div class="cart-line__body">
               <div class="cart-line__info">

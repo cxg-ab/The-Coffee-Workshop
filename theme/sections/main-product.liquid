@@ -84,6 +84,8 @@
   .pdp__main-media {
     border: 1px solid var(--pdp-line);
   }
+  /* Branded default image fills the media box edge-to-edge. */
+  .pdp__placeholder { width: 100%; height: 100%; object-fit: cover; display: block; }
 
   /* Main image is a button so it can open the zoom lightbox (tap or click). */
   .pdp__zoom-trigger {
@@ -689,6 +691,18 @@
               {%- endfor -%}
             </div>
           {%- endif -%}
+        {%- else -%}
+          {%- comment -%} No admin image → branded default (full-bleed, no zoom). {%- endcomment -%}
+          <div class="tcw-product-media tcw-product-media--lift pdp__main-media" data-pdp-main>
+            <img
+              src="{{ 'product-placeholder.webp' | asset_url }}"
+              class="tcw-product-media__img pdp__placeholder"
+              width="880"
+              height="1100"
+              loading="eager"
+              alt="{{ product.title | escape }}"
+            >
+          </div>
         {%- endif -%}
       </div>
 

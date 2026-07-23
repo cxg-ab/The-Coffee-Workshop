@@ -139,8 +139,9 @@ function buildCartLineHtml(item) {
   const url = escapeHtml(item.url);
   const title = escapeHtml(item.product_title);
   const key = escapeHtml(item.key);
-  const image = item.image
-    ? `<a href="${url}" class="shrink-0"><img src="${escapeHtml(item.image)}" alt="${title}" class="h-20 w-20 object-cover" loading="lazy" width="80" height="80"></a>`
+  const imgSrc = item.image || (window.theme && window.theme.placeholderImage) || '';
+  const image = imgSrc
+    ? `<a href="${url}" class="shrink-0"><img src="${escapeHtml(imgSrc)}" alt="${title}" class="h-20 w-20 object-cover" loading="lazy" width="80" height="80"></a>`
     : '';
   const variant =
     item.variant_title && item.variant_title !== 'Default Title'

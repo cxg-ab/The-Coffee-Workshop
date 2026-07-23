@@ -58,6 +58,8 @@
     background: transparent;
   }
 
+  /* Branded default image fills the card edge-to-edge (no white padding). */
+  .product-card__placeholder { object-fit: cover; }
 </style>
 
 {%- liquid
@@ -85,7 +87,7 @@
 -%}
 
 <article class="product-card product-card--luxury group relative flex flex-col{% unless card_product.available %} is-rested{% endunless %}">
-  <a href="{{ product_url }}" class="tcw-product-media tcw-product-media--padded tcw-product-media--lift block">
+  <a href="{{ product_url }}" class="tcw-product-media{% if featured_image %} tcw-product-media--padded{% endif %} tcw-product-media--lift block">
     {%- if featured_image -%}
       {{
         featured_image
@@ -98,9 +100,15 @@
           alt: card_product.featured_media.alt | default: card_product.title
       }}
     {%- else -%}
-      <div class="flex h-full w-full items-center justify-center text-xs uppercase tracking-[0.2em] text-muted">
-        {{ 'products.no_image' | t }}
-      </div>
+      {%- comment -%} No admin image → branded default (full-bleed). {%- endcomment -%}
+      <img
+        src="{{ 'product-placeholder.webp' | asset_url }}"
+        alt="{{ card_product.title | escape }}"
+        class="tcw-product-media__img product-card__image product-card__placeholder"
+        loading="lazy"
+        width="880"
+        height="1100"
+      >
     {%- endif -%}
 
     {%- if is_limited or card_product.available == false -%}

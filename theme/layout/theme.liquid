@@ -132,6 +132,7 @@
     <script>
       window.theme = window.theme || {};
       window.theme.moneyFormat = {{ shop.money_format | json }};
+      window.theme.placeholderImage = {{ 'product-placeholder.webp' | asset_url | json }};
       window.theme.strings = {
         cartEmpty: {{ 'cart.empty' | t | json }},
         cartAddError: {{ 'cart.add_error' | t | json }},
