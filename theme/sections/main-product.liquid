@@ -398,10 +398,12 @@
             <video
               id="pdp-bean-spin-{{ section.id }}"
               class="pdp__bean-video"
+              autoplay
               muted
               loop
               playsinline
-              preload="metadata"
+              webkit-playsinline
+              preload="auto"
               poster="{{ 'pdp-bean-spin-poster.webp' | asset_url }}"
               width="720"
               height="720"
@@ -414,10 +416,18 @@
             (function () {
               var v = document.getElementById('pdp-bean-spin-{{ section.id }}');
               if (!v) return;
-              /* Respect reduced-motion: leave the poster, don't play. */
-              if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-              var p = v.play();
-              if (p && p.catch) p.catch(function () {});
+              if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                v.removeAttribute('autoplay');
+                v.pause();
+                return;
+              }
+              v.muted = true; /* required for autoplay on Safari/iOS */
+              var kick = function () { var p = v.play(); if (p && p.catch) p.catch(function () {}); };
+              kick();
+              document.addEventListener('DOMContentLoaded', kick);
+              window.addEventListener('load', kick);
+              /* re-arm after Shopify section re-render in the editor */
+              document.addEventListener('shopify:section:load', kick);
             })();
           </script>
         {%- elsif product.media.size > 0 -%}
