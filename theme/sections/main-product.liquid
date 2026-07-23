@@ -88,17 +88,83 @@
     border: 1px solid var(--pdp-line);
   }
 
-  /* Bean products: square (1:1) 360° spin as an animated WebP <img>, so it
-     autoplays with no click/JS and no video autoplay-policy issues. Fills the
-     1:1 box. Reduced-motion users get the static poster via <picture>. */
-  .pdp__bean-square { aspect-ratio: 1 / 1; }
-  .pdp__bean-square picture { display: block; width: 100%; height: 100%; }
-  .pdp__bean-spin {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  /* Main image is a button so it can open the zoom lightbox (tap or click). */
+  .pdp__zoom-trigger {
     display: block;
-    background: var(--pdp-canvas);
+    width: 100%;
+    padding: 0;
+    border: 1px solid var(--pdp-line);
+    background: var(--pdp-surface);
+    cursor: zoom-in;
+    position: relative;
+  }
+  .pdp__zoom-hint {
+    position: absolute;
+    inset-inline-end: 0.7rem;
+    inset-block-end: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--pdp-ink);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+  }
+  .pdp__zoom-hint svg { width: 1.1rem; height: 1.1rem; }
+  .pdp__zoom-trigger:hover .pdp__zoom-hint,
+  .pdp__zoom-trigger:focus-visible .pdp__zoom-hint { opacity: 1; transform: translateY(0); }
+  @media (hover: none) { .pdp__zoom-hint { opacity: 1; transform: none; } }
+
+  /* Fullscreen zoom lightbox */
+  .pdp__lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: rgba(12, 10, 9, 0.92);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    overscroll-behavior: contain;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .pdp__lightbox.is-open { opacity: 1; }
+  .pdp__lightbox[hidden] { display: none; }
+  .pdp__lightbox img {
+    max-width: min(100%, 1400px);
+    max-height: 92vh;
+    object-fit: contain;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+  .pdp__lightbox-close {
+    position: absolute;
+    top: 1rem;
+    inset-inline-end: 1rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .pdp__lightbox-close:hover { background: rgba(255, 255, 255, 0.25); }
+  .pdp__lightbox-close svg { width: 1.4rem; height: 1.4rem; }
+  @media (prefers-reduced-motion: reduce) {
+    .pdp__lightbox, .pdp__zoom-hint { transition: none; }
   }
   .pdp__thumbs {
     display: flex;
@@ -508,41 +574,30 @@
     </nav>
     <div class="pdp__grid">
       <div class="pdp__gallery" data-product-gallery>
-        {%- if use_bean_default -%}
-          <div class="tcw-product-media tcw-product-media--lift pdp__main-media pdp__bean-square" data-pdp-main>
-            {%- comment -%}
-              Animated WebP (an <img>, not <video>) so the 360 spin autoplays
-              everywhere with no click and no JS — image animation isn't subject
-              to video autoplay policies (works even in iOS Low Power Mode).
-              Reduced-motion users get the static poster via <picture>.
-            {%- endcomment -%}
-            <picture>
-              <source srcset="{{ 'pdp-bean-spin-poster.webp' | asset_url }}" media="(prefers-reduced-motion: reduce)">
-              <img
-                src="{{ 'pdp-bean-spin.webp' | asset_url }}"
-                class="pdp__bean-spin"
-                width="720"
-                height="720"
-                loading="eager"
-                fetchpriority="high"
-                alt="{{ product.title | escape }} — 360° view"
-              >
-            </picture>
-          </div>
-        {%- elsif product.media.size > 0 -%}
-          <div class="tcw-product-media tcw-product-media--padded tcw-product-media--lift pdp__main-media" data-pdp-main>
+        {%- if product.media.size > 0 -%}
+          <button
+            type="button"
+            class="tcw-product-media tcw-product-media--padded tcw-product-media--lift pdp__main-media pdp__zoom-trigger"
+            data-pdp-main
+            data-pdp-zoom
+            aria-label="{{ 'products.zoom' | t | default: 'View larger image' }}"
+          >
             {{
               product.featured_media
-              | image_url: width: 1400
+              | image_url: width: 1600
               | image_tag:
                 class: 'tcw-product-media__img',
                 loading: 'eager',
-                widths: '600, 900, 1200, 1400',
+                widths: '600, 900, 1200, 1600',
                 sizes: '(max-width: 1024px) 100vw, 48vw',
                 alt: product.featured_media.alt | default: product.title,
-                data-pdp-main-img: true
+                data-pdp-main-img: true,
+                data-zoom: product.featured_media | image_url: width: 2048
             }}
-          </div>
+            <span class="pdp__zoom-hint" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7" stroke-width="1.6"/><path stroke-linecap="round" stroke-width="1.6" d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg>
+            </span>
+          </button>
 
           {%- if product.media.size > 1 -%}
             <div class="pdp__thumbs" role="list">
@@ -552,7 +607,8 @@
                     type="button"
                     class="pdp__thumb{% if forloop.first %} is-active{% endif %}"
                     data-pdp-thumb
-                    data-full="{{ media | image_url: width: 1400 }}"
+                    data-full="{{ media | image_url: width: 1600 }}"
+                    data-zoom="{{ media | image_url: width: 2048 }}"
                     data-alt="{{ media.alt | default: product.title | escape }}"
                     aria-label="{{ product.title }} — image {{ forloop.index }}"
                   >
@@ -566,6 +622,18 @@
               {%- endfor -%}
             </div>
           {%- endif -%}
+        {%- elsif use_bean_default -%}
+          {%- comment -%} No photos uploaded yet — show the branded bag placeholder until real product photos are added. {%- endcomment -%}
+          <div class="tcw-product-media tcw-product-media--lift pdp__main-media" data-pdp-main>
+            <img
+              src="{{ 'bean-default.webp' | asset_url }}"
+              class="tcw-product-media__img"
+              width="820"
+              height="1024"
+              loading="eager"
+              alt="{{ product.title | escape }}"
+            >
+          </div>
         {%- endif -%}
       </div>
 
@@ -753,6 +821,13 @@
   </div>
 </section>
 
+<div class="pdp__lightbox" data-pdp-lightbox hidden>
+  <button type="button" class="pdp__lightbox-close" data-pdp-lightbox-close aria-label="{{ 'accessibility.close' | t | default: 'Close' }}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-width="1.6" d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <img src="" alt="" data-pdp-lightbox-img>
+</div>
+
 {%- liquid
   assign rel_collection = null
   for c in product.collections
@@ -817,6 +892,7 @@
       btn.classList.add('is-active');
       if (mainImg && btn.dataset.full) {
         mainImg.src = btn.dataset.full;
+        if (btn.dataset.zoom) mainImg.dataset.zoom = btn.dataset.zoom;
         if (btn.dataset.alt) mainImg.alt = btn.dataset.alt;
         if (mainImg.srcset) mainImg.removeAttribute('srcset');
       }
@@ -837,46 +913,39 @@
     if (qtyInput) qtyInput.addEventListener('change', function () { setQty(qtyInput.value); });
   }
 
-  /* Sharpen the 360° spin client-side. The spin is an animated WebP <img>, so
-     an SVG convolution filter (unsharp mask) applies live to every frame —
-     making the upscaled bag read crisper without a heavier source file.
-     Gated to fine-pointer (desktop) displays, where the image is scaled up and
-     softness shows most; skipped on touch/coarse pointers and for
-     prefers-reduced-motion to protect battery and honour motion prefs.
-     The contrast/saturate pair adds a touch of perceived crispness and also
-     serves as the graceful fallback if the SVG filter is unsupported. */
-  (function sharpenSpin() {
-    var spin = root.querySelector('.pdp__bean-spin');
-    if (!spin) return;
-    if (!window.matchMedia('(pointer: fine)').matches) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  /* Zoom lightbox — opens the current main image at full resolution. Works on
+     tap and click; closes via the button, backdrop, or Escape. The lightbox
+     element lives outside [data-pdp], so it is queried from document. */
+  (function pdpZoom() {
+    var trigger = root.querySelector('[data-pdp-zoom]');
+    var box = document.querySelector('[data-pdp-lightbox]');
+    if (!trigger || !box) return;
+    var boxImg = box.querySelector('[data-pdp-lightbox-img]');
+    var closeBtn = box.querySelector('[data-pdp-lightbox-close]');
 
-    var NS = 'http://www.w3.org/2000/svg';
-    if (!document.getElementById('pdp-sharpen')) {
-      var svg = document.createElementNS(NS, 'svg');
-      svg.setAttribute('aria-hidden', 'true');
-      svg.setAttribute('width', '0');
-      svg.setAttribute('height', '0');
-      svg.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;';
-      var filter = document.createElementNS(NS, 'filter');
-      filter.setAttribute('id', 'pdp-sharpen');
-      filter.setAttribute('x', '0');
-      filter.setAttribute('y', '0');
-      filter.setAttribute('width', '100%');
-      filter.setAttribute('height', '100%');
-      filter.setAttribute('color-interpolation-filters', 'sRGB');
-      var fe = document.createElementNS(NS, 'feConvolveMatrix');
-      fe.setAttribute('order', '3');
-      fe.setAttribute('preserveAlpha', 'true');
-      fe.setAttribute('edgeMode', 'duplicate');
-      /* Mild unsharp kernel; sum = 2.4 − (0.35×4) = 1.0 → brightness preserved,
-         gentle enough to avoid halos on the bag edges. */
-      fe.setAttribute('kernelMatrix', '0 -0.35 0  -0.35 2.4 -0.35  0 -0.35 0');
-      filter.appendChild(fe);
-      svg.appendChild(filter);
-      document.body.appendChild(svg);
+    function open() {
+      var src = (mainImg && (mainImg.dataset.zoom || mainImg.currentSrc || mainImg.src)) || '';
+      if (!src) return;
+      boxImg.src = src;
+      boxImg.alt = (mainImg && mainImg.alt) || '';
+      box.hidden = false;
+      requestAnimationFrame(function () { box.classList.add('is-open'); });
+      document.body.style.overflow = 'hidden';
+      closeBtn.focus();
     }
-    spin.style.filter = 'url(#pdp-sharpen) contrast(1.04) saturate(1.03)';
+    function close() {
+      box.classList.remove('is-open');
+      document.body.style.overflow = '';
+      window.setTimeout(function () { box.hidden = true; boxImg.src = ''; }, 250);
+      trigger.focus();
+    }
+
+    trigger.addEventListener('click', open);
+    closeBtn.addEventListener('click', close);
+    box.addEventListener('click', function (e) { if (e.target === box) close(); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !box.hidden) close();
+    });
   })();
 })();
 </script>
