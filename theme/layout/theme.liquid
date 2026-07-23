@@ -42,6 +42,19 @@
 
     {{ 'application.css' | asset_url | stylesheet_tag }}
 
+    <style>
+      /* Accessibility (WCAG 1.4.3 AA): the brand gold #C5A059 as TEXT on light
+         backgrounds is only ~2.46:1 — below the 4.5:1 minimum. Default gold text
+         to a deeper bronze (#8B5E3C, 5.58:1). Loaded after application.css so it
+         overrides the .text-brand utility. Bright gold is preserved where it is
+         readable or exempt: on the dark footer, and for the logo wordmark
+         (logotypes are exempt from contrast). Gold backgrounds/borders/icons use
+         bg-brand / border-brand (not .text-brand) and are unaffected. */
+      .text-brand { color: #8B5E3C; }
+      .tcw-footer .text-brand,
+      .tcw-logo .text-brand { color: var(--color-brand, #C5A059); }
+    </style>
+
     <script>
       document.documentElement.classList.replace('no-js', 'js');
     </script>
