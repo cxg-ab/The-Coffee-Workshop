@@ -82,6 +82,15 @@
          the page right, showing a white strip beside the header until a scroll
          repaint reset it. Clip (not hidden) so sticky headers keep working. */
       .page-wrapper { overflow-x: clip; }
+
+      /* Hero entrance: pre-hide the copy so the buttons/heading don't flash
+         (visible → hidden → fade-in) before the GSAP timeline runs. Only when
+         JS + animations are on and motion is allowed; the timeline reveals it,
+         and a JS failsafe reveals it if the animation never runs. */
+      html.js body[data-animations="true"] [data-hero-copy] { visibility: hidden; }
+      @media (prefers-reduced-motion: reduce) {
+        html.js body[data-animations="true"] [data-hero-copy] { visibility: visible; }
+      }
     </style>
 
     <script>

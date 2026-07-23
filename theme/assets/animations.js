@@ -247,6 +247,12 @@
     const copy = section.querySelector('[data-hero-copy]');
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
+    /* The hero copy is pre-hidden in CSS to avoid a flash (buttons/heading
+       briefly showing before the .from() tweens hide them). Reveal it at t=0 —
+       by then the .from tweens below have already set the children to their
+       hidden start state, so it animates in cleanly with no flash. */
+    if (copy) tl.set(copy, { visibility: 'visible' }, 0);
+
     const eyebrow = copy?.querySelector('[data-hero-eyebrow]');
     const tagline = copy?.querySelector('[data-hero-tagline]');
     const rule = copy?.querySelector('.hero-brand-rule');
@@ -871,6 +877,17 @@
   } else {
     onReady();
   }
+
+  /* Failsafe: the hero copy is pre-hidden in CSS to avoid an entrance-flash.
+     If the entrance animation never runs (e.g. GSAP fails to load), reveal it
+     anyway so it can't get stuck invisible. */
+  window.setTimeout(function () {
+    if (!document.body.classList.contains('animations-ready')) {
+      document.querySelectorAll('[data-hero-copy]').forEach(function (el) {
+        el.style.visibility = 'visible';
+      });
+    }
+  }, 1200);
 
   document.addEventListener('shopify:section:load', () => {
     requestAnimationFrame(onReady);
