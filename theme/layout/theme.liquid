@@ -14,9 +14,6 @@
     <link rel="canonical" href="{{ canonical_url }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    {%- comment -%} Motion libs (GSAP/ScrollTrigger/Lenis) load from jsDelivr — open the connection early so smooth scroll initialises without a stall. {%- endcomment -%}
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <link
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400..900&family=Montserrat:wght@300..700&family=Noto+Kufi+Arabic:wght@700;800;900&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap"
       rel="stylesheet"
@@ -62,6 +59,11 @@
          scroll-behavior:smooth + its reduced-motion override already live in
          application.css. */
       html { scroll-padding-top: calc(var(--tcw-header-h, 5rem) + 1rem); }
+
+      /* Explicit-property transition helper (replaces Tailwind's transition-all,
+         which the Web Interface Guidelines disallow). Duration/easing come from
+         the element's own duration-*/ease-* utilities. */
+      .transition-motion { transition-property: opacity, transform, width; }
     </style>
 
     <script>
@@ -121,9 +123,10 @@
         };
       }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js" defer></script>
+    {%- comment -%} Motion libs self-hosted on the Shopify CDN (no third-party dependency). Order matters: gsap → ScrollTrigger → lenis. {%- endcomment -%}
+    <script src="{{ 'gsap.min.js' | asset_url }}" defer></script>
+    <script src="{{ 'ScrollTrigger.min.js' | asset_url }}" defer></script>
+    <script src="{{ 'lenis.min.js' | asset_url }}" defer></script>
     <script src="{{ 'application.js' | asset_url }}" defer></script>
     <script src="{{ 'animations.js' | asset_url }}" defer></script>
   </body>

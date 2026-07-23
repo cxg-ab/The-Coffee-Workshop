@@ -148,7 +148,7 @@
     {%- endif -%}
 
     {%- if card_product.available -%}
-      <div class="absolute inset-x-0 bottom-6 z-20 flex justify-center opacity-0 translate-y-2 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 hidden lg:flex">
+      <div class="absolute inset-x-0 bottom-6 z-20 flex justify-center opacity-0 translate-y-2 transition-motion duration-500 group-hover:translate-y-0 group-hover:opacity-100 hidden lg:flex">
         <form method="post" action="{{ routes.cart_add_url }}" data-ajax-cart>
           <input type="hidden" name="id" value="{{ card_product.selected_or_first_available_variant.id }}">
           <button
