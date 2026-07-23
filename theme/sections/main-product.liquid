@@ -44,6 +44,11 @@
     --pdp-line: var(--color-border, #E8E4DC);
     --pdp-canvas: var(--color-bg, #FAFAF8);
     --pdp-brand: var(--color-brand, #8B5E3C);
+    /* Accessible gold for TEXT/focus on light backgrounds. The brand gold
+       (#C5A059) is only ~2.46:1 on white — fails WCAG AA. This deeper bronze
+       is 5.58:1 (passes AA) while staying on-brand. Bright gold stays for
+       decorative icons/thin borders. */
+    --pdp-brand-strong: #8B5E3C;
     --pdp-surface: var(--color-surface, #FFFFFF);
     background: var(--pdp-surface);
     color: var(--pdp-ink);
@@ -142,7 +147,7 @@
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--pdp-brand);
+    color: var(--pdp-brand-strong);
   }
   .pdp__title {
     margin: 0;
@@ -165,7 +170,7 @@
     font-size: clamp(1.35rem, 2.2vw, 1.75rem);
     font-weight: 500;
     letter-spacing: 0.02em;
-    color: var(--pdp-brand);
+    color: var(--pdp-brand-strong);
   }
   .pdp__badge {
     display: inline-flex;
@@ -185,8 +190,8 @@
     color: #fff;
   }
   .pdp__badge--limited {
-    border-color: var(--pdp-brand);
-    color: var(--pdp-brand);
+    border-color: var(--pdp-brand-strong);
+    color: var(--pdp-brand-strong);
   }
   .pdp__origin {
     margin: 0;
@@ -321,7 +326,7 @@
     pointer-events: none;
   }
   .pdp-variant input:focus-visible ~ span {
-    outline: 2px solid var(--pdp-brand);
+    outline: 2px solid var(--pdp-brand-strong);
     outline-offset: 3px;
   }
 
@@ -403,7 +408,7 @@
     color: var(--pdp-muted);
   }
   .pdp__breadcrumb a { color: var(--pdp-muted); transition: color 0.2s ease; }
-  .pdp__breadcrumb a:hover { color: var(--pdp-brand); }
+  .pdp__breadcrumb a:hover { color: var(--pdp-brand-strong); }
   .pdp__breadcrumb [aria-current] { color: var(--pdp-ink); }
   .pdp__breadcrumb svg { width: 0.7rem; height: 0.7rem; opacity: 0.5; flex: 0 0 auto; }
   [dir="rtl"] .pdp__breadcrumb svg { transform: scaleX(-1); }
