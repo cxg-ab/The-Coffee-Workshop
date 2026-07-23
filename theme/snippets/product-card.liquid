@@ -58,17 +58,6 @@
     background: transparent;
   }
 
-  /* Bean default image on the shop grid — static, shown at 92% inside the 4:5
-     card so there's a small margin around it. Hover-lift is pinned to the same
-     scale so it stays still. */
-  .product-card__bean-default {
-    object-fit: cover;
-    transform: scale(0.92);
-  }
-  .tcw-product-media--lift:hover .product-card__bean-default,
-  .group:hover .tcw-product-media--lift .product-card__bean-default {
-    transform: scale(0.92);
-  }
 </style>
 
 {%- liquid
@@ -93,30 +82,10 @@
       assign roast_step = 5
   endcase
 
-  # Use the branded bag as the default image for bean products (single-origin,
-  # micro-lot, exotic). Only active when the caller opts in via `bean_default`
-  # (the shop grid). Detected per-product so a capsule/accessory that also sits
-  # in All Beans keeps its own image.
-  assign use_bean_default = false
-  if bean_default
-    for c in card_product.collections
-      if c.handle == 'single-origin' or c.handle == 'micro-lot' or c.handle == 'exotic'
-        assign use_bean_default = true
-        break
-      endif
-    endfor
-  endif
-
-  # Rule: a real uploaded image always wins on the grid (and the PDP). The
-  # branded bag default is only used when a bean product has NO photo yet.
-  assign show_bean_placeholder = false
-  if use_bean_default and featured_image == blank
-    assign show_bean_placeholder = true
-  endif
 -%}
 
 <article class="product-card product-card--luxury group relative flex flex-col{% unless card_product.available %} is-rested{% endunless %}">
-  <a href="{{ product_url }}" class="tcw-product-media{% unless show_bean_placeholder %} tcw-product-media--padded{% endunless %} tcw-product-media--lift block">
+  <a href="{{ product_url }}" class="tcw-product-media tcw-product-media--padded tcw-product-media--lift block">
     {%- if featured_image -%}
       {{
         featured_image
@@ -128,15 +97,6 @@
           sizes: '(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw',
           alt: card_product.featured_media.alt | default: card_product.title
       }}
-    {%- elsif show_bean_placeholder -%}
-      <img
-        src="{{ 'bean-default.webp' | asset_url }}"
-        alt="{{ card_product.title | escape }}"
-        class="tcw-product-media__img product-card__image product-card__bean-default"
-        loading="lazy"
-        width="820"
-        height="1024"
-      >
     {%- else -%}
       <div class="flex h-full w-full items-center justify-center text-xs uppercase tracking-[0.2em] text-muted">
         {{ 'products.no_image' | t }}

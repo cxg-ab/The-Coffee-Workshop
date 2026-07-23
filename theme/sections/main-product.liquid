@@ -32,16 +32,6 @@
   if custom_details != blank
     assign has_details = true
   endif
-
-  # Use the branded bag as the default gallery image for bean products
-  # (single-origin, micro-lot, exotic). Detected per-product.
-  assign use_bean_default = false
-  for c in product.collections
-    if c.handle == 'single-origin' or c.handle == 'micro-lot' or c.handle == 'exotic'
-      assign use_bean_default = true
-      break
-    endif
-  endfor
 -%}
 
 <style>
@@ -699,18 +689,6 @@
               {%- endfor -%}
             </div>
           {%- endif -%}
-        {%- elsif use_bean_default -%}
-          {%- comment -%} No photos uploaded yet — show the branded bag placeholder until real product photos are added. {%- endcomment -%}
-          <div class="tcw-product-media tcw-product-media--lift pdp__main-media" data-pdp-main>
-            <img
-              src="{{ 'bean-default.webp' | asset_url }}"
-              class="tcw-product-media__img"
-              width="820"
-              height="1024"
-              loading="eager"
-              alt="{{ product.title | escape }}"
-            >
-          </div>
         {%- endif -%}
       </div>
 
@@ -962,7 +940,7 @@
         {%- assign shown = 0 -%}
         {%- for p in rel_collection.products -%}
           {%- if p.id != product.id and shown < 4 -%}
-            {% render 'product-card', card_product: p, bean_default: true %}
+            {% render 'product-card', card_product: p %}
             {%- assign shown = shown | plus: 1 -%}
           {%- endif -%}
         {%- endfor -%}
