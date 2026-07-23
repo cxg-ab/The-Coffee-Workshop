@@ -83,31 +83,27 @@ function initCartDrawer() {
   let releaseFocus = null;
 
   const open = () => {
-    drawer.hidden = false;
     overlay.classList.remove('pointer-events-none', 'opacity-0');
     overlay.classList.add('opacity-100');
-    drawer.classList.remove('ltr:translate-x-full', 'rtl:-translate-x-full');
+    drawer.classList.add('is-open');
     document.body.style.overflow = 'hidden';
     releaseFocus = trapFocus(drawer);
   };
 
   const close = () => {
-    drawer.classList.add('ltr:translate-x-full', 'rtl:-translate-x-full');
+    drawer.classList.remove('is-open');
     overlay.classList.add('pointer-events-none', 'opacity-0');
     overlay.classList.remove('opacity-100');
     document.body.style.overflow = '';
     if (releaseFocus) releaseFocus();
     releaseFocus = null;
-    window.setTimeout(() => {
-      drawer.hidden = true;
-    }, 300);
   };
 
   openButtons.forEach((button) => button.addEventListener('click', open));
   closeButton?.addEventListener('click', close);
   overlay.addEventListener('click', close);
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && !drawer.hidden) close();
+    if (event.key === 'Escape' && drawer.classList.contains('is-open')) close();
   });
 
   window.TCW = window.TCW || {};

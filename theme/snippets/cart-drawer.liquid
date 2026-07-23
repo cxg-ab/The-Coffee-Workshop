@@ -1,3 +1,29 @@
+<style>
+  /* Paint-safe hidden state for the cart drawer.
+     We do NOT rely on the [hidden] attribute here: Tailwind's `.flex`
+     utility is compiled after [hidden]{display:none} with equal specificity,
+     so `.flex` wins and [hidden] is ignored. Using visibility + transform
+     keeps the panel completely unpainted until it is opened, which removes
+     the white-panel flash that appeared on the right during page load. */
+  .cart-drawer {
+    visibility: hidden;
+    transform: translateX(100%);
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                visibility 0s linear 0.5s;
+    will-change: transform;
+  }
+  [dir="rtl"] .cart-drawer { transform: translateX(-100%); }
+  .cart-drawer.is-open {
+    visibility: visible;
+    transform: translateX(0);
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                visibility 0s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cart-drawer { transition: none; }
+  }
+</style>
+
 <div
   class="pointer-events-none fixed inset-0 z-[60] bg-ink/40 opacity-0 transition-opacity duration-300"
   data-cart-overlay
@@ -5,12 +31,11 @@
 ></div>
 
 <aside
-  class="fixed inset-y-0 z-[70] flex w-full max-w-md flex-col bg-white shadow-2xl transition-transform duration-500 ease-luxury ltr:right-0 rtl:left-0 ltr:translate-x-full rtl:-translate-x-full"
+  class="cart-drawer fixed inset-y-0 z-[70] flex w-full max-w-md flex-col bg-white shadow-2xl ltr:right-0 rtl:left-0"
   data-cart-drawer
   role="dialog"
   aria-modal="true"
   aria-label="{{ 'cart.title' | t }}"
-  hidden
 >
   <div class="flex items-center justify-between border-b border-line px-6 py-5">
     <h2 class="font-display text-lg font-bold uppercase tracking-[0.1em]">
