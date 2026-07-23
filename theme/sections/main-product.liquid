@@ -83,24 +83,16 @@
     border: 1px solid var(--pdp-line);
   }
 
-  /* Bean products: branded lifestyle image as the PDP main media, full-bleed
-     (image is 4:5, same as the box, so it fills edge-to-edge). Slow cinematic
-     zoom; reduced-motion safe. */
-  .pdp__bean-img {
+  /* Bean products: square (1:1) 360° spin video as the PDP main media. The MP4
+     is 720x720 so it fills the 1:1 box exactly. Poster paints instantly;
+     playback is JS-gated so reduced-motion users just see the poster still. */
+  .pdp__bean-square { aspect-ratio: 1 / 1; }
+  .pdp__bean-video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-    animation: tcw-bean-kenburns 16s ease-in-out infinite;
-    will-change: transform;
-  }
-  @keyframes tcw-bean-kenburns {
-    0%   { transform: scale(1.04); }
-    50%  { transform: scale(1.12); }
-    100% { transform: scale(1.04); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .pdp__bean-img { animation: none; }
+    background: var(--pdp-canvas);
   }
   .pdp__thumbs {
     display: flex;
@@ -402,17 +394,32 @@
     <div class="pdp__grid">
       <div class="pdp__gallery" data-product-gallery>
         {%- if use_bean_default -%}
-          <div class="tcw-product-media tcw-product-media--lift pdp__main-media" data-pdp-main>
-            <img
-              src="{{ 'bean-default.webp' | asset_url }}"
-              alt="{{ product.title | escape }}"
-              class="pdp__bean-img"
-              width="820"
-              height="1024"
-              loading="eager"
-              fetchpriority="high"
+          <div class="tcw-product-media tcw-product-media--lift pdp__main-media pdp__bean-square" data-pdp-main>
+            <video
+              id="pdp-bean-spin-{{ section.id }}"
+              class="pdp__bean-video"
+              muted
+              loop
+              playsinline
+              preload="metadata"
+              poster="{{ 'pdp-bean-spin-poster.webp' | asset_url }}"
+              width="720"
+              height="720"
+              aria-label="{{ product.title | escape }}"
             >
+              <source src="{{ 'pdp-bean-spin.mp4' | asset_url }}" type="video/mp4">
+            </video>
           </div>
+          <script>
+            (function () {
+              var v = document.getElementById('pdp-bean-spin-{{ section.id }}');
+              if (!v) return;
+              /* Respect reduced-motion: leave the poster, don't play. */
+              if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+              var p = v.play();
+              if (p && p.catch) p.catch(function () {});
+            })();
+          </script>
         {%- elsif product.media.size > 0 -%}
           <div class="tcw-product-media tcw-product-media--padded tcw-product-media--lift pdp__main-media" data-pdp-main>
             {{
