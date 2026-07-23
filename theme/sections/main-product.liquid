@@ -170,6 +170,28 @@
   }
   .pdp__lightbox-close:hover { background: rgba(255, 255, 255, 0.25); }
   .pdp__lightbox-close svg { width: 1.4rem; height: 1.4rem; }
+  .pdp__lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .pdp__lightbox-nav:hover { background: rgba(255, 255, 255, 0.25); }
+  .pdp__lightbox-nav svg { width: 1.6rem; height: 1.6rem; }
+  .pdp__lightbox-nav[hidden] { display: none; }
+  .pdp__lightbox-prev { inset-inline-start: 1rem; }
+  .pdp__lightbox-next { inset-inline-end: 1rem; }
+  [dir="rtl"] .pdp__lightbox-nav svg { transform: scaleX(-1); }
   @media (prefers-reduced-motion: reduce) {
     .pdp__lightbox, .pdp__zoom-hint { transition: none; }
   }
@@ -244,6 +266,23 @@
     font-weight: 500;
     letter-spacing: 0.02em;
     color: var(--pdp-brand-strong);
+  }
+  /* Status badges pinned to the top-inner corner of the product image */
+  .pdp__badges {
+    position: absolute;
+    top: 0.75rem;
+    inset-inline-start: 0.75rem;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    pointer-events: none;
+  }
+  .pdp__badges .pdp__badge {
+    background: rgba(255, 255, 255, 0.92);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
   }
   .pdp__badge {
     display: inline-flex;
@@ -582,6 +621,17 @@
     </nav>
     <div class="pdp__grid">
       <div class="pdp__gallery" data-product-gallery>
+        {%- comment -%} Status badges as a top-corner overlay on the image (skill: primary-action clarity — flag without covering the product). {%- endcomment -%}
+        {%- if is_limited or current_variant.available == false -%}
+          <div class="pdp__badges">
+            {%- if is_limited -%}
+              <span class="pdp__badge pdp__badge--limited">{{ 'products.limited_batch' | t | default: 'Limited Batch' }}</span>
+            {%- endif -%}
+            {%- unless current_variant.available -%}
+              <span class="pdp__badge pdp__badge--sold">{{ 'products.sold_out' | t | default: 'Sold Out' }}</span>
+            {%- endunless -%}
+          </div>
+        {%- endif -%}
         {%- if product.media.size > 0 -%}
           <button
             type="button"
@@ -652,12 +702,6 @@
 
         <div class="pdp__meta-row">
           <p class="pdp__price" data-product-price>{{ current_variant.price | money }}</p>
-          {%- if is_limited -%}
-            <span class="pdp__badge pdp__badge--limited">{{ 'products.limited_batch' | t | default: 'Limited Batch' }}</span>
-          {%- endif -%}
-          {%- unless current_variant.available -%}
-            <span class="pdp__badge pdp__badge--sold">{{ 'products.sold_out' | t | default: 'Sold Out' }}</span>
-          {%- endunless -%}
         </div>
 
         {%- liquid
@@ -857,7 +901,13 @@
   <button type="button" class="pdp__lightbox-close" data-pdp-lightbox-close aria-label="{{ 'accessibility.close' | t | default: 'Close' }}">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-width="1.6" d="M6 6l12 12M18 6L6 18"/></svg>
   </button>
+  <button type="button" class="pdp__lightbox-nav pdp__lightbox-prev" data-pdp-lightbox-prev aria-label="{% if request.locale.iso_code == 'ar' %}الصورة السابقة{% else %}Previous image{% endif %}" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M15 6l-6 6 6 6"/></svg>
+  </button>
   <img src="" alt="" data-pdp-lightbox-img>
+  <button type="button" class="pdp__lightbox-nav pdp__lightbox-next" data-pdp-lightbox-next aria-label="{% if request.locale.iso_code == 'ar' %}الصورة التالية{% else %}Next image{% endif %}" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9 6l6 6-6 6"/></svg>
+  </button>
 </div>
 
 {%- liquid
@@ -954,12 +1004,31 @@
     if (!trigger || !box) return;
     var boxImg = box.querySelector('[data-pdp-lightbox-img]');
     var closeBtn = box.querySelector('[data-pdp-lightbox-close]');
+    var prevBtn = box.querySelector('[data-pdp-lightbox-prev]');
+    var nextBtn = box.querySelector('[data-pdp-lightbox-next]');
 
+    // Ordered list of full-res images — from the thumbnails, else the single main image.
+    var zoomList = [];
+    thumbs.forEach(function (t) { if (t.dataset.zoom) zoomList.push({ src: t.dataset.zoom, alt: t.dataset.alt || '' }); });
+    if (!zoomList.length && mainImg) {
+      zoomList.push({ src: mainImg.dataset.zoom || mainImg.currentSrc || mainImg.src, alt: mainImg.alt || '' });
+    }
+    var multiple = zoomList.length > 1;
+    var idx = 0;
+    if (prevBtn) prevBtn.hidden = !multiple;
+    if (nextBtn) nextBtn.hidden = !multiple;
+
+    function show(i) {
+      if (!zoomList.length) return;
+      idx = (i + zoomList.length) % zoomList.length;
+      boxImg.src = zoomList[idx].src;
+      boxImg.alt = zoomList[idx].alt;
+    }
     function open() {
-      var src = (mainImg && (mainImg.dataset.zoom || mainImg.currentSrc || mainImg.src)) || '';
-      if (!src) return;
-      boxImg.src = src;
-      boxImg.alt = (mainImg && mainImg.alt) || '';
+      if (!zoomList.length) return;
+      var start = 0;
+      thumbs.forEach(function (t, i) { if (t.classList.contains('is-active')) start = i; });
+      show(start);
       box.hidden = false;
       requestAnimationFrame(function () { box.classList.add('is-open'); });
       document.body.style.overflow = 'hidden';
@@ -974,9 +1043,14 @@
 
     trigger.addEventListener('click', open);
     closeBtn.addEventListener('click', close);
+    if (prevBtn) prevBtn.addEventListener('click', function (e) { e.stopPropagation(); show(idx - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function (e) { e.stopPropagation(); show(idx + 1); });
     box.addEventListener('click', function (e) { if (e.target === box) close(); });
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && !box.hidden) close();
+      if (box.hidden) return;
+      if (e.key === 'Escape') close();
+      else if (multiple && e.key === 'ArrowRight') show(idx + 1);
+      else if (multiple && e.key === 'ArrowLeft') show(idx - 1);
     });
   })();
 })();
