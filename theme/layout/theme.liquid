@@ -64,6 +64,17 @@
          which the Web Interface Guidelines disallow). Duration/easing come from
          the element's own duration-*/ease-* utilities. */
       .transition-motion { transition-property: opacity, transform, width; }
+
+      /* Fix the screen "shake/vibrate" at the scroll extremes:
+         1. overscroll-behavior:none stops the rubber-band bounce from chaining
+            back into the smooth-scroll/scroll listeners when you pull past the
+            top or bottom.
+         2. dvh instead of 100vh stops the mobile URL-bar show/hide from
+            oscillating the page height at the very bottom of long pages. */
+      html, body { overscroll-behavior: none; }
+      @supports (min-height: 100dvh) {
+        .min-h-screen { min-height: 100dvh; }
+      }
     </style>
 
     <script>
