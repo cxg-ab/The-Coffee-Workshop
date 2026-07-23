@@ -836,6 +836,48 @@
     if (plus) plus.addEventListener('click', function () { setQty((parseInt(qtyInput.value, 10) || 1) + 1); });
     if (qtyInput) qtyInput.addEventListener('change', function () { setQty(qtyInput.value); });
   }
+
+  /* Sharpen the 360° spin client-side. The spin is an animated WebP <img>, so
+     an SVG convolution filter (unsharp mask) applies live to every frame —
+     making the upscaled bag read crisper without a heavier source file.
+     Gated to fine-pointer (desktop) displays, where the image is scaled up and
+     softness shows most; skipped on touch/coarse pointers and for
+     prefers-reduced-motion to protect battery and honour motion prefs.
+     The contrast/saturate pair adds a touch of perceived crispness and also
+     serves as the graceful fallback if the SVG filter is unsupported. */
+  (function sharpenSpin() {
+    var spin = root.querySelector('.pdp__bean-spin');
+    if (!spin) return;
+    if (!window.matchMedia('(pointer: fine)').matches) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var NS = 'http://www.w3.org/2000/svg';
+    if (!document.getElementById('pdp-sharpen')) {
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('aria-hidden', 'true');
+      svg.setAttribute('width', '0');
+      svg.setAttribute('height', '0');
+      svg.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;';
+      var filter = document.createElementNS(NS, 'filter');
+      filter.setAttribute('id', 'pdp-sharpen');
+      filter.setAttribute('x', '0');
+      filter.setAttribute('y', '0');
+      filter.setAttribute('width', '100%');
+      filter.setAttribute('height', '100%');
+      filter.setAttribute('color-interpolation-filters', 'sRGB');
+      var fe = document.createElementNS(NS, 'feConvolveMatrix');
+      fe.setAttribute('order', '3');
+      fe.setAttribute('preserveAlpha', 'true');
+      fe.setAttribute('edgeMode', 'duplicate');
+      /* Mild unsharp kernel; sum = 2.4 − (0.35×4) = 1.0 → brightness preserved,
+         gentle enough to avoid halos on the bag edges. */
+      fe.setAttribute('kernelMatrix', '0 -0.35 0  -0.35 2.4 -0.35  0 -0.35 0');
+      filter.appendChild(fe);
+      svg.appendChild(filter);
+      document.body.appendChild(svg);
+    }
+    spin.style.filter = 'url(#pdp-sharpen) contrast(1.04) saturate(1.03)';
+  })();
 })();
 </script>
 
