@@ -797,10 +797,16 @@
                 {%- for line in detail_lines -%}
                   {%- assign row = line | strip -%}
                   {%- if row != blank -%}
+                    {%- comment -%} Split into Label / Value on the first colon, or a comma when there's no colon. {%- endcomment -%}
+                    {%- assign row_sep = ':' -%}
                     {%- assign row_parts = row | split: ':' -%}
+                    {%- if row_parts.size == 1 -%}
+                      {%- assign row_parts = row | split: ',' -%}
+                      {%- assign row_sep = ',' -%}
+                    {%- endif -%}
                     {%- if row_parts.size > 1 -%}
                       {%- assign row_label = row_parts[0] | strip -%}
-                      {%- assign row_value = row | remove_first: row_label | remove_first: ':' | strip -%}
+                      {%- assign row_value = row | remove_first: row_label | remove_first: row_sep | strip -%}
                       <div class="pdp__spec">
                         <dt>{{ row_label | escape }}</dt>
                         <dd>{{ row_value | escape }}</dd>
