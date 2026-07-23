@@ -26,6 +26,13 @@
     assign has_specs = true
   endif
 
+  # Admin-authored custom rows for the Details list (one per line, "Label: Value")
+  assign custom_details = product.metafields.custom.pdp_details.value
+  assign has_details = has_specs
+  if custom_details != blank
+    assign has_details = true
+  endif
+
   # Use the branded bag as the default gallery image for bean products
   # (single-origin, micro-lot, exotic). Detected per-product.
   assign use_bean_default = false
@@ -304,6 +311,7 @@
     align-items: start;
   }
   .pdp__spec:first-child { border-top: 1px solid var(--pdp-line); }
+  .pdp__spec--full { grid-template-columns: 1fr; }
   .pdp__spec dt {
     margin: 0;
     font-size: 0.625rem;
@@ -677,7 +685,7 @@
           <div class="pdp__desc prose-brand">{{ product.description }}</div>
         {%- endif -%}
 
-        {%- if has_specs -%}
+        {%- if has_details -%}
           <div class="pdp__panel">
             <p class="pdp__panel-label">{% if request.locale.iso_code == 'ar' %}التفاصيل{% else %}Details{% endif %}</p>
             <dl class="pdp__specs">
@@ -737,6 +745,29 @@
                     </div>
                   </dd>
                 </div>
+              {%- endif -%}
+
+              {%- comment -%} Admin custom rows: one line per row, "Label: Value" (a line with no colon spans full width). {%- endcomment -%}
+              {%- if custom_details != blank -%}
+                {%- assign detail_lines = custom_details | newline_to_br | split: '<br />' -%}
+                {%- for line in detail_lines -%}
+                  {%- assign row = line | strip -%}
+                  {%- if row != blank -%}
+                    {%- assign row_parts = row | split: ':' -%}
+                    {%- if row_parts.size > 1 -%}
+                      {%- assign row_label = row_parts[0] | strip -%}
+                      {%- assign row_value = row | remove_first: row_label | remove_first: ':' | strip -%}
+                      <div class="pdp__spec">
+                        <dt>{{ row_label | escape }}</dt>
+                        <dd>{{ row_value | escape }}</dd>
+                      </div>
+                    {%- else -%}
+                      <div class="pdp__spec pdp__spec--full">
+                        <dd>{{ row | escape }}</dd>
+                      </div>
+                    {%- endif -%}
+                  {%- endif -%}
+                {%- endfor -%}
               {%- endif -%}
             </dl>
           </div>

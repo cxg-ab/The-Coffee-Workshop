@@ -106,20 +106,18 @@
       endif
     endfor
   endif
+
+  # Rule: a real uploaded image always wins on the grid (and the PDP). The
+  # branded bag default is only used when a bean product has NO photo yet.
+  assign show_bean_placeholder = false
+  if use_bean_default and featured_image == blank
+    assign show_bean_placeholder = true
+  endif
 -%}
 
 <article class="product-card product-card--luxury group relative flex flex-col{% unless card_product.available %} is-rested{% endunless %}">
-  <a href="{{ product_url }}" class="tcw-product-media{% unless use_bean_default %} tcw-product-media--padded{% endunless %} tcw-product-media--lift block">
-    {%- if use_bean_default -%}
-      <img
-        src="{{ 'bean-default.webp' | asset_url }}"
-        alt="{{ card_product.title | escape }}"
-        class="tcw-product-media__img product-card__image product-card__bean-default"
-        loading="lazy"
-        width="820"
-        height="1024"
-      >
-    {%- elsif featured_image -%}
+  <a href="{{ product_url }}" class="tcw-product-media{% unless show_bean_placeholder %} tcw-product-media--padded{% endunless %} tcw-product-media--lift block">
+    {%- if featured_image -%}
       {{
         featured_image
         | image_url: width: 900
@@ -130,6 +128,15 @@
           sizes: '(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw',
           alt: card_product.featured_media.alt | default: card_product.title
       }}
+    {%- elsif show_bean_placeholder -%}
+      <img
+        src="{{ 'bean-default.webp' | asset_url }}"
+        alt="{{ card_product.title | escape }}"
+        class="tcw-product-media__img product-card__image product-card__bean-default"
+        loading="lazy"
+        width="820"
+        height="1024"
+      >
     {%- else -%}
       <div class="flex h-full w-full items-center justify-center text-xs uppercase tracking-[0.2em] text-muted">
         {{ 'products.no_image' | t }}
