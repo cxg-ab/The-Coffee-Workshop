@@ -75,6 +75,13 @@
       @supports (min-height: 100dvh) {
         .min-h-screen { min-height: 100dvh; }
       }
+
+      /* Stop the whole page from scrolling sideways. The category pills bar has
+         its own internal horizontal scroller, but any sub-pixel spill made the
+         document itself scrollable — so on load the pills' scrollIntoView nudged
+         the page right, showing a white strip beside the header until a scroll
+         repaint reset it. Clip (not hidden) so sticky headers keep working. */
+      .page-wrapper { overflow-x: clip; }
     </style>
 
     <script>

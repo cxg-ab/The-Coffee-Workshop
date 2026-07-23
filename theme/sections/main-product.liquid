@@ -582,6 +582,7 @@
             data-pdp-zoom
             aria-label="{{ 'products.zoom' | t | default: 'View larger image' }}"
           >
+            {%- assign pdp_zoom_src = product.featured_media | image_url: width: 2048 -%}
             {{
               product.featured_media
               | image_url: width: 1600
@@ -592,7 +593,7 @@
                 sizes: '(max-width: 1024px) 100vw, 48vw',
                 alt: product.featured_media.alt | default: product.title,
                 data-pdp-main-img: true,
-                data-zoom: product.featured_media | image_url: width: 2048
+                data-zoom: pdp_zoom_src
             }}
             <span class="pdp__zoom-hint" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7" stroke-width="1.6"/><path stroke-linecap="round" stroke-width="1.6" d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg>
