@@ -328,12 +328,13 @@
     padding-top: 1.1rem;
   }
   .pdp__panel-label {
-    margin: 0 0 0.65rem;
-    font-size: 0.625rem;
+    margin: 0 0 0.85rem;
+    font-family: var(--font-display), Georgia, serif;
+    font-size: 1.05rem;
     font-weight: 700;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: var(--pdp-muted);
+    color: var(--pdp-ink);
   }
 
   .pdp__specs {
@@ -810,8 +811,8 @@
                       {%- assign row_label = row_parts[0] | strip -%}
                       {%- assign row_value = row | remove_first: row_label | remove_first: ':' | strip -%}
                     {%- else -%}
-                      {%- assign row_label = 'Note' -%}
-                      {%- if request.locale.iso_code == 'ar' -%}{%- assign row_label = 'ملاحظة' -%}{%- endif -%}
+                      {%- assign row_label = 'Details' -%}
+                      {%- if request.locale.iso_code == 'ar' -%}{%- assign row_label = 'التفاصيل' -%}{%- endif -%}
                       {%- assign row_value = row -%}
                     {%- endif -%}
                     <div class="pdp__spec">
