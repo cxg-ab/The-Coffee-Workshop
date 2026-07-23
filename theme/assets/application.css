@@ -3444,6 +3444,12 @@ a.visit-modern__value:hover {
   isolation: isolate;
 }
 .tcw-product-media--square { aspect-ratio: 1 / 1; }
+/* Crop-to-fill framing: force a consistent 4:5 portrait box and cover-fit the
+   image so every product photo fills the frame edge-to-edge (matching the
+   branded placeholder). Used on the Products grid cards and the PDP main image
+   so tiles are uniform instead of floating inside padding. */
+.tcw-product-media--crop { aspect-ratio: 4 / 5; padding: 0; }
+.tcw-product-media--crop .tcw-product-media__img { object-fit: cover; }
 .tcw-product-media--padded {
   padding: clamp(0.65rem, 2.5vw, 2.25rem);
 }

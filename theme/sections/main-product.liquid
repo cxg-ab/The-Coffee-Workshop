@@ -645,7 +645,7 @@
         {%- if product.media.size > 0 -%}
           <button
             type="button"
-            class="tcw-product-media tcw-product-media--padded tcw-product-media--lift pdp__main-media pdp__zoom-trigger"
+            class="tcw-product-media tcw-product-media--crop tcw-product-media--lift pdp__main-media pdp__zoom-trigger"
             data-pdp-main
             data-pdp-zoom
             aria-label="{{ 'products.zoom' | t | default: 'View larger image' }}"
@@ -693,7 +693,7 @@
           {%- endif -%}
         {%- else -%}
           {%- comment -%} No admin image → branded default (full-bleed, no zoom). {%- endcomment -%}
-          <div class="tcw-product-media tcw-product-media--lift pdp__main-media" data-pdp-main>
+          <div class="tcw-product-media tcw-product-media--crop tcw-product-media--lift pdp__main-media" data-pdp-main>
             <img
               src="{{ 'product-placeholder.webp' | asset_url }}"
               class="tcw-product-media__img pdp__placeholder"
