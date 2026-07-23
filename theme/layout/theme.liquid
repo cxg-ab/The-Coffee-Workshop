@@ -83,6 +83,11 @@
          repaint reset it. Clip (not hidden) so sticky headers keep working. */
       .page-wrapper { overflow-x: clip; }
 
+      /* Product images sit on clean white, not the page's off-white (#FAFAF8).
+         With object-fit:contain + padding, that page tint was showing as a grey
+         frame behind/around product photos on the grid and PDP. */
+      .tcw-product-media { background-color: var(--color-surface, #ffffff); }
+
       /* Hero entrance: pre-hide the copy so the buttons/heading don't flash
          (visible → hidden → fade-in) before the GSAP timeline runs. Only when
          JS + animations are on and motion is allowed; the timeline reveals it,
