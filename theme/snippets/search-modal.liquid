@@ -1,0 +1,180 @@
+<style>
+  /* Predictive search overlay — drops from the top of the page. Paint-safe
+     hidden until opened. Follows UI/UX Pro Max: debounced predictions, graceful
+     no-results, 44px targets, focus ring, reduced-motion. */
+  .search-modal { position: fixed; inset: 0; z-index: 80; visibility: hidden; }
+  .search-modal.is-open { visibility: visible; }
+  .search-modal__overlay {
+    position: absolute; inset: 0;
+    background: rgba(28, 25, 23, 0.45);
+    opacity: 0; transition: opacity 0.2s ease;
+  }
+  .search-modal.is-open .search-modal__overlay { opacity: 1; }
+  .search-modal__panel {
+    position: absolute; inset-inline: 0; top: 0;
+    background: #fff;
+    border-bottom: 1px solid var(--color-border, #E8E4DC);
+    box-shadow: 0 12px 40px rgba(26, 26, 26, 0.10);
+    transform: translateY(-14px); opacity: 0;
+    transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease;
+  }
+  .search-modal.is-open .search-modal__panel { transform: translateY(0); opacity: 1; }
+  .search-modal__inner { max-width: 48rem; margin: 0 auto; padding: 1.25rem 1rem 1.5rem; }
+  .search-modal__form {
+    display: flex; align-items: center; gap: 0.75rem;
+    border-bottom: 2px solid var(--color-ink, #1C1917); padding-bottom: 0.6rem;
+  }
+  .search-modal__icon { width: 1.35rem; height: 1.35rem; color: var(--color-ink, #1C1917); flex: 0 0 auto; }
+  .search-modal__input {
+    flex: 1; min-width: 0; min-height: 2.75rem;
+    border: 0; background: transparent; outline: none;
+    font-size: 1.1rem; color: var(--color-ink, #1C1917);
+  }
+  .search-modal__close {
+    flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+    width: 2.75rem; height: 2.75rem; border: 0; background: transparent;
+    color: var(--color-text-muted, #6B6B6B); cursor: pointer; transition: color 0.2s ease;
+  }
+  .search-modal__close:hover { color: var(--color-ink, #1C1917); }
+  .search-modal__close svg { width: 1.25rem; height: 1.25rem; }
+  .search-modal__results { margin-top: 0.85rem; max-height: 62vh; overflow-y: auto; }
+  .search-result {
+    display: flex; align-items: center; gap: 0.85rem;
+    padding: 0.55rem 0.35rem; border-radius: 6px; text-decoration: none;
+  }
+  .search-result:hover { background: var(--color-bg, #FAFAF8); }
+  .search-result__img {
+    width: 3rem; height: 3.75rem; object-fit: cover; flex: 0 0 auto;
+    background: #f4f2ee; border: 1px solid var(--color-border, #E8E4DC);
+  }
+  .search-result__title { font-size: 0.9rem; line-height: 1.3; color: var(--color-ink, #1C1917); }
+  .search-modal__empty { padding: 1rem 0.35rem; color: var(--color-text-muted, #6B6B6B); font-size: 0.9rem; }
+  .search-modal__all {
+    display: inline-block; margin: 0.85rem 0.35rem 0;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--color-brand, #8B5E3C);
+  }
+  .search-modal__input:focus-visible,
+  .search-result:focus-visible,
+  .search-modal__all:focus-visible,
+  .search-modal__close:focus-visible { outline: 2px solid var(--color-brand, #8B5E3C); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    .search-modal__overlay, .search-modal__panel { transition: none; }
+  }
+</style>
+
+<div class="search-modal" id="tcw-search-modal" data-search-modal aria-hidden="true">
+  <div class="search-modal__overlay" data-search-close></div>
+  <div class="search-modal__panel" role="dialog" aria-modal="true" aria-label="{{ 'search.label' | t | default: 'Search' }}">
+    <div class="search-modal__inner">
+      <form action="{{ routes.search_url }}" method="get" role="search" class="search-modal__form" data-search-form>
+        <svg class="search-modal__icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" stroke-width="1.5" /><path stroke-linecap="round" stroke-width="1.5" d="M21 21l-4.2-4.2" />
+        </svg>
+        <label for="tcw-search-input" class="sr-only">{{ 'search.label' | t | default: 'Search' }}</label>
+        <input
+          id="tcw-search-input"
+          type="search"
+          name="q"
+          class="search-modal__input"
+          placeholder="{{ 'search.placeholder' | t | default: 'Search coffee, origins…' }}"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+          data-search-input
+        >
+        <input type="hidden" name="type" value="product">
+        <button type="button" class="search-modal__close" data-search-close aria-label="{{ 'accessibility.close' | t | default: 'Close' }}">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-width="1.6" d="M6 6l12 12M18 6L6 18" /></svg>
+        </button>
+      </form>
+      <div class="search-modal__results" data-search-results aria-live="polite"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var modal = document.querySelector('[data-search-modal]');
+    if (!modal) return;
+    var input = modal.querySelector('[data-search-input]');
+    var results = modal.querySelector('[data-search-results]');
+    var toggles = document.querySelectorAll('[data-search-toggle]');
+    var closers = modal.querySelectorAll('[data-search-close]');
+
+    var predictiveUrl = {{ routes.predictive_search_url | json }};
+    var searchUrl = {{ routes.search_url | json }};
+    var noResults = {{ 'search.no_results' | t | json }};
+    var viewAll = {{ 'search.view_all' | t | default: 'View all results' | json }};
+
+    var lastToggle = null, timer = null, controller = null;
+
+    function open(trigger) {
+      lastToggle = trigger || null;
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      toggles.forEach(function (b) { b.setAttribute('aria-expanded', 'true'); });
+      requestAnimationFrame(function () { input.focus(); });
+    }
+    function close() {
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      toggles.forEach(function (b) { b.setAttribute('aria-expanded', 'false'); });
+      if (lastToggle) lastToggle.focus();
+    }
+
+    toggles.forEach(function (b) { b.addEventListener('click', function () { open(b); }); });
+    closers.forEach(function (c) { c.addEventListener('click', close); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && modal.classList.contains('is-open')) close();
+    });
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    function render(products, q) {
+      if (!products.length) {
+        results.innerHTML = '<p class="search-modal__empty">' + escapeHtml(noResults) + '</p>';
+        return;
+      }
+      var html = '';
+      products.forEach(function (p) {
+        var src = p.image || (p.featured_image && p.featured_image.url) || '';
+        var img = src
+          ? '<img class="search-result__img" src="' + escapeHtml(src) + '" alt="" loading="lazy" width="48" height="60">'
+          : '<span class="search-result__img"></span>';
+        html += '<a class="search-result" href="' + escapeHtml(p.url) + '">' + img +
+                '<span class="search-result__title">' + escapeHtml(p.title) + '</span></a>';
+      });
+      html += '<a class="search-modal__all" href="' + escapeHtml(searchUrl) + '?q=' +
+              encodeURIComponent(q) + '&type=product">' + escapeHtml(viewAll) + ' →</a>';
+      results.innerHTML = html;
+    }
+
+    function runSearch(q) {
+      if (controller) controller.abort();
+      controller = new AbortController();
+      var url = predictiveUrl + '.json?q=' + encodeURIComponent(q) +
+                '&resources[type]=product&resources[limit]=6&resources[options][unavailable_products]=last';
+      fetch(url, { signal: controller.signal })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          var products = (((data || {}).resources || {}).results || {}).products || [];
+          render(products, q);
+        })
+        .catch(function (e) { if (e.name !== 'AbortError') results.innerHTML = ''; });
+    }
+
+    input.addEventListener('input', function () {
+      var q = input.value.trim();
+      if (timer) clearTimeout(timer);
+      if (q.length < 2) { results.innerHTML = ''; return; }
+      timer = setTimeout(function () { runSearch(q); }, 250); /* debounce */
+    });
+  })();
+</script>

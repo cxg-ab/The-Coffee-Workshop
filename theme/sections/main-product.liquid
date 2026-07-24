@@ -25,6 +25,13 @@
   if country != blank or region != blank or variety != blank or altitude != blank or process != blank or roast_level != blank or flavor_notes != blank
     assign has_specs = true
   endif
+
+  # Admin-authored custom rows for the Details list (one per line, "Label: Value")
+  assign custom_details = product.metafields.custom.pdp_details.value
+  assign has_details = has_specs
+  if custom_details != blank
+    assign has_details = true
+  endif
 -%}
 
 <style>
@@ -34,6 +41,11 @@
     --pdp-line: var(--color-border, #E8E4DC);
     --pdp-canvas: var(--color-bg, #FAFAF8);
     --pdp-brand: var(--color-brand, #8B5E3C);
+    /* Accessible gold for TEXT/focus on light backgrounds. The brand gold
+       (#C5A059) is only ~2.46:1 on white — fails WCAG AA. This deeper bronze
+       is 5.58:1 (passes AA) while staying on-brand. Bright gold stays for
+       decorative icons/thin borders. */
+    --pdp-brand-strong: #8B5E3C;
     --pdp-surface: var(--color-surface, #FFFFFF);
     background: var(--pdp-surface);
     color: var(--pdp-ink);
@@ -72,6 +84,109 @@
   .pdp__main-media {
     border: 1px solid var(--pdp-line);
   }
+  /* Branded default image fills the media box edge-to-edge. */
+  .pdp__placeholder { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* Main image is a button so it can open the zoom lightbox (tap or click). */
+  .pdp__zoom-trigger {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 1px solid var(--pdp-line);
+    background: var(--pdp-surface);
+    cursor: zoom-in;
+    position: relative;
+  }
+  .pdp__zoom-hint {
+    position: absolute;
+    inset-inline-end: 0.7rem;
+    inset-block-end: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--pdp-ink);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+  }
+  .pdp__zoom-hint svg { width: 1.1rem; height: 1.1rem; }
+  .pdp__zoom-trigger:hover .pdp__zoom-hint,
+  .pdp__zoom-trigger:focus-visible .pdp__zoom-hint { opacity: 1; transform: translateY(0); }
+  @media (hover: none) { .pdp__zoom-hint { opacity: 1; transform: none; } }
+
+  /* Fullscreen zoom lightbox */
+  .pdp__lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: rgba(12, 10, 9, 0.92);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    overscroll-behavior: contain;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .pdp__lightbox.is-open { opacity: 1; }
+  .pdp__lightbox[hidden] { display: none; }
+  .pdp__lightbox img {
+    max-width: min(100%, 1400px);
+    max-height: 92vh;
+    object-fit: contain;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+  .pdp__lightbox-close {
+    position: absolute;
+    top: 1rem;
+    inset-inline-end: 1rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .pdp__lightbox-close:hover { background: rgba(255, 255, 255, 0.25); }
+  .pdp__lightbox-close svg { width: 1.4rem; height: 1.4rem; }
+  .pdp__lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .pdp__lightbox-nav:hover { background: rgba(255, 255, 255, 0.25); }
+  .pdp__lightbox-nav svg { width: 1.6rem; height: 1.6rem; }
+  .pdp__lightbox-nav[hidden] { display: none; }
+  .pdp__lightbox-prev { inset-inline-start: 1rem; }
+  .pdp__lightbox-next { inset-inline-end: 1rem; }
+  [dir="rtl"] .pdp__lightbox-nav svg { transform: scaleX(-1); }
+  @media (prefers-reduced-motion: reduce) {
+    .pdp__lightbox, .pdp__zoom-hint { transition: none; }
+  }
   .pdp__thumbs {
     display: flex;
     gap: 0.5rem;
@@ -87,7 +202,7 @@
     height: 4.25rem;
     padding: 0;
     border: 1px solid var(--pdp-line);
-    background: var(--pdp-canvas);
+    background: var(--pdp-surface);
     cursor: pointer;
     overflow: hidden;
   }
@@ -119,7 +234,7 @@
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--pdp-brand);
+    color: var(--pdp-brand-strong);
   }
   .pdp__title {
     margin: 0;
@@ -142,7 +257,25 @@
     font-size: clamp(1.35rem, 2.2vw, 1.75rem);
     font-weight: 500;
     letter-spacing: 0.02em;
-    color: var(--pdp-brand);
+    color: var(--pdp-brand-strong);
+  }
+  /* Status badges pinned to the top-inner corner of the product image */
+  .pdp__badges {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.4rem;
+    pointer-events: none;
+  }
+  .pdp__badges .pdp__badge {
+    background: rgba(255, 255, 255, 0.92);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
   }
   .pdp__badge {
     display: inline-flex;
@@ -162,8 +295,8 @@
     color: #fff;
   }
   .pdp__badge--limited {
-    border-color: var(--pdp-brand);
-    color: var(--pdp-brand);
+    border-color: var(--pdp-brand-strong);
+    color: var(--pdp-brand-strong);
   }
   .pdp__origin {
     margin: 0;
@@ -188,12 +321,13 @@
     padding-top: 1.1rem;
   }
   .pdp__panel-label {
-    margin: 0 0 0.65rem;
-    font-size: 0.625rem;
+    margin: 0 0 0.85rem;
+    font-family: var(--font-display), Georgia, serif;
+    font-size: 1.05rem;
     font-weight: 700;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: var(--pdp-muted);
+    color: var(--pdp-ink);
   }
 
   .pdp__specs {
@@ -210,6 +344,24 @@
     align-items: start;
   }
   .pdp__spec:first-child { border-top: 1px solid var(--pdp-line); }
+  .pdp__spec--full { grid-template-columns: 1fr; }
+  /* Free-text admin note: full-width block — the "Details" label on its own
+     line, the note text below at a readable width. Distinct from the short
+     2-column specs above so the repeated word doesn't read as a duplicate. */
+  .pdp__spec--stack { grid-template-columns: 1fr; gap: 0.45rem 0; }
+  .pdp__spec--stack dd {
+    font-weight: 400;
+    color: var(--pdp-ink);
+    line-height: 1.6;
+    max-width: 40rem;
+  }
+  .pdp__note-line {
+    margin: 0 0 0.4rem;
+    font-weight: 400;
+    color: var(--pdp-ink);
+    line-height: 1.6;
+  }
+  .pdp__note-line:last-child { margin: 0; }
   .pdp__spec dt {
     margin: 0;
     font-size: 0.625rem;
@@ -298,7 +450,7 @@
     pointer-events: none;
   }
   .pdp-variant input:focus-visible ~ span {
-    outline: 2px solid var(--pdp-brand);
+    outline: 2px solid var(--pdp-brand-strong);
     outline-offset: 3px;
   }
 
@@ -365,26 +517,189 @@
       backdrop-filter: blur(10px);
     }
   }
+
+  /* ── Breadcrumb (skill: breadcrumb-web — orient on 3+ level hierarchies) ── */
+  .pdp__breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--pdp-muted);
+  }
+  .pdp__breadcrumb a { color: var(--pdp-muted); transition: color 0.2s ease; }
+  .pdp__breadcrumb a:hover { color: var(--pdp-brand-strong); }
+  .pdp__breadcrumb [aria-current] { color: var(--pdp-ink); }
+  .pdp__breadcrumb svg { width: 0.7rem; height: 0.7rem; opacity: 0.5; flex: 0 0 auto; }
+  [dir="rtl"] .pdp__breadcrumb svg { transform: scaleX(-1); }
+
+  /* Price: tabular figures so it never reflows (skill: number-tabular) */
+  .pdp__price { font-variant-numeric: tabular-nums; }
+  .pdp__unit {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    color: var(--pdp-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Stock urgency for limited batches */
+  .pdp__stock {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #b45309;
+  }
+
+  /* Reassurance row (skill: primary-action support + trust; SVG icons, no emoji) */
+  .pdp__trust {
+    display: grid;
+    gap: 0.65rem;
+    margin-top: 0.25rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--pdp-line);
+  }
+  .pdp__trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: var(--pdp-ink);
+  }
+  .pdp__trust-item svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    flex: 0 0 auto;
+    color: var(--pdp-brand);
+    stroke-width: 1.6;
+  }
+
+  /* Related products (skill: content-priority + AOV cross-sell) */
+  .pdp__related { border-top: 1px solid var(--pdp-line); }
+  .pdp__related-inner {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 3rem 1rem 4rem;
+  }
+  .pdp__related-head {
+    margin: 0 0 1.75rem;
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--pdp-ink);
+  }
+  .pdp__related-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem 1rem;
+  }
+  @media (min-width: 1024px) {
+    .pdp__related-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 2.5rem 1.5rem;
+    }
+  }
+
+  /* ── Pixel-reveal (native port of MagicUI pixel-image) ──
+     A grid of surface-colour tiles sits over the main image and vanishes in a
+     random, staggered order on load, so the photo assembles from "pixels".
+     Tiles are built by JS; the real <img> underneath is untouched (zoom still
+     works). Optional grayscale→colour finish. */
+  .pdp__pixel-overlay {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .pdp__pixel-tile {
+    background: var(--pdp-surface, #ffffff);
+    opacity: 1;
+    transform: scale(1.02);
+    transition: opacity 420ms ease, transform 420ms ease;
+    will-change: opacity, transform;
+  }
+  .pdp__pixel-tile.is-gone { opacity: 0; transform: scale(0.88); }
+  /* Keep the existing hover-lift transition and add the colour reveal. */
+  .pdp__main-media .tcw-product-media__img { transition: transform 0.7s ease-out, filter 0.6s ease; }
+  .pdp__main-media.is-pixel-gray .tcw-product-media__img { filter: grayscale(1); }
+  @media (prefers-reduced-motion: reduce) {
+    .pdp__pixel-tile { transition: none; }
+    .pdp__main-media.is-pixel-gray .tcw-product-media__img { filter: none; }
+  }
 </style>
 
 <section class="pdp" data-pdp>
   <div class="pdp__shell site-container">
+    {%- liquid
+      assign crumb_collection = null
+      for c in product.collections
+        if c.handle == 'single-origin' or c.handle == 'micro-lot' or c.handle == 'exotic' or c.handle == 'capsules' or c.handle == 'barista-tools'
+          assign crumb_collection = c
+          break
+        endif
+      endfor
+    -%}
+    <nav class="pdp__breadcrumb" aria-label="Breadcrumb">
+      <a href="{{ routes.root_url }}">{% if request.locale.iso_code == 'ar' %}الرئيسية{% else %}Home{% endif %}</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      {%- if crumb_collection -%}
+        <a href="{{ crumb_collection.url }}">{{ crumb_collection.title }}</a>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      {%- endif -%}
+      <span aria-current="page">{{ product.title | remove: '[PLACEHOLDER] ' }}</span>
+    </nav>
     <div class="pdp__grid">
       <div class="pdp__gallery" data-product-gallery>
+        {%- comment -%} Status badges as a top-corner overlay on the image (skill: primary-action clarity — flag without covering the product). {%- endcomment -%}
+        {%- if is_limited or current_variant.available == false -%}
+          <div class="pdp__badges">
+            {%- if is_limited -%}
+              <span class="pdp__badge pdp__badge--limited">{{ 'products.limited_batch' | t | default: 'Limited Batch' }}</span>
+            {%- endif -%}
+            {%- unless current_variant.available -%}
+              <span class="pdp__badge pdp__badge--sold">{{ 'products.sold_out' | t | default: 'Sold Out' }}</span>
+            {%- endunless -%}
+          </div>
+        {%- endif -%}
         {%- if product.media.size > 0 -%}
-          <div class="tcw-product-media tcw-product-media--padded tcw-product-media--lift pdp__main-media" data-pdp-main>
+          {%- comment -%} Pixel-reveal density → columns (rows derived from the 4:5 box in JS). {%- endcomment -%}
+          {%- assign px_cols = 8 -%}
+          {%- if section.settings.pixel_density == 'bold' -%}{%- assign px_cols = 6 -%}{%- elsif section.settings.pixel_density == 'fine' -%}{%- assign px_cols = 12 -%}{%- endif -%}
+          <button
+            type="button"
+            class="tcw-product-media tcw-product-media--crop tcw-product-media--lift pdp__main-media pdp__zoom-trigger"
+            data-pdp-main
+            data-pdp-zoom
+            {% if section.settings.pixel_reveal %}data-pixel-reveal data-pixel-cols="{{ px_cols }}" data-pixel-grayscale="{{ section.settings.pixel_grayscale }}"{% endif %}
+            aria-label="{{ 'products.zoom' | t | default: 'View larger image' }}"
+          >
+            {%- assign pdp_zoom_src = product.featured_media | image_url: width: 2048 -%}
             {{
               product.featured_media
-              | image_url: width: 1400
+              | image_url: width: 1600
               | image_tag:
                 class: 'tcw-product-media__img',
                 loading: 'eager',
-                widths: '600, 900, 1200, 1400',
+                widths: '600, 900, 1200, 1600',
                 sizes: '(max-width: 1024px) 100vw, 48vw',
                 alt: product.featured_media.alt | default: product.title,
-                data-pdp-main-img: true
+                data-pdp-main-img: true,
+                data-zoom: pdp_zoom_src
             }}
-          </div>
+            <span class="pdp__zoom-hint" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7" stroke-width="1.6"/><path stroke-linecap="round" stroke-width="1.6" d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg>
+            </span>
+          </button>
 
           {%- if product.media.size > 1 -%}
             <div class="pdp__thumbs" role="list">
@@ -394,7 +709,8 @@
                     type="button"
                     class="pdp__thumb{% if forloop.first %} is-active{% endif %}"
                     data-pdp-thumb
-                    data-full="{{ media | image_url: width: 1400 }}"
+                    data-full="{{ media | image_url: width: 1600 }}"
+                    data-zoom="{{ media | image_url: width: 2048 }}"
                     data-alt="{{ media.alt | default: product.title | escape }}"
                     aria-label="{{ product.title }} — image {{ forloop.index }}"
                   >
@@ -408,6 +724,18 @@
               {%- endfor -%}
             </div>
           {%- endif -%}
+        {%- else -%}
+          {%- comment -%} No admin image → branded default (full-bleed, no zoom). {%- endcomment -%}
+          <div class="tcw-product-media tcw-product-media--crop tcw-product-media--lift pdp__main-media" data-pdp-main>
+            <img
+              src="{{ 'product-placeholder.webp' | asset_url }}"
+              class="tcw-product-media__img pdp__placeholder"
+              width="880"
+              height="1100"
+              loading="eager"
+              alt="{{ product.title | escape }}"
+            >
+          </div>
         {%- endif -%}
       </div>
 
@@ -417,13 +745,20 @@
 
         <div class="pdp__meta-row">
           <p class="pdp__price" data-product-price>{{ current_variant.price | money }}</p>
-          {%- if is_limited -%}
-            <span class="pdp__badge pdp__badge--limited">{{ 'products.limited_batch' | t | default: 'Limited Batch' }}</span>
-          {%- endif -%}
-          {%- unless current_variant.available -%}
-            <span class="pdp__badge pdp__badge--sold">{{ 'products.sold_out' | t | default: 'Sold Out' }}</span>
-          {%- endunless -%}
         </div>
+
+        {%- liquid
+          assign inv = current_variant.inventory_quantity
+          assign show_stock = false
+          if current_variant.available and current_variant.inventory_management != blank and inv > 0 and inv <= 10
+            assign show_stock = true
+          endif
+        -%}
+        {%- if show_stock -%}
+          <p class="pdp__stock" role="status">
+            {%- if request.locale.iso_code == 'ar' -%}بقي {{ inv }} فقط{%- else -%}Only {{ inv }} left{%- endif -%}
+          </p>
+        {%- endif -%}
 
         {%- if country != blank -%}
           <p class="pdp__origin">
@@ -437,7 +772,7 @@
           <div class="pdp__desc prose-brand">{{ product.description }}</div>
         {%- endif -%}
 
-        {%- if has_specs -%}
+        {%- if has_details -%}
           <div class="pdp__panel">
             <p class="pdp__panel-label">{% if request.locale.iso_code == 'ar' %}التفاصيل{% else %}Details{% endif %}</p>
             <dl class="pdp__specs">
@@ -497,6 +832,42 @@
                     </div>
                   </dd>
                 </div>
+              {%- endif -%}
+
+              {%- comment -%} Admin custom rows: one line per row, "Label: Value" (a line with no colon spans full width). {%- endcomment -%}
+              {%- if custom_details != blank -%}
+                {%- assign detail_lines = custom_details | newline_to_br | split: '<br />' -%}
+                {%- assign note_block = '' -%}
+                {%- for line in detail_lines -%}
+                  {%- assign row = line | strip -%}
+                  {%- if row != blank -%}
+                    {%- assign row_parts = row | split: ':' -%}
+                    {%- if row_parts.size > 1 -%}
+                      {%- comment -%} "Label: Value" → a normal 2-column spec row. {%- endcomment -%}
+                      {%- assign row_label = row_parts[0] | strip -%}
+                      {%- assign row_value = row | remove_first: row_label | remove_first: ':' | strip -%}
+                      <div class="pdp__spec">
+                        <dt>{{ row_label | escape }}</dt>
+                        <dd>{{ row_value | escape }}</dd>
+                      </div>
+                    {%- else -%}
+                      {%- comment -%} Free-text note → gathered into one full-width Details block below. {%- endcomment -%}
+                      {%- assign note_block = note_block | append: row | append: '|~|' -%}
+                    {%- endif -%}
+                  {%- endif -%}
+                {%- endfor -%}
+                {%- if note_block != blank -%}
+                  <div class="pdp__spec pdp__spec--stack">
+                    <dt>{% if request.locale.iso_code == 'ar' %}التفاصيل{% else %}Details{% endif %}</dt>
+                    <dd>
+                      {%- assign note_lines = note_block | split: '|~|' -%}
+                      {%- for n in note_lines -%}
+                        {%- assign n2 = n | strip -%}
+                        {%- if n2 != blank -%}<p class="pdp__note-line">{{ n2 | escape }}</p>{%- endif -%}
+                      {%- endfor -%}
+                    </dd>
+                  </div>
+                {%- endif -%}
               {%- endif -%}
             </dl>
           </div>
@@ -562,10 +933,68 @@
             </div>
           </div>
         {% endform %}
+
+        <div class="pdp__trust" role="list">
+          <div class="pdp__trust-item" role="listitem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3c1.5 2.5 4 3.5 4 6.5A4 4 0 0 1 12 13a4 4 0 0 1-4-3.5C8 6.5 10.5 5.5 12 3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M7 13a5 5 0 0 0 10 0M6 21h12"/></svg>
+            <span>{% if request.locale.iso_code == 'ar' %}محمّص عند الطلب لأقصى درجات الطزاجة{% else %}Roasted to order for peak freshness{% endif %}</span>
+          </div>
+          <div class="pdp__trust-item" role="listitem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7h11v8H3zM14 10h4l3 3v2h-7z"/><circle cx="7" cy="17" r="1.6"/><circle cx="17.5" cy="17" r="1.6"/></svg>
+            <span>{% if request.locale.iso_code == 'ar' %}شحن بسعر ثابت داخل الإمارات{% else %}Flat-rate shipping across the UAE{% endif %}</span>
+          </div>
+          <div class="pdp__trust-item" role="listitem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+            <span>{% if request.locale.iso_code == 'ar' %}دفع آمن ومشفّر{% else %}Secure, encrypted checkout{% endif %}</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
+
+<div class="pdp__lightbox" data-pdp-lightbox hidden>
+  <button type="button" class="pdp__lightbox-close" data-pdp-lightbox-close aria-label="{{ 'accessibility.close' | t | default: 'Close' }}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-width="1.6" d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <button type="button" class="pdp__lightbox-nav pdp__lightbox-prev" data-pdp-lightbox-prev aria-label="{% if request.locale.iso_code == 'ar' %}الصورة السابقة{% else %}Previous image{% endif %}" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M15 6l-6 6 6 6"/></svg>
+  </button>
+  <img src="" alt="" data-pdp-lightbox-img>
+  <button type="button" class="pdp__lightbox-nav pdp__lightbox-next" data-pdp-lightbox-next aria-label="{% if request.locale.iso_code == 'ar' %}الصورة التالية{% else %}Next image{% endif %}" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9 6l6 6-6 6"/></svg>
+  </button>
+</div>
+
+{%- liquid
+  assign rel_collection = null
+  for c in product.collections
+    if c.handle == 'single-origin' or c.handle == 'micro-lot' or c.handle == 'exotic' or c.handle == 'capsules' or c.handle == 'barista-tools'
+      if c.all_products_count > 1
+        assign rel_collection = c
+        break
+      endif
+    endif
+  endfor
+-%}
+{%- if rel_collection -%}
+  <section class="pdp__related">
+    <div class="pdp__related-inner site-container">
+      <h2 class="pdp__related-head">
+        {%- if request.locale.iso_code == 'ar' -%}قد يعجبك أيضاً{%- else -%}You may also like{%- endif -%}
+      </h2>
+      <div class="pdp__related-grid">
+        {%- assign shown = 0 -%}
+        {%- for p in rel_collection.products -%}
+          {%- if p.id != product.id and shown < 4 -%}
+            {% render 'product-card', card_product: p %}
+            {%- assign shown = shown | plus: 1 -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  </section>
+{%- endif -%}
 
 <script>
 (function () {
@@ -601,6 +1030,7 @@
       btn.classList.add('is-active');
       if (mainImg && btn.dataset.full) {
         mainImg.src = btn.dataset.full;
+        if (btn.dataset.zoom) mainImg.dataset.zoom = btn.dataset.zoom;
         if (btn.dataset.alt) mainImg.alt = btn.dataset.alt;
         if (mainImg.srcset) mainImg.removeAttribute('srcset');
       }
@@ -620,6 +1050,135 @@
     if (plus) plus.addEventListener('click', function () { setQty((parseInt(qtyInput.value, 10) || 1) + 1); });
     if (qtyInput) qtyInput.addEventListener('change', function () { setQty(qtyInput.value); });
   }
+
+  /* Zoom lightbox — opens the current main image at full resolution. Works on
+     tap and click; closes via the button, backdrop, or Escape. The lightbox
+     element lives outside [data-pdp], so it is queried from document. */
+  (function pdpZoom() {
+    var trigger = root.querySelector('[data-pdp-zoom]');
+    var box = document.querySelector('[data-pdp-lightbox]');
+    if (!trigger || !box) return;
+    var boxImg = box.querySelector('[data-pdp-lightbox-img]');
+    var closeBtn = box.querySelector('[data-pdp-lightbox-close]');
+    var prevBtn = box.querySelector('[data-pdp-lightbox-prev]');
+    var nextBtn = box.querySelector('[data-pdp-lightbox-next]');
+
+    // Ordered list of full-res images — from the thumbnails, else the single main image.
+    var zoomList = [];
+    thumbs.forEach(function (t) { if (t.dataset.zoom) zoomList.push({ src: t.dataset.zoom, alt: t.dataset.alt || '' }); });
+    if (!zoomList.length && mainImg) {
+      zoomList.push({ src: mainImg.dataset.zoom || mainImg.currentSrc || mainImg.src, alt: mainImg.alt || '' });
+    }
+    var multiple = zoomList.length > 1;
+    var idx = 0;
+    if (prevBtn) prevBtn.hidden = !multiple;
+    if (nextBtn) nextBtn.hidden = !multiple;
+
+    function show(i) {
+      if (!zoomList.length) return;
+      idx = (i + zoomList.length) % zoomList.length;
+      boxImg.src = zoomList[idx].src;
+      boxImg.alt = zoomList[idx].alt;
+    }
+    function open() {
+      if (!zoomList.length) return;
+      var start = 0;
+      thumbs.forEach(function (t, i) { if (t.classList.contains('is-active')) start = i; });
+      show(start);
+      box.hidden = false;
+      requestAnimationFrame(function () { box.classList.add('is-open'); });
+      document.body.style.overflow = 'hidden';
+      closeBtn.focus();
+    }
+    function close() {
+      box.classList.remove('is-open');
+      document.body.style.overflow = '';
+      window.setTimeout(function () { box.hidden = true; boxImg.src = ''; }, 250);
+      trigger.focus();
+    }
+
+    trigger.addEventListener('click', open);
+    closeBtn.addEventListener('click', close);
+    if (prevBtn) prevBtn.addEventListener('click', function (e) { e.stopPropagation(); show(idx - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function (e) { e.stopPropagation(); show(idx + 1); });
+    box.addEventListener('click', function (e) { if (e.target === box) close(); });
+    document.addEventListener('keydown', function (e) {
+      if (box.hidden) return;
+      if (e.key === 'Escape') close();
+      else if (multiple && e.key === 'ArrowRight') show(idx + 1);
+      else if (multiple && e.key === 'ArrowLeft') show(idx - 1);
+    });
+  })();
+
+  /* Pixel-reveal — native port of MagicUI's pixel-image. Builds a grid of
+     surface-colour tiles over the main image and clears them in random,
+     staggered order once the photo has loaded, so it assembles from "pixels".
+     Runs once for the initial image; thumbnail switches don't retrigger it.
+     Skipped entirely under prefers-reduced-motion. */
+  (function pixelReveal() {
+    var host = root.querySelector('[data-pixel-reveal]');
+    if (!host) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var img = host.querySelector('.tcw-product-media__img');
+    if (!img) return;
+
+    var cols = parseInt(host.getAttribute('data-pixel-cols'), 10) || 8;
+    var rows = Math.max(1, Math.round(cols * 1.25)); /* 4:5 media box */
+    var grayscale = host.getAttribute('data-pixel-grayscale') === 'true';
+    var total = cols * rows;
+
+    var overlay = document.createElement('div');
+    overlay.className = 'pdp__pixel-overlay';
+    overlay.setAttribute('aria-hidden', 'true');
+    overlay.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
+    overlay.style.gridTemplateRows = 'repeat(' + rows + ', 1fr)';
+
+    var tiles = [];
+    var order = [];
+    for (var i = 0; i < total; i++) {
+      var tile = document.createElement('span');
+      tile.className = 'pdp__pixel-tile';
+      overlay.appendChild(tile);
+      tiles.push(tile);
+      order.push(i);
+    }
+    host.appendChild(overlay);
+    if (grayscale) host.classList.add('is-pixel-gray');
+
+    /* Fisher–Yates shuffle for a random clearing order. */
+    for (var j = order.length - 1; j > 0; j--) {
+      var k = Math.floor(Math.random() * (j + 1));
+      var tmp = order[j]; order[j] = order[k]; order[k] = tmp;
+    }
+
+    var maxDelay = 700; /* stagger window (ms) */
+    var dur = 420;      /* per-tile fade (matches CSS) */
+    var started = false;
+
+    function start() {
+      if (started) return;
+      started = true;
+      order.forEach(function (tileIdx, seq) {
+        var delay = (seq / total) * maxDelay + Math.random() * 60;
+        tiles[tileIdx].style.transitionDelay = delay.toFixed(0) + 'ms';
+        tiles[tileIdx].classList.add('is-gone');
+      });
+      if (grayscale) {
+        window.setTimeout(function () { host.classList.remove('is-pixel-gray'); }, maxDelay * 0.6);
+      }
+      window.setTimeout(function () {
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        host.classList.remove('is-pixel-gray');
+      }, maxDelay + dur + 150);
+    }
+
+    if (img.complete && img.naturalWidth > 0) {
+      requestAnimationFrame(start);
+    } else {
+      img.addEventListener('load', function () { requestAnimationFrame(start); }, { once: true });
+      window.setTimeout(start, 1500); /* safety if load never fires */
+    }
+  })();
 })();
 </script>
 
@@ -627,6 +1186,36 @@
 {
   "name": "Product",
   "class": "product-section",
-  "settings": []
+  "settings": [
+    {
+      "type": "header",
+      "content": "Main image reveal"
+    },
+    {
+      "type": "checkbox",
+      "id": "pixel_reveal",
+      "label": "Pixel-reveal animation",
+      "info": "On load, the main product image assembles from a grid of pixels. Plays once; respects reduced-motion settings.",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "pixel_density",
+      "label": "Pixel size",
+      "options": [
+        { "value": "bold", "label": "Bold (large pixels)" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "fine", "label": "Fine (small pixels)" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "checkbox",
+      "id": "pixel_grayscale",
+      "label": "Reveal colour last",
+      "info": "Start grayscale and fade to full colour as the pixels clear.",
+      "default": true
+    }
+  ]
 }
 {% endschema %}

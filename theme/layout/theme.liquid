@@ -42,6 +42,71 @@
 
     {{ 'application.css' | asset_url | stylesheet_tag }}
 
+    <style>
+      /* Accessibility (WCAG 1.4.3 AA): the brand gold #C5A059 as TEXT on light
+         backgrounds is only ~2.46:1 — below the 4.5:1 minimum. Default gold text
+         to a deeper bronze (#8B5E3C, 5.58:1). Loaded after application.css so it
+         overrides the .text-brand utility. Bright gold is preserved where it is
+         readable or exempt: on the dark footer, and for the logo wordmark
+         (logotypes are exempt from contrast). Gold backgrounds/borders/icons use
+         bg-brand / border-brand (not .text-brand) and are unaffected. */
+      .text-brand { color: #8B5E3C; }
+      .tcw-footer .text-brand,
+      .tcw-logo .text-brand { color: var(--color-brand, #C5A059); }
+
+      /* Smooth scroll polish: keep in-page anchor targets (skip-link, footer
+         links) clear of the sticky header instead of landing underneath it.
+         scroll-behavior:smooth + its reduced-motion override already live in
+         application.css. */
+      html { scroll-padding-top: calc(var(--tcw-header-h, 5rem) + 1rem); }
+
+      /* Explicit-property transition helper (replaces Tailwind's transition-all,
+         which the Web Interface Guidelines disallow). Duration/easing come from
+         the element's own duration-*/ease-* utilities. */
+      .transition-motion { transition-property: opacity, transform, width; }
+
+      /* Fix the screen "shake/vibrate" at the scroll extremes:
+         1. overscroll-behavior:none stops the rubber-band bounce from chaining
+            back into the smooth-scroll/scroll listeners when you pull past the
+            top or bottom.
+         2. dvh instead of 100vh stops the mobile URL-bar show/hide from
+            oscillating the page height at the very bottom of long pages. */
+      html, body { overscroll-behavior: none; }
+      @supports (min-height: 100dvh) {
+        .min-h-screen { min-height: 100dvh; }
+      }
+
+      /* Stop the whole page from scrolling sideways / the white gap on the
+         right. Two things cause it:
+           1. The category pills' scrollIntoView nudging a sub-pixel-wide page.
+           2. The cart drawer — it's position:fixed and lives OUTSIDE
+              .page-wrapper, and when closed it's translateX(100%): one panel
+              width past the right edge. On iOS Safari an off-canvas fixed
+              element to the right makes the page horizontally pannable, which
+              expands the layout viewport. Full-width bars (header, announcement)
+              then only cover the visual viewport, leaving white to the right,
+              and the product column gets clipped at the screen edge.
+         .page-wrapper clip can't contain the drawer (it's a sibling), so clip at
+         the ROOT too — that contains everything, fixed siblings included. Clip,
+         not hidden, so position:sticky headers/galleries keep working. */
+      html, body { overflow-x: clip; }
+      .page-wrapper { overflow-x: clip; }
+
+      /* Product images sit on clean white, not the page's off-white (#FAFAF8).
+         With object-fit:contain + padding, that page tint was showing as a grey
+         frame behind/around product photos on the grid and PDP. */
+      .tcw-product-media { background-color: var(--color-surface, #ffffff); }
+
+      /* Hero entrance: pre-hide the copy so the buttons/heading don't flash
+         (visible → hidden → fade-in) before the GSAP timeline runs. Only when
+         JS + animations are on and motion is allowed; the timeline reveals it,
+         and a JS failsafe reveals it if the animation never runs. */
+      html.js body[data-animations="true"] [data-hero-copy] { visibility: hidden; }
+      @media (prefers-reduced-motion: reduce) {
+        html.js body[data-animations="true"] [data-hero-copy] { visibility: visible; }
+      }
+    </style>
+
     <script>
       document.documentElement.classList.replace('no-js', 'js');
     </script>
@@ -76,6 +141,7 @@
     <script>
       window.theme = window.theme || {};
       window.theme.moneyFormat = {{ shop.money_format | json }};
+      window.theme.placeholderImage = {{ 'product-placeholder.webp' | asset_url | json }};
       window.theme.strings = {
         cartEmpty: {{ 'cart.empty' | t | json }},
         cartAddError: {{ 'cart.add_error' | t | json }},
@@ -99,9 +165,10 @@
         };
       }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js" defer></script>
+    {%- comment -%} Motion libs self-hosted on the Shopify CDN (no third-party dependency). Order matters: gsap → ScrollTrigger → lenis. {%- endcomment -%}
+    <script src="{{ 'gsap.min.js' | asset_url }}" defer></script>
+    <script src="{{ 'ScrollTrigger.min.js' | asset_url }}" defer></script>
+    <script src="{{ 'lenis.min.js' | asset_url }}" defer></script>
     <script src="{{ 'application.js' | asset_url }}" defer></script>
     <script src="{{ 'animations.js' | asset_url }}" defer></script>
   </body>

@@ -94,6 +94,12 @@
   function initLenis() {
     if (!enabled() || isDesignMode() || typeof Lenis === 'undefined') return null;
 
+    /* Touch devices (iPad, phones) get native momentum scrolling. Lenis
+       intercepts touch scroll and makes it feel heavy/laggy on mobile, so
+       smooth-scroll is desktop (fine-pointer) only. ScrollTrigger animations
+       still work — they just read native scroll instead of Lenis. */
+    if (window.matchMedia('(pointer: coarse)').matches) return null;
+
     lenis = new Lenis({
       lerp: 0.1,
       smoothWheel: true,
@@ -240,6 +246,12 @@
 
     const copy = section.querySelector('[data-hero-copy]');
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+    /* The hero copy is pre-hidden in CSS to avoid a flash (buttons/heading
+       briefly showing before the .from() tweens hide them). Reveal it at t=0 —
+       by then the .from tweens below have already set the children to their
+       hidden start state, so it animates in cleanly with no flash. */
+    if (copy) tl.set(copy, { visibility: 'visible' }, 0);
 
     const eyebrow = copy?.querySelector('[data-hero-eyebrow]');
     const tagline = copy?.querySelector('[data-hero-tagline]');
@@ -570,6 +582,7 @@
     const cards = section.querySelectorAll('[data-origin-card]');
     const progressCurrent = section.querySelector('[data-origin-progress-current]');
     const padIndex = (n) => String(n).padStart(2, '0');
+    const isMobile = window.matchMedia('(max-width: 1023px)').matches;
 
     if (progressCurrent && cards.length) {
       const updateProgress = (index) => {
@@ -594,36 +607,38 @@
       const img = media?.querySelector('img');
       const copyItems = card.querySelectorAll('[data-origin-copy] > *:not([data-split-title])');
 
-      /* Clip + scale reveal of the media frame */
+      /* Scale + opacity reveal — avoids clip-path repaints during scroll */
       if (media) {
         gsap.fromTo(
           media,
-          { clipPath: 'inset(14% 10% 14% 10% round 12px)', scale: 0.96, autoAlpha: 0.4 },
+          { scale: 0.96, autoAlpha: 0.35 },
           {
-            clipPath: 'inset(0% 0% 0% 0% round 12px)',
             scale: 1,
             autoAlpha: 1,
             duration: 1.1,
             ease: 'power3.out',
+            force3D: true,
             scrollTrigger: { trigger: card, start: 'top 82%', once: true },
           }
         );
       }
 
-      /* Inner-image parallax while the card passes the viewport */
-      if (img) {
+      /* Inner-image parallax — desktop only; scrub on every card is the main mobile jank source */
+      if (img && !isMobile) {
+        gsap.set(img, { force3D: true });
         gsap.fromTo(
           img,
-          { scale: 1.15, yPercent: -7 },
+          { scale: 1.08, y: -12 },
           {
-            scale: 1.15,
-            yPercent: 7,
+            scale: 1.08,
+            y: 12,
             ease: 'none',
+            force3D: true,
             scrollTrigger: {
               trigger: card,
               start: 'top bottom',
               end: 'bottom top',
-              scrub: 0.6,
+              scrub: 1,
             },
           }
         );
@@ -862,6 +877,17 @@
   } else {
     onReady();
   }
+
+  /* Failsafe: the hero copy is pre-hidden in CSS to avoid an entrance-flash.
+     If the entrance animation never runs (e.g. GSAP fails to load), reveal it
+     anyway so it can't get stuck invisible. */
+  window.setTimeout(function () {
+    if (!document.body.classList.contains('animations-ready')) {
+      document.querySelectorAll('[data-hero-copy]').forEach(function (el) {
+        el.style.visibility = 'visible';
+      });
+    }
+  }, 1200);
 
   document.addEventListener('shopify:section:load', () => {
     requestAnimationFrame(onReady);

@@ -270,9 +270,24 @@
         }
         return c;
       }
+      /* On smaller screens, only load/show every Nth frame. 217 full frames
+         (~47MB, up to 2400x2000 each) is far more than a phone/tablet can
+         decode without jank; stepping cuts the memory + network cost 2-3x
+         while keeping the roast visibly smooth. Desktop (step 1) is unchanged. */
+      function frameStep(){
+        if(isPhone()) return 3;
+        if(isTablet()) return 2;
+        return 1;
+      }
       function roastIndex(p){
         if(stopIdx <= 0) return 0;
-        return Math.min(stopIdx, Math.floor(p * (stopIdx + 1)));
+        var idx = Math.min(stopIdx, Math.floor(p * (stopIdx + 1)));
+        var step = frameStep();
+        if(step > 1){
+          idx = Math.round(idx / step) * step;
+          if(idx > stopIdx) idx = stopIdx;
+        }
+        return idx;
       }
 
       function size(){
@@ -334,16 +349,20 @@
 
       function preload(){
         var budget = loadBudget();
-        targetLoads = budget;
+        var step = frameStep();
         var queue = [];
         var seen = {};
-        var priority = [0, stopIdx, Math.floor(stopIdx * 0.5), 1, stopIdx - 1];
+        /* Only queue frames we can actually display: every Nth frame plus the
+           final stop frame. Keeps mobile from fetching all 217. */
+        function want(i){ return i >= 0 && i < budget && (i % step === 0 || i === stopIdx); }
+        var priority = [0, stopIdx, Math.round(stopIdx * 0.5 / step) * step, step];
         priority.forEach(function(i){
-          if(i >= 0 && i < budget && !seen[i]){ seen[i] = true; queue.push(i); }
+          if(want(i) && !seen[i]){ seen[i] = true; queue.push(i); }
         });
         for(var i = 0; i < budget; i++){
-          if(!seen[i]) queue.push(i);
+          if(want(i) && !seen[i]){ seen[i] = true; queue.push(i); }
         }
+        targetLoads = queue.length;
 
         var active = 0;
         var threshold = readyThreshold();

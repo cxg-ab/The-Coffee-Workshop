@@ -34,6 +34,29 @@
     text-transform: uppercase;
     padding: 0.35rem 0.7rem;
   }
+  /* Limited Batch — solid brand bronze so it reads as "special". Uses the deep
+     bronze (#8B5E3C, 5.6:1 with white) not the bright gold (fails contrast). */
+  .product-card__badge--limited {
+    background: #8B5E3C;
+    border-color: #8B5E3C;
+    color: #fff;
+    backdrop-filter: none;
+  }
+  /* Explicit positioning for the badge stack. The Tailwind offset utilities
+     (top-4/right-4/inset-x-0/bottom-6) are NOT in the prebuilt application.css,
+     so relying on them left the badge centered by the flex media box. This
+     hand-written rule pins it to the top-right regardless of the CSS build. */
+  .product-card__badges {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    pointer-events: none;
+  }
 
   .product-card__roast-dot {
     display: inline-block;
@@ -45,18 +68,8 @@
   }
   .product-card__roast-dot.is-filled { background: var(--color-ink, #1C1917); }
 
-  .product-card__quick-add {
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: #fff;
-    text-align: center;
-    padding-bottom: 0.35rem;
-    border-bottom: 1px solid rgba(255,255,255,0.6);
-    display: inline-block;
-    background: transparent;
-  }
+  /* Branded default image fills the card edge-to-edge (no white padding). */
+  .product-card__placeholder { object-fit: cover; }
 </style>
 
 {%- liquid
@@ -80,10 +93,11 @@
     when 'Dark'
       assign roast_step = 5
   endcase
+
 -%}
 
 <article class="product-card product-card--luxury group relative flex flex-col{% unless card_product.available %} is-rested{% endunless %}">
-  <a href="{{ product_url }}" class="tcw-product-media tcw-product-media--padded tcw-product-media--lift block">
+  <a href="{{ product_url }}" class="tcw-product-media tcw-product-media--crop tcw-product-media--lift block">
     {%- if featured_image -%}
       {{
         featured_image
@@ -96,15 +110,21 @@
           alt: card_product.featured_media.alt | default: card_product.title
       }}
     {%- else -%}
-      <div class="flex h-full w-full items-center justify-center text-xs uppercase tracking-[0.2em] text-muted">
-        {{ 'products.no_image' | t }}
-      </div>
+      {%- comment -%} No admin image → branded default (full-bleed). {%- endcomment -%}
+      <img
+        src="{{ 'product-placeholder.webp' | asset_url }}"
+        alt="{{ card_product.title | escape }}"
+        class="tcw-product-media__img product-card__image product-card__placeholder"
+        loading="lazy"
+        width="880"
+        height="1100"
+      >
     {%- endif -%}
 
     {%- if is_limited or card_product.available == false -%}
-      <div class="absolute left-4 top-4 flex flex-col gap-2 z-20">
+      <div class="product-card__badges">
         {%- if is_limited -%}
-          <span class="product-card__badge">{{ 'products.limited_batch' | t }}</span>
+          <span class="product-card__badge product-card__badge--limited">{{ 'products.limited_batch' | t }}</span>
         {%- endif -%}
         {%- unless card_product.available -%}
           <span class="product-card__badge product-card__badge--rested">{{ 'products.sold_out' | t }}</span>
@@ -112,22 +132,6 @@
       </div>
     {%- endif -%}
 
-    {%- if card_product.available -%}
-      <div class="absolute inset-x-0 bottom-6 z-20 flex justify-center opacity-0 translate-y-2 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 hidden lg:flex">
-        <form method="post" action="{{ routes.cart_add_url }}" data-ajax-cart>
-          <input type="hidden" name="id" value="{{ card_product.selected_or_first_available_variant.id }}">
-          <button
-            type="submit"
-            name="add"
-            class="product-card__quick-add"
-            data-add-label="{{ 'products.quick_add' | t }}"
-            data-adding-label="{{ 'products.adding_to_cart' | t }}"
-          >
-            {{ 'products.quick_add' | t }}
-          </button>
-        </form>
-      </div>
-    {%- endif -%}
   </a>
 
   <div class="flex flex-1 flex-col pt-6">
