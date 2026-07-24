@@ -19,23 +19,25 @@
 
     <div class="origin-sticky-cards">
       {%- for block in section.blocks -%}
-        {%- assign origin_product = block.settings.product -%}
         {%- assign origin_name = block.settings.name -%}
         {%- assign origin_note = block.settings.note -%}
         {%- assign origin_image = block.settings.image -%}
-        {%- assign origin_url = blank -%}
 
-        {%- if origin_product != blank -%}
+        {%- comment -%}
+          Click-through link for each card so shoppers can go to the item:
+          a picked product links to its product page (PDP); otherwise a custom
+          URL is used. This only sets the link — the card's text and image stay
+          exactly as entered in "Card content" below.
+        {%- endcomment -%}
+        {%- assign origin_url = block.settings.link -%}
+        {%- if block.settings.product != blank -%}
+          {%- assign origin_url = block.settings.product.url -%}
           {%- if origin_name == blank -%}
-            {%- assign origin_name = origin_product.title -%}
+            {%- assign origin_name = block.settings.product.title -%}
           {%- endif -%}
-          {%- if origin_image == blank and origin_product.featured_media != blank -%}
-            {%- assign origin_image = origin_product.featured_media.preview_image -%}
+          {%- if origin_image == blank and block.settings.product.featured_media != blank -%}
+            {%- assign origin_image = block.settings.product.featured_media.preview_image -%}
           {%- endif -%}
-          {%- if origin_note == blank and origin_product.description != blank -%}
-            {%- assign origin_note = origin_product.description | strip_html | truncate: 140 -%}
-          {%- endif -%}
-          {%- assign origin_url = origin_product.url -%}
         {%- endif -%}
 
         <article class="origin-sticky-card" data-origin-card data-origin-index="{{ forloop.index }}" {{ block.shopify_attributes }}>
@@ -114,17 +116,20 @@
       "type": "origin",
       "name": "Origin / Product",
       "settings": [
+        { "type": "header", "content": "Link (where the card goes when clicked)" },
         {
           "type": "product",
           "id": "product",
-          "label": "Product (admin editable)",
-          "info": "Pick a product to auto-fill name, image, and link. Manual fields below override."
+          "label": "Link to product",
+          "info": "Pick a bean to link this card to its product page (PDP). This only sets the click destination — the text and image below stay as you enter them."
         },
-        { "type": "text", "id": "name", "label": "Display name", "default": "Ethiopia", "info": "Leave blank to use the product title." },
+        { "type": "url", "id": "link", "label": "Or a custom link", "info": "Used only when no product is chosen — e.g. a collection or page." },
+        { "type": "header", "content": "Card content" },
+        { "type": "text", "id": "name", "label": "Display name", "default": "Ethiopia", "info": "Leave blank to use the linked product's title." },
         { "type": "text", "id": "region", "label": "Region label", "default": "African highlands" },
         { "type": "text", "id": "profile", "label": "Flavor profile", "default": "Floral · Citrus · Tea-like" },
         { "type": "textarea", "id": "note", "label": "Story note", "default": "Bright, expressive washed lots from Yirgacheffe and Guji — among the first origins we cup each season." },
-        { "type": "image_picker", "id": "image", "label": "Image override", "info": "Optional. Uses product image when empty." }
+        { "type": "image_picker", "id": "image", "label": "Image", "info": "Optional. Uses the linked product's image when empty." }
       ]
     }
   ],
