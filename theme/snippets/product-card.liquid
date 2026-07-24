@@ -34,6 +34,14 @@
     text-transform: uppercase;
     padding: 0.35rem 0.7rem;
   }
+  /* Limited Batch — solid brand bronze so it reads as "special". Uses the deep
+     bronze (#8B5E3C, 5.6:1 with white) not the bright gold (fails contrast). */
+  .product-card__badge--limited {
+    background: #8B5E3C;
+    border-color: #8B5E3C;
+    color: #fff;
+    backdrop-filter: none;
+  }
 
   .product-card__roast-dot {
     display: inline-block;
@@ -114,7 +122,7 @@
     {%- if is_limited or card_product.available == false -%}
       <div class="absolute left-4 top-4 flex flex-col gap-2 z-20">
         {%- if is_limited -%}
-          <span class="product-card__badge">{{ 'products.limited_batch' | t }}</span>
+          <span class="product-card__badge product-card__badge--limited">{{ 'products.limited_batch' | t }}</span>
         {%- endif -%}
         {%- unless card_product.available -%}
           <span class="product-card__badge product-card__badge--rested">{{ 'products.sold_out' | t }}</span>
