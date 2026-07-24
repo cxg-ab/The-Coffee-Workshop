@@ -120,7 +120,7 @@
     {%- endif -%}
 
     {%- if is_limited or card_product.available == false -%}
-      <div class="absolute right-4 bottom-4 flex flex-col items-end gap-2 z-20">
+      <div class="absolute right-4 top-4 flex flex-col items-end gap-2 z-20">
         {%- if is_limited -%}
           <span class="product-card__badge product-card__badge--limited">{{ 'products.limited_batch' | t }}</span>
         {%- endif -%}
