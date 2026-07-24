@@ -1,32 +1,132 @@
+<style>
+  /* Motion FAQ accordion — native port of a shadcn/Radix "motion accordion".
+     Smooth open/close via grid-template-rows 0fr→1fr (the robust way to animate
+     to height:auto), plus icon rotation and a soft content fade/slide. */
+  .faq-accordion { }
+  .faq-item__trigger {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+  }
+  .faq-item__trigger:focus-visible {
+    outline: 2px solid var(--color-brand, #8B5E3C);
+    outline-offset: -2px;
+  }
+  .faq-item__icon {
+    display: inline-flex;
+    font-size: 1.25rem;
+    line-height: 1;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .faq-item.is-open .faq-item__icon { transform: rotate(45deg); }
+
+  /* The animated container. grid-rows 0fr (closed) → 1fr (open). */
+  .faq-item__panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .faq-item.is-open .faq-item__panel { grid-template-rows: 1fr; }
+  .faq-item__panel-inner { overflow: hidden; }
+
+  /* Content fades/slides in slightly after the panel starts opening. */
+  .faq-item__answer {
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.3s ease 0.05s, transform 0.3s ease 0.05s;
+  }
+  .faq-item.is-open .faq-item__answer {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .faq-item__panel,
+    .faq-item__icon,
+    .faq-item__answer { transition: none; }
+  }
+</style>
+
 <div class="site-container py-12 lg:py-16">
   <p class="section-eyebrow mb-4">{{ 'faq.eyebrow' | t }}</p>
   <h1 class="section-title" data-reveal data-reveal-y="32" data-reveal-scale="1">{%- if page.title != blank -%}{{ page.title }}{%- else -%}{{ 'faq.heading' | t }}{%- endif -%}</h1>
 
-  <div class="mx-auto mt-10 max-w-3xl divide-y divide-line border border-line bg-surface">
-    {%- if section.blocks.size > 0 -%}
+  {%- if section.blocks.size > 0 -%}
+    <div
+      class="faq-accordion mx-auto mt-10 max-w-3xl divide-y divide-line border border-line bg-surface"
+      data-faq-accordion
+      data-single="{% if section.settings.single_open %}true{% else %}false{% endif %}"
+    >
       {%- for block in section.blocks -%}
-        <details class="group p-6" {{ block.shopify_attributes }}>
-          <summary class="cursor-pointer list-none text-sm font-semibold uppercase tracking-[0.08em] text-ink marker:content-none">
-            <span class="flex items-center justify-between gap-4">
-              {{ block.settings.question }}
-              <span class="text-brand transition-transform group-open:rotate-45">+</span>
-            </span>
-          </summary>
-          <div class="prose-brand mt-4 faq-answer">{{ block.settings.answer }}</div>
-        </details>
+        {%- assign panel_id = 'faq-panel-' | append: section.id | append: '-' | append: forloop.index -%}
+        <div class="faq-item group" data-faq-item {{ block.shopify_attributes }}>
+          <h2 class="m-0">
+            <button
+              type="button"
+              class="faq-item__trigger flex w-full items-center justify-between gap-4 p-6 text-left text-sm font-semibold uppercase tracking-[0.08em] text-ink"
+              aria-expanded="false"
+              aria-controls="{{ panel_id }}"
+              data-faq-trigger
+            >
+              <span>{{ block.settings.question }}</span>
+              <span class="faq-item__icon text-brand shrink-0" aria-hidden="true">+</span>
+            </button>
+          </h2>
+          <div id="{{ panel_id }}" class="faq-item__panel" role="region" data-faq-panel>
+            <div class="faq-item__panel-inner">
+              <div class="faq-item__answer prose-brand px-6 pb-6 faq-answer">{{ block.settings.answer }}</div>
+            </div>
+          </div>
+        </div>
       {%- endfor -%}
-    {%- elsif page.content != blank -%}
+    </div>
+  {%- elsif page.content != blank -%}
+    <div class="mx-auto mt-10 max-w-3xl border border-line bg-surface">
       <div class="prose-brand p-6">{{ page.content }}</div>
-    {%- endif -%}
-  </div>
+    </div>
+  {%- endif -%}
 </div>
+
+<script>
+  (function () {
+    document.querySelectorAll('[data-faq-accordion]').forEach(function (root) {
+      var single = root.getAttribute('data-single') === 'true';
+      var items = Array.prototype.slice.call(root.querySelectorAll('[data-faq-item]'));
+      items.forEach(function (item) {
+        var trigger = item.querySelector('[data-faq-trigger]');
+        if (!trigger) return;
+        trigger.addEventListener('click', function () {
+          var willOpen = !item.classList.contains('is-open');
+          if (single && willOpen) {
+            items.forEach(function (other) {
+              if (other === item) return;
+              other.classList.remove('is-open');
+              var otherTrigger = other.querySelector('[data-faq-trigger]');
+              if (otherTrigger) otherTrigger.setAttribute('aria-expanded', 'false');
+            });
+          }
+          item.classList.toggle('is-open', willOpen);
+          trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        });
+      });
+    });
+  })();
+</script>
 
 {% schema %}
 {
   "name": "FAQ page",
   "tag": "section",
   "class": "faq-section",
-  "settings": [],
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "single_open",
+      "label": "Open one answer at a time",
+      "info": "When on, opening a question closes the others (like an accordion). Turn off to let several stay open.",
+      "default": true
+    }
+  ],
   "blocks": [
     {
       "type": "question",
