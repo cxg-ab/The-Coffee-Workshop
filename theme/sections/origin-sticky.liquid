@@ -19,8 +19,17 @@
 
     <div class="origin-sticky-cards">
       {%- for block in section.blocks -%}
+        {%- comment -%}
+          Each item works two ways:
+          • Pick a product → name, region, flavour profile, image, note, and link
+            all auto-fill from the product (and its coffee metafields).
+          • Or leave the product empty and type the fields in manually.
+          Any manual field that is filled in always overrides the product value.
+        {%- endcomment -%}
         {%- assign origin_product = block.settings.product -%}
         {%- assign origin_name = block.settings.name -%}
+        {%- assign origin_region = block.settings.region -%}
+        {%- assign origin_profile = block.settings.profile -%}
         {%- assign origin_note = block.settings.note -%}
         {%- assign origin_image = block.settings.image -%}
         {%- assign origin_url = blank -%}
@@ -28,6 +37,16 @@
         {%- if origin_product != blank -%}
           {%- if origin_name == blank -%}
             {%- assign origin_name = origin_product.title -%}
+          {%- endif -%}
+          {%- if origin_region == blank -%}
+            {%- if origin_product.metafields.coffee.region.value != blank -%}
+              {%- assign origin_region = origin_product.metafields.coffee.region.value -%}
+            {%- elsif origin_product.metafields.coffee.country.value != blank -%}
+              {%- assign origin_region = origin_product.metafields.coffee.country.value -%}
+            {%- endif -%}
+          {%- endif -%}
+          {%- if origin_profile == blank and origin_product.metafields.coffee.flavor_notes.value != blank -%}
+            {%- assign origin_profile = origin_product.metafields.coffee.flavor_notes.value | join: ' · ' -%}
           {%- endif -%}
           {%- if origin_image == blank and origin_product.featured_media != blank -%}
             {%- assign origin_image = origin_product.featured_media.preview_image -%}
@@ -73,8 +92,8 @@
             {%- endif -%}
           </div>
           <div class="origin-sticky-card__copy" data-origin-copy>
-            {%- if block.settings.region != blank -%}
-              <p class="origin-sticky-card__meta section-eyebrow">( {{ block.settings.region }} )</p>
+            {%- if origin_region != blank -%}
+              <p class="origin-sticky-card__meta section-eyebrow">( {{ origin_region }} )</p>
             {%- endif -%}
             <h3 class="origin-sticky-card__name" data-split-title>
               {%- if origin_url != blank -%}
@@ -83,8 +102,8 @@
                 {{ origin_name }}
               {%- endif -%}
             </h3>
-            {%- if block.settings.profile != blank -%}
-              <p class="origin-sticky-card__profile">{{ block.settings.profile }}</p>
+            {%- if origin_profile != blank -%}
+              <p class="origin-sticky-card__profile">{{ origin_profile }}</p>
             {%- endif -%}
             {%- if origin_note != blank -%}
               <p class="origin-sticky-card__note">{{ origin_note }}</p>
@@ -112,19 +131,22 @@
   "blocks": [
     {
       "type": "origin",
-      "name": "Origin / Product",
+      "name": "Origin item",
       "settings": [
+        { "type": "paragraph", "content": "Two ways to fill this item: (1) pick a product below and everything auto-fills from it, or (2) leave the product empty and type the details in manually. Any manual field you fill in overrides the product." },
+        { "type": "header", "content": "Option 1 — Pick from your products" },
         {
           "type": "product",
           "id": "product",
-          "label": "Product (admin editable)",
-          "info": "Pick a product to auto-fill name, image, and link. Manual fields below override."
+          "label": "Product",
+          "info": "Auto-fills name, region, flavour profile, image, note, and links the card to this product."
         },
-        { "type": "text", "id": "name", "label": "Display name", "default": "Ethiopia", "info": "Leave blank to use the product title." },
-        { "type": "text", "id": "region", "label": "Region label", "default": "African highlands" },
-        { "type": "text", "id": "profile", "label": "Flavor profile", "default": "Floral · Citrus · Tea-like" },
-        { "type": "textarea", "id": "note", "label": "Story note", "default": "Bright, expressive washed lots from Yirgacheffe and Guji — among the first origins we cup each season." },
-        { "type": "image_picker", "id": "image", "label": "Image override", "info": "Optional. Uses product image when empty." }
+        { "type": "header", "content": "Option 2 — Manual details (optional overrides)" },
+        { "type": "text", "id": "name", "label": "Display name", "info": "Blank = product title." },
+        { "type": "text", "id": "region", "label": "Region label", "info": "Blank = product's origin / region." },
+        { "type": "text", "id": "profile", "label": "Flavour profile", "info": "Blank = product's tasting notes." },
+        { "type": "textarea", "id": "note", "label": "Story note", "info": "Blank = product description." },
+        { "type": "image_picker", "id": "image", "label": "Image", "info": "Blank = product image." }
       ]
     }
   ],
