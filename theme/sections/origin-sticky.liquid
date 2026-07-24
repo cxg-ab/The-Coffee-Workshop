@@ -1,19 +1,3 @@
-<style>
-  /* Editor-only "please complete" banner for an origin item linked to a
-     product that is missing some display info. Never shown to customers. */
-  .origin-sticky-card__warn {
-    margin: 0 0 0.6rem;
-    padding: 0.45rem 0.65rem;
-    font-size: 0.7rem;
-    font-weight: 600;
-    line-height: 1.35;
-    color: #8a5a00;
-    background: #fff7e6;
-    border: 1px solid #f0d38a;
-    border-radius: 4px;
-  }
-</style>
-
 <section class="origin-sticky-section" data-origin-sticky-section>
   {%- assign origin_total = section.blocks.size | prepend: '0' | slice: -2, 2 -%}
 
@@ -35,51 +19,23 @@
 
     <div class="origin-sticky-cards">
       {%- for block in section.blocks -%}
-        {%- comment -%}
-          Option 1 (product picked): copy the card from the product's PDP data —
-          name, region, flavour notes, image, description — and link the card to
-          the product page. Anything the product is missing falls back to the
-          Option 2 field, so the admin can fill the gap. In the theme editor a
-          warning lists whatever is still empty (soft "mandatory" — Shopify can't
-          hard-block Save on section fields).
-          Option 2 (no product): the manual fields are used as-is.
-        {%- endcomment -%}
         {%- assign origin_product = block.settings.product -%}
-        {%- assign origin_url = blank -%}
-        {%- comment -%} Start from the manual fields; the product overrides each one it can supply. {%- endcomment -%}
         {%- assign origin_name = block.settings.name -%}
-        {%- assign origin_region = block.settings.region -%}
-        {%- assign origin_profile = block.settings.profile -%}
         {%- assign origin_note = block.settings.note -%}
         {%- assign origin_image = block.settings.image -%}
+        {%- assign origin_url = blank -%}
 
         {%- if origin_product != blank -%}
-          {%- assign origin_url = origin_product.url -%}
-          {%- assign origin_name = origin_product.title -%}
-          {%- if origin_product.metafields.coffee.region.value != blank -%}
-            {%- assign origin_region = origin_product.metafields.coffee.region.value -%}
-          {%- elsif origin_product.metafields.coffee.country.value != blank -%}
-            {%- assign origin_region = origin_product.metafields.coffee.country.value -%}
+          {%- if origin_name == blank -%}
+            {%- assign origin_name = origin_product.title -%}
           {%- endif -%}
-          {%- if origin_product.metafields.coffee.flavor_notes.value != blank -%}
-            {%- assign origin_profile = origin_product.metafields.coffee.flavor_notes.value | join: ' · ' -%}
-          {%- endif -%}
-          {%- if origin_product.description != blank -%}
-            {%- assign origin_note = origin_product.description | strip_html | truncate: 140 -%}
-          {%- endif -%}
-          {%- if origin_product.featured_media != blank -%}
+          {%- if origin_image == blank and origin_product.featured_media != blank -%}
             {%- assign origin_image = origin_product.featured_media.preview_image -%}
           {%- endif -%}
-        {%- endif -%}
-
-        {%- comment -%} Editor-only completeness check: flag anything still missing. {%- endcomment -%}
-        {%- assign origin_missing = '' -%}
-        {%- if origin_product != blank -%}
-          {%- if origin_region == blank -%}{%- assign origin_missing = origin_missing | append: '|Region' -%}{%- endif -%}
-          {%- if origin_profile == blank -%}{%- assign origin_missing = origin_missing | append: '|Flavour profile' -%}{%- endif -%}
-          {%- if origin_image == blank -%}{%- assign origin_missing = origin_missing | append: '|Image' -%}{%- endif -%}
-          {%- if origin_note == blank -%}{%- assign origin_missing = origin_missing | append: '|Story note' -%}{%- endif -%}
-          {%- assign origin_missing = origin_missing | remove_first: '|' | replace: '|', ', ' -%}
+          {%- if origin_note == blank and origin_product.description != blank -%}
+            {%- assign origin_note = origin_product.description | strip_html | truncate: 140 -%}
+          {%- endif -%}
+          {%- assign origin_url = origin_product.url -%}
         {%- endif -%}
 
         <article class="origin-sticky-card" data-origin-card data-origin-index="{{ forloop.index }}" {{ block.shopify_attributes }}>
@@ -117,11 +73,8 @@
             {%- endif -%}
           </div>
           <div class="origin-sticky-card__copy" data-origin-copy>
-            {%- if request.design_mode and origin_missing != blank -%}
-              <p class="origin-sticky-card__warn">⚠ Complete this item before publishing — missing: {{ origin_missing }}. Add it on the product “{{ origin_product.title }}” (Product page → Details) or type it in Option 2 below.</p>
-            {%- endif -%}
-            {%- if origin_region != blank -%}
-              <p class="origin-sticky-card__meta section-eyebrow">( {{ origin_region }} )</p>
+            {%- if block.settings.region != blank -%}
+              <p class="origin-sticky-card__meta section-eyebrow">( {{ block.settings.region }} )</p>
             {%- endif -%}
             <h3 class="origin-sticky-card__name" data-split-title>
               {%- if origin_url != blank -%}
@@ -130,8 +83,8 @@
                 {{ origin_name }}
               {%- endif -%}
             </h3>
-            {%- if origin_profile != blank -%}
-              <p class="origin-sticky-card__profile">{{ origin_profile }}</p>
+            {%- if block.settings.profile != blank -%}
+              <p class="origin-sticky-card__profile">{{ block.settings.profile }}</p>
             {%- endif -%}
             {%- if origin_note != blank -%}
               <p class="origin-sticky-card__note">{{ origin_note }}</p>
@@ -159,22 +112,19 @@
   "blocks": [
     {
       "type": "origin",
-      "name": "Origin item",
+      "name": "Origin / Product",
       "settings": [
-        { "type": "paragraph", "content": "Pick a product (Option 1) and the card copies its product-page details — name, region, flavour notes, image, description — and links to that product. Anything the product is missing, fill in Option 2. The editor shows a warning on any card that is still incomplete. Leave the product empty to use Option 2 on its own." },
-        { "type": "header", "content": "Option 1 — Pick from your products" },
         {
           "type": "product",
           "id": "product",
-          "label": "Product",
-          "info": "Copies name, region, flavour profile, image and description from the product, and links the card to its page."
+          "label": "Product (admin editable)",
+          "info": "Pick a product to auto-fill name, image, and link. Manual fields below override."
         },
-        { "type": "header", "content": "Option 2 — Details (fills anything the product is missing)" },
-        { "type": "text", "id": "name", "label": "Display name" },
-        { "type": "text", "id": "region", "label": "Region label" },
-        { "type": "text", "id": "profile", "label": "Flavour profile" },
-        { "type": "textarea", "id": "note", "label": "Story note" },
-        { "type": "image_picker", "id": "image", "label": "Image" }
+        { "type": "text", "id": "name", "label": "Display name", "default": "Ethiopia", "info": "Leave blank to use the product title." },
+        { "type": "text", "id": "region", "label": "Region label", "default": "African highlands" },
+        { "type": "text", "id": "profile", "label": "Flavor profile", "default": "Floral · Citrus · Tea-like" },
+        { "type": "textarea", "id": "note", "label": "Story note", "default": "Bright, expressive washed lots from Yirgacheffe and Guji — among the first origins we cup each season." },
+        { "type": "image_picker", "id": "image", "label": "Image override", "info": "Optional. Uses product image when empty." }
       ]
     }
   ],
