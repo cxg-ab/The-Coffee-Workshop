@@ -1,3 +1,19 @@
+<style>
+  /* Editor-only "please complete" banner for an origin item linked to a
+     product that is missing some display info. Never shown to customers. */
+  .origin-sticky-card__warn {
+    margin: 0 0 0.6rem;
+    padding: 0.45rem 0.65rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: #8a5a00;
+    background: #fff7e6;
+    border: 1px solid #f0d38a;
+    border-radius: 4px;
+  }
+</style>
+
 <section class="origin-sticky-section" data-origin-sticky-section>
   {%- assign origin_total = section.blocks.size | prepend: '0' | slice: -2, 2 -%}
 
@@ -20,49 +36,50 @@
     <div class="origin-sticky-cards">
       {%- for block in section.blocks -%}
         {%- comment -%}
-          Two mutually-exclusive modes, decided by whether a product is picked:
-          • Option 1 (product set) → the card shows ONLY that product's data
-            (name, region, flavour profile, image, note, link). The manual
-            Option 2 fields are ignored.
-          • Option 2 (no product) → the card shows the manual fields.
+          Option 1 (product picked): copy the card from the product's PDP data —
+          name, region, flavour notes, image, description — and link the card to
+          the product page. Anything the product is missing falls back to the
+          Option 2 field, so the admin can fill the gap. In the theme editor a
+          warning lists whatever is still empty (soft "mandatory" — Shopify can't
+          hard-block Save on section fields).
+          Option 2 (no product): the manual fields are used as-is.
         {%- endcomment -%}
         {%- assign origin_product = block.settings.product -%}
         {%- assign origin_url = blank -%}
+        {%- comment -%} Start from the manual fields; the product overrides each one it can supply. {%- endcomment -%}
+        {%- assign origin_name = block.settings.name -%}
+        {%- assign origin_region = block.settings.region -%}
+        {%- assign origin_profile = block.settings.profile -%}
+        {%- assign origin_note = block.settings.note -%}
+        {%- assign origin_image = block.settings.image -%}
 
         {%- if origin_product != blank -%}
-          {%- comment -%} Option 1 — product wins, manual fields ignored. {%- endcomment -%}
+          {%- assign origin_url = origin_product.url -%}
           {%- assign origin_name = origin_product.title -%}
-
-          {%- assign origin_region = '' -%}
           {%- if origin_product.metafields.coffee.region.value != blank -%}
             {%- assign origin_region = origin_product.metafields.coffee.region.value -%}
           {%- elsif origin_product.metafields.coffee.country.value != blank -%}
             {%- assign origin_region = origin_product.metafields.coffee.country.value -%}
           {%- endif -%}
-
-          {%- assign origin_profile = '' -%}
           {%- if origin_product.metafields.coffee.flavor_notes.value != blank -%}
             {%- assign origin_profile = origin_product.metafields.coffee.flavor_notes.value | join: ' · ' -%}
           {%- endif -%}
-
-          {%- assign origin_note = '' -%}
           {%- if origin_product.description != blank -%}
             {%- assign origin_note = origin_product.description | strip_html | truncate: 140 -%}
           {%- endif -%}
-
-          {%- assign origin_image = blank -%}
           {%- if origin_product.featured_media != blank -%}
             {%- assign origin_image = origin_product.featured_media.preview_image -%}
           {%- endif -%}
+        {%- endif -%}
 
-          {%- assign origin_url = origin_product.url -%}
-        {%- else -%}
-          {%- comment -%} Option 2 — no product, use the manual fields. {%- endcomment -%}
-          {%- assign origin_name = block.settings.name -%}
-          {%- assign origin_region = block.settings.region -%}
-          {%- assign origin_profile = block.settings.profile -%}
-          {%- assign origin_note = block.settings.note -%}
-          {%- assign origin_image = block.settings.image -%}
+        {%- comment -%} Editor-only completeness check: flag anything still missing. {%- endcomment -%}
+        {%- assign origin_missing = '' -%}
+        {%- if origin_product != blank -%}
+          {%- if origin_region == blank -%}{%- assign origin_missing = origin_missing | append: '|Region' -%}{%- endif -%}
+          {%- if origin_profile == blank -%}{%- assign origin_missing = origin_missing | append: '|Flavour profile' -%}{%- endif -%}
+          {%- if origin_image == blank -%}{%- assign origin_missing = origin_missing | append: '|Image' -%}{%- endif -%}
+          {%- if origin_note == blank -%}{%- assign origin_missing = origin_missing | append: '|Story note' -%}{%- endif -%}
+          {%- assign origin_missing = origin_missing | remove_first: '|' | replace: '|', ', ' -%}
         {%- endif -%}
 
         <article class="origin-sticky-card" data-origin-card data-origin-index="{{ forloop.index }}" {{ block.shopify_attributes }}>
@@ -100,6 +117,9 @@
             {%- endif -%}
           </div>
           <div class="origin-sticky-card__copy" data-origin-copy>
+            {%- if request.design_mode and origin_missing != blank -%}
+              <p class="origin-sticky-card__warn">⚠ Complete this item before publishing — missing: {{ origin_missing }}. Add it on the product “{{ origin_product.title }}” (Product page → Details) or type it in Option 2 below.</p>
+            {%- endif -%}
             {%- if origin_region != blank -%}
               <p class="origin-sticky-card__meta section-eyebrow">( {{ origin_region }} )</p>
             {%- endif -%}
@@ -141,15 +161,15 @@
       "type": "origin",
       "name": "Origin item",
       "settings": [
-        { "type": "paragraph", "content": "Pick ONE option. If you select a product (Option 1) the card shows that product's details and the manual fields (Option 2) are ignored. To use the manual fields, leave the product empty." },
+        { "type": "paragraph", "content": "Pick a product (Option 1) and the card copies its product-page details — name, region, flavour notes, image, description — and links to that product. Anything the product is missing, fill in Option 2. The editor shows a warning on any card that is still incomplete. Leave the product empty to use Option 2 on its own." },
         { "type": "header", "content": "Option 1 — Pick from your products" },
         {
           "type": "product",
           "id": "product",
           "label": "Product",
-          "info": "When set, the card uses this product's name, region, flavour profile, image, note and links to it. Option 2 below is ignored."
+          "info": "Copies name, region, flavour profile, image and description from the product, and links the card to its page."
         },
-        { "type": "header", "content": "Option 2 — Manual details (used only when no product is selected)" },
+        { "type": "header", "content": "Option 2 — Details (fills anything the product is missing)" },
         { "type": "text", "id": "name", "label": "Display name" },
         { "type": "text", "id": "region", "label": "Region label" },
         { "type": "text", "id": "profile", "label": "Flavour profile" },
