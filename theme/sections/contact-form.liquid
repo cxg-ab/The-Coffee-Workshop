@@ -8,38 +8,9 @@
           {{ 'contact.heading' | t }}
         </h1>
 
-        <p class="prose-brand font-light leading-relaxed mb-12 text-lg max-w-md">
+        <p class="prose-brand font-light leading-relaxed text-lg max-w-md">
           {{ 'contact.intro' | t }}
         </p>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- Email -->
-          <a href="mailto:{{ shop.email }}" class="brand-card group flex items-start gap-4 p-5">
-            <div class="w-10 h-10 rounded-full border border-brand/30 flex items-center justify-center bg-brand/10 text-brand shrink-0 group-hover:bg-brand/20 transition-colors">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <div>
-              <h3 class="text-[10px] font-bold uppercase tracking-[0.2em] text-muted mb-1">{{ 'contact.email_us' | t }}</h3>
-              <span class="text-ink group-hover:text-brand transition-colors text-base font-medium break-all">{{ shop.email }}</span>
-            </div>
-          </a>
-
-          <!-- Location -->
-          <div class="brand-card flex items-start gap-4 p-5">
-            <div class="w-10 h-10 rounded-full border border-brand/30 flex items-center justify-center bg-brand/10 text-brand shrink-0">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            <div>
-              <h3 class="text-[10px] font-bold uppercase tracking-[0.2em] text-muted mb-1">{{ 'contact.location' | t }}</h3>
-              <p class="text-ink text-base font-medium">{% if shop.address.city %}{{ shop.address.city }}, {{ shop.address.country }}{% else %}{{ 'contact.default_location' | t }}{% endif %}</p>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Contact Form / Right Side -->
