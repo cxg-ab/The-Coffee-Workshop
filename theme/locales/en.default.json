@@ -121,7 +121,10 @@
     "adding_to_cart": "Adding…"
   },
   "search": {
-    "no_results": "No products found. Try a different search."
+    "no_results": "No products found. Try a different search.",
+    "label": "Search",
+    "placeholder": "Search coffee, origins…",
+    "view_all": "View all results"
   },
   "faq": {
     "eyebrow": "Support",
