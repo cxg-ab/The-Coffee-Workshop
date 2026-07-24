@@ -607,6 +607,34 @@
       gap: 2.5rem 1.5rem;
     }
   }
+
+  /* ── Pixel-reveal (native port of MagicUI pixel-image) ──
+     A grid of surface-colour tiles sits over the main image and vanishes in a
+     random, staggered order on load, so the photo assembles from "pixels".
+     Tiles are built by JS; the real <img> underneath is untouched (zoom still
+     works). Optional grayscale→colour finish. */
+  .pdp__pixel-overlay {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .pdp__pixel-tile {
+    background: var(--pdp-surface, #ffffff);
+    opacity: 1;
+    transform: scale(1.02);
+    transition: opacity 420ms ease, transform 420ms ease;
+    will-change: opacity, transform;
+  }
+  .pdp__pixel-tile.is-gone { opacity: 0; transform: scale(0.88); }
+  /* Keep the existing hover-lift transition and add the colour reveal. */
+  .pdp__main-media .tcw-product-media__img { transition: transform 0.7s ease-out, filter 0.6s ease; }
+  .pdp__main-media.is-pixel-gray .tcw-product-media__img { filter: grayscale(1); }
+  @media (prefers-reduced-motion: reduce) {
+    .pdp__pixel-tile { transition: none; }
+    .pdp__main-media.is-pixel-gray .tcw-product-media__img { filter: none; }
+  }
 </style>
 
 <section class="pdp" data-pdp>
@@ -643,11 +671,15 @@
           </div>
         {%- endif -%}
         {%- if product.media.size > 0 -%}
+          {%- comment -%} Pixel-reveal density → columns (rows derived from the 4:5 box in JS). {%- endcomment -%}
+          {%- assign px_cols = 8 -%}
+          {%- if section.settings.pixel_density == 'bold' -%}{%- assign px_cols = 6 -%}{%- elsif section.settings.pixel_density == 'fine' -%}{%- assign px_cols = 12 -%}{%- endif -%}
           <button
             type="button"
             class="tcw-product-media tcw-product-media--crop tcw-product-media--lift pdp__main-media pdp__zoom-trigger"
             data-pdp-main
             data-pdp-zoom
+            {% if section.settings.pixel_reveal %}data-pixel-reveal data-pixel-cols="{{ px_cols }}" data-pixel-grayscale="{{ section.settings.pixel_grayscale }}"{% endif %}
             aria-label="{{ 'products.zoom' | t | default: 'View larger image' }}"
           >
             {%- assign pdp_zoom_src = product.featured_media | image_url: width: 2048 -%}
@@ -1076,6 +1108,76 @@
       else if (multiple && e.key === 'ArrowLeft') show(idx - 1);
     });
   })();
+
+  /* Pixel-reveal — native port of MagicUI's pixel-image. Builds a grid of
+     surface-colour tiles over the main image and clears them in random,
+     staggered order once the photo has loaded, so it assembles from "pixels".
+     Runs once for the initial image; thumbnail switches don't retrigger it.
+     Skipped entirely under prefers-reduced-motion. */
+  (function pixelReveal() {
+    var host = root.querySelector('[data-pixel-reveal]');
+    if (!host) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var img = host.querySelector('.tcw-product-media__img');
+    if (!img) return;
+
+    var cols = parseInt(host.getAttribute('data-pixel-cols'), 10) || 8;
+    var rows = Math.max(1, Math.round(cols * 1.25)); /* 4:5 media box */
+    var grayscale = host.getAttribute('data-pixel-grayscale') === 'true';
+    var total = cols * rows;
+
+    var overlay = document.createElement('div');
+    overlay.className = 'pdp__pixel-overlay';
+    overlay.setAttribute('aria-hidden', 'true');
+    overlay.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
+    overlay.style.gridTemplateRows = 'repeat(' + rows + ', 1fr)';
+
+    var tiles = [];
+    var order = [];
+    for (var i = 0; i < total; i++) {
+      var tile = document.createElement('span');
+      tile.className = 'pdp__pixel-tile';
+      overlay.appendChild(tile);
+      tiles.push(tile);
+      order.push(i);
+    }
+    host.appendChild(overlay);
+    if (grayscale) host.classList.add('is-pixel-gray');
+
+    /* Fisher–Yates shuffle for a random clearing order. */
+    for (var j = order.length - 1; j > 0; j--) {
+      var k = Math.floor(Math.random() * (j + 1));
+      var tmp = order[j]; order[j] = order[k]; order[k] = tmp;
+    }
+
+    var maxDelay = 700; /* stagger window (ms) */
+    var dur = 420;      /* per-tile fade (matches CSS) */
+    var started = false;
+
+    function start() {
+      if (started) return;
+      started = true;
+      order.forEach(function (tileIdx, seq) {
+        var delay = (seq / total) * maxDelay + Math.random() * 60;
+        tiles[tileIdx].style.transitionDelay = delay.toFixed(0) + 'ms';
+        tiles[tileIdx].classList.add('is-gone');
+      });
+      if (grayscale) {
+        window.setTimeout(function () { host.classList.remove('is-pixel-gray'); }, maxDelay * 0.6);
+      }
+      window.setTimeout(function () {
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        host.classList.remove('is-pixel-gray');
+      }, maxDelay + dur + 150);
+    }
+
+    if (img.complete && img.naturalWidth > 0) {
+      requestAnimationFrame(start);
+    } else {
+      img.addEventListener('load', function () { requestAnimationFrame(start); }, { once: true });
+      window.setTimeout(start, 1500); /* safety if load never fires */
+    }
+  })();
 })();
 </script>
 
@@ -1083,6 +1185,36 @@
 {
   "name": "Product",
   "class": "product-section",
-  "settings": []
+  "settings": [
+    {
+      "type": "header",
+      "content": "Main image reveal"
+    },
+    {
+      "type": "checkbox",
+      "id": "pixel_reveal",
+      "label": "Pixel-reveal animation",
+      "info": "On load, the main product image assembles from a grid of pixels. Plays once; respects reduced-motion settings.",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "pixel_density",
+      "label": "Pixel size",
+      "options": [
+        { "value": "bold", "label": "Bold (large pixels)" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "fine", "label": "Fine (small pixels)" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "checkbox",
+      "id": "pixel_grayscale",
+      "label": "Reveal colour last",
+      "info": "Start grayscale and fade to full colour as the pixels clear.",
+      "default": true
+    }
+  ]
 }
 {% endschema %}
