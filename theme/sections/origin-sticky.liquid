@@ -23,22 +23,8 @@
         {%- assign origin_note = block.settings.note -%}
         {%- assign origin_image = block.settings.image -%}
 
-        {%- comment -%}
-          Click-through link for each card so shoppers can go to the item:
-          a picked product links to its product page (PDP); otherwise a custom
-          URL is used. This only sets the link — the card's text and image stay
-          exactly as entered in "Card content" below.
-        {%- endcomment -%}
+        {%- comment -%} Click-through link for the card (a PDP URL or any link). Blank = not clickable. {%- endcomment -%}
         {%- assign origin_url = block.settings.link -%}
-        {%- if block.settings.product != blank -%}
-          {%- assign origin_url = block.settings.product.url -%}
-          {%- if origin_name == blank -%}
-            {%- assign origin_name = block.settings.product.title -%}
-          {%- endif -%}
-          {%- if origin_image == blank and block.settings.product.featured_media != blank -%}
-            {%- assign origin_image = block.settings.product.featured_media.preview_image -%}
-          {%- endif -%}
-        {%- endif -%}
 
         <article class="origin-sticky-card" data-origin-card data-origin-index="{{ forloop.index }}" {{ block.shopify_attributes }}>
           <div class="origin-sticky-card__media" data-origin-media>
@@ -117,13 +103,7 @@
       "name": "Origin / Product",
       "settings": [
         { "type": "header", "content": "Link (where the card goes when clicked)" },
-        {
-          "type": "product",
-          "id": "product",
-          "label": "Link to product",
-          "info": "Pick a bean to link this card to its product page (PDP). This only sets the click destination — the text and image below stay as you enter them."
-        },
-        { "type": "url", "id": "link", "label": "Or a custom link", "info": "Used only when no product is chosen — e.g. a collection or page." },
+        { "type": "url", "id": "link", "label": "Link", "info": "Paste the product page (PDP) link — or any URL. Leave empty to make the card not clickable." },
         { "type": "header", "content": "Card content" },
         { "type": "text", "id": "name", "label": "Display name", "default": "Ethiopia", "info": "Leave blank to use the linked product's title." },
         { "type": "text", "id": "region", "label": "Region label", "default": "African highlands" },

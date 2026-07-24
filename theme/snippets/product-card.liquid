@@ -68,19 +68,6 @@
   }
   .product-card__roast-dot.is-filled { background: var(--color-ink, #1C1917); }
 
-  .product-card__quick-add {
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: #fff;
-    text-align: center;
-    padding-bottom: 0.35rem;
-    border-bottom: 1px solid rgba(255,255,255,0.6);
-    display: inline-block;
-    background: transparent;
-  }
-
   /* Branded default image fills the card edge-to-edge (no white padding). */
   .product-card__placeholder { object-fit: cover; }
 </style>
@@ -145,22 +132,6 @@
       </div>
     {%- endif -%}
 
-    {%- if card_product.available -%}
-      <div class="absolute inset-x-0 bottom-6 z-20 flex justify-center opacity-0 translate-y-2 transition-motion duration-500 group-hover:translate-y-0 group-hover:opacity-100 hidden lg:flex">
-        <form method="post" action="{{ routes.cart_add_url }}" data-ajax-cart>
-          <input type="hidden" name="id" value="{{ card_product.selected_or_first_available_variant.id }}">
-          <button
-            type="submit"
-            name="add"
-            class="product-card__quick-add"
-            data-add-label="{{ 'products.quick_add' | t }}"
-            data-adding-label="{{ 'products.adding_to_cart' | t }}"
-          >
-            {{ 'products.quick_add' | t }}
-          </button>
-        </form>
-      </div>
-    {%- endif -%}
   </a>
 
   <div class="flex flex-1 flex-col pt-6">
