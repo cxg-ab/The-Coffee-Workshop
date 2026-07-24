@@ -42,6 +42,21 @@
     color: #fff;
     backdrop-filter: none;
   }
+  /* Explicit positioning for the badge stack. The Tailwind offset utilities
+     (top-4/right-4/inset-x-0/bottom-6) are NOT in the prebuilt application.css,
+     so relying on them left the badge centered by the flex media box. This
+     hand-written rule pins it to the top-right regardless of the CSS build. */
+  .product-card__badges {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    pointer-events: none;
+  }
 
   .product-card__roast-dot {
     display: inline-block;
@@ -120,7 +135,7 @@
     {%- endif -%}
 
     {%- if is_limited or card_product.available == false -%}
-      <div class="absolute right-4 top-4 flex flex-col items-end gap-2 z-20">
+      <div class="product-card__badges">
         {%- if is_limited -%}
           <span class="product-card__badge product-card__badge--limited">{{ 'products.limited_batch' | t }}</span>
         {%- endif -%}
