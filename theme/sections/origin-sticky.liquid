@@ -20,41 +20,49 @@
     <div class="origin-sticky-cards">
       {%- for block in section.blocks -%}
         {%- comment -%}
-          Each item works two ways:
-          • Pick a product → name, region, flavour profile, image, note, and link
-            all auto-fill from the product (and its coffee metafields).
-          • Or leave the product empty and type the fields in manually.
-          Any manual field that is filled in always overrides the product value.
+          Two mutually-exclusive modes, decided by whether a product is picked:
+          • Option 1 (product set) → the card shows ONLY that product's data
+            (name, region, flavour profile, image, note, link). The manual
+            Option 2 fields are ignored.
+          • Option 2 (no product) → the card shows the manual fields.
         {%- endcomment -%}
         {%- assign origin_product = block.settings.product -%}
-        {%- assign origin_name = block.settings.name -%}
-        {%- assign origin_region = block.settings.region -%}
-        {%- assign origin_profile = block.settings.profile -%}
-        {%- assign origin_note = block.settings.note -%}
-        {%- assign origin_image = block.settings.image -%}
         {%- assign origin_url = blank -%}
 
         {%- if origin_product != blank -%}
-          {%- if origin_name == blank -%}
-            {%- assign origin_name = origin_product.title -%}
+          {%- comment -%} Option 1 — product wins, manual fields ignored. {%- endcomment -%}
+          {%- assign origin_name = origin_product.title -%}
+
+          {%- assign origin_region = '' -%}
+          {%- if origin_product.metafields.coffee.region.value != blank -%}
+            {%- assign origin_region = origin_product.metafields.coffee.region.value -%}
+          {%- elsif origin_product.metafields.coffee.country.value != blank -%}
+            {%- assign origin_region = origin_product.metafields.coffee.country.value -%}
           {%- endif -%}
-          {%- if origin_region == blank -%}
-            {%- if origin_product.metafields.coffee.region.value != blank -%}
-              {%- assign origin_region = origin_product.metafields.coffee.region.value -%}
-            {%- elsif origin_product.metafields.coffee.country.value != blank -%}
-              {%- assign origin_region = origin_product.metafields.coffee.country.value -%}
-            {%- endif -%}
-          {%- endif -%}
-          {%- if origin_profile == blank and origin_product.metafields.coffee.flavor_notes.value != blank -%}
+
+          {%- assign origin_profile = '' -%}
+          {%- if origin_product.metafields.coffee.flavor_notes.value != blank -%}
             {%- assign origin_profile = origin_product.metafields.coffee.flavor_notes.value | join: ' · ' -%}
           {%- endif -%}
-          {%- if origin_image == blank and origin_product.featured_media != blank -%}
-            {%- assign origin_image = origin_product.featured_media.preview_image -%}
-          {%- endif -%}
-          {%- if origin_note == blank and origin_product.description != blank -%}
+
+          {%- assign origin_note = '' -%}
+          {%- if origin_product.description != blank -%}
             {%- assign origin_note = origin_product.description | strip_html | truncate: 140 -%}
           {%- endif -%}
+
+          {%- assign origin_image = blank -%}
+          {%- if origin_product.featured_media != blank -%}
+            {%- assign origin_image = origin_product.featured_media.preview_image -%}
+          {%- endif -%}
+
           {%- assign origin_url = origin_product.url -%}
+        {%- else -%}
+          {%- comment -%} Option 2 — no product, use the manual fields. {%- endcomment -%}
+          {%- assign origin_name = block.settings.name -%}
+          {%- assign origin_region = block.settings.region -%}
+          {%- assign origin_profile = block.settings.profile -%}
+          {%- assign origin_note = block.settings.note -%}
+          {%- assign origin_image = block.settings.image -%}
         {%- endif -%}
 
         <article class="origin-sticky-card" data-origin-card data-origin-index="{{ forloop.index }}" {{ block.shopify_attributes }}>
@@ -133,20 +141,20 @@
       "type": "origin",
       "name": "Origin item",
       "settings": [
-        { "type": "paragraph", "content": "Two ways to fill this item: (1) pick a product below and everything auto-fills from it, or (2) leave the product empty and type the details in manually. Any manual field you fill in overrides the product." },
+        { "type": "paragraph", "content": "Pick ONE option. If you select a product (Option 1) the card shows that product's details and the manual fields (Option 2) are ignored. To use the manual fields, leave the product empty." },
         { "type": "header", "content": "Option 1 — Pick from your products" },
         {
           "type": "product",
           "id": "product",
           "label": "Product",
-          "info": "Auto-fills name, region, flavour profile, image, note, and links the card to this product."
+          "info": "When set, the card uses this product's name, region, flavour profile, image, note and links to it. Option 2 below is ignored."
         },
-        { "type": "header", "content": "Option 2 — Manual details (optional overrides)" },
-        { "type": "text", "id": "name", "label": "Display name", "info": "Blank = product title." },
-        { "type": "text", "id": "region", "label": "Region label", "info": "Blank = product's origin / region." },
-        { "type": "text", "id": "profile", "label": "Flavour profile", "info": "Blank = product's tasting notes." },
-        { "type": "textarea", "id": "note", "label": "Story note", "info": "Blank = product description." },
-        { "type": "image_picker", "id": "image", "label": "Image", "info": "Blank = product image." }
+        { "type": "header", "content": "Option 2 — Manual details (used only when no product is selected)" },
+        { "type": "text", "id": "name", "label": "Display name" },
+        { "type": "text", "id": "region", "label": "Region label" },
+        { "type": "text", "id": "profile", "label": "Flavour profile" },
+        { "type": "textarea", "id": "note", "label": "Story note" },
+        { "type": "image_picker", "id": "image", "label": "Image" }
       ]
     }
   ],
