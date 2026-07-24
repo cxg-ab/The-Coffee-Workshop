@@ -45,12 +45,29 @@ function initMobileMenu() {
   const menu = document.querySelector('[data-mobile-menu]');
   if (!toggle || !menu) return;
 
+  // The mobile menu is an inline dropdown (not a full-screen modal), so we do
+  // NOT lock body scroll. Flipping body{overflow:hidden} mid-momentum-scroll
+  // freezes the page on iOS Safari — that was the "tap menu while scrolling →
+  // freeze" bug. Just show/hide the panel and keep aria in sync.
+  const setMenuOpen = (open) => {
+    menu.classList.toggle('hidden', !open);
+    toggle.setAttribute('aria-expanded', String(open));
+  };
   toggle.addEventListener('click', () => {
-    const isOpen = !menu.classList.contains('hidden');
-    menu.classList.toggle('hidden', isOpen);
-    toggle.setAttribute('aria-expanded', String(!isOpen));
-    document.body.style.overflow = isOpen ? '' : 'hidden';
+    setMenuOpen(menu.classList.contains('hidden'));
   });
+  // Close after choosing a link, and whenever we grow to the desktop layout
+  // (where the panel is hidden) so it can never get stuck open.
+  menu.addEventListener('click', (event) => {
+    if (event.target.closest('a')) setMenuOpen(false);
+  });
+  window.addEventListener('resize', () => {
+    if (window.matchMedia('(min-width: 1024px)').matches) setMenuOpen(false);
+  });
+  // Safety: clear any stale scroll lock a previous version may have left.
+  if (document.body.style.overflow === 'hidden' && !document.querySelector('[data-cart-drawer].is-open')) {
+    document.body.style.overflow = '';
+  }
 
   const mobileDropdowns = document.querySelectorAll('[data-mobile-dropdown]');
   mobileDropdowns.forEach((dropdown) => {
