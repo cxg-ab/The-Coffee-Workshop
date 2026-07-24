@@ -188,9 +188,10 @@
       var nav = document.querySelector('[data-shop-pills]');
       if (!nav) return;
       var active = nav.querySelector('.shop-pill.is-active');
-      if (active && typeof active.scrollIntoView === 'function') {
-        active.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
-      }
+      if (!active) return;
+      /* Scroll ONLY the pills strip (not scrollIntoView, which also scrolls the
+         page horizontally and reveals a white gap on the right). */
+      nav.scrollTo({ left: active.offsetLeft - (nav.clientWidth / 2) + (active.offsetWidth / 2), behavior: 'smooth' });
     }
 
     var badge = document.querySelector('[data-filter-badge]');

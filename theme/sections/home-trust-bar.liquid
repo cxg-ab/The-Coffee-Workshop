@@ -142,9 +142,12 @@
         var nav = document.querySelector('[data-shop-pills]');
         if (!nav) return;
         var active = nav.querySelector('.shop-pill.is-active');
-        if (!active || typeof active.scrollIntoView !== 'function') return;
+        if (!active) return;
         requestAnimationFrame(function () {
-          active.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'auto' });
+          /* Center the active pill by scrolling ONLY the pills strip — never
+             scrollIntoView, which also scrolls the page horizontally and reveals
+             a white gap on the right. */
+          nav.scrollLeft = active.offsetLeft - (nav.clientWidth / 2) + (active.offsetWidth / 2);
         });
       })();
     </script>
