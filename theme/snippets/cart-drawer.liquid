@@ -22,6 +22,18 @@
   @media (prefers-reduced-motion: reduce) {
     .cart-drawer { transition: none; }
   }
+
+  /* Cart-drawer line quantity + remove controls */
+  .cart-line--busy { opacity: 0.45; pointer-events: none; }
+  .cd-qty { display: inline-flex; align-items: center; border: 1px solid var(--color-line, #E8E4DC); border-radius: 999px; overflow: hidden; background: #FFFFFF; }
+  .cd-qty__btn { width: 1.9rem; height: 1.9rem; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 0; cursor: pointer; font-size: 0.95rem; line-height: 1; color: var(--color-ink, #1A1A1A); transition: background-color 0.2s ease, color 0.2s ease; }
+  .cd-qty__btn:hover { background: var(--color-brand, #8B5E3C); color: #FFFFFF; }
+  .cd-qty__btn:disabled { opacity: 0.4; cursor: default; }
+  .cd-qty__input { width: 2rem; height: 1.9rem; border: 0; text-align: center; font-size: 0.8rem; background: transparent; color: var(--color-ink, #1A1A1A); -moz-appearance: textfield; }
+  .cd-qty__input::-webkit-outer-spin-button, .cd-qty__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .cd-remove { display: inline-flex; align-items: center; justify-content: center; width: 1.9rem; height: 1.9rem; background: none; border: 0; cursor: pointer; color: var(--color-muted, #6B6B6B); transition: color 0.2s ease; }
+  .cd-remove:hover { color: #A32D2D; }
+  .cd-remove svg { width: 0.9rem; height: 0.9rem; }
 </style>
 
 <div
@@ -86,8 +98,17 @@
                 <p class="mt-1 text-xs text-muted">{{ item.variant.title }}</p>
               {%- endunless -%}
               <div class="mt-2 flex items-center justify-between gap-2">
-                <span class="text-sm font-semibold text-brand">{{ item.final_line_price | money }}</span>
-                <span class="text-xs text-muted">× {{ item.quantity }}</span>
+                <span class="text-sm font-semibold text-brand" data-line-price>{{ item.final_line_price | money }}</span>
+                <div class="flex items-center gap-1.5">
+                  <div class="cd-qty" data-qty>
+                    <button type="button" class="cd-qty__btn" data-qty-minus aria-label="{{ 'cart.decrease_quantity' | t: product: item.product.title }}">&minus;</button>
+                    <input class="cd-qty__input" data-qty-input type="number" inputmode="numeric" min="0" value="{{ item.quantity }}" aria-label="{{ 'cart.quantity_for' | t: product: item.product.title }}">
+                    <button type="button" class="cd-qty__btn" data-qty-plus aria-label="{{ 'cart.increase_quantity' | t: product: item.product.title }}">+</button>
+                  </div>
+                  <button type="button" class="cd-remove" data-line-remove aria-label="{{ 'cart.remove_item' | t: product: item.product.title }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+                </div>
               </div>
             </div>
           </li>
