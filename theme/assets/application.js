@@ -82,6 +82,7 @@ function initMobileMenu() {
         const isHidden = dropdownMenu.classList.contains('hidden');
         dropdownMenu.classList.toggle('hidden', !isHidden);
         dropdownMenu.classList.toggle('flex', isHidden);
+        dropdownToggle.setAttribute('aria-expanded', String(isHidden));
         if (icon) {
           icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
         }
@@ -104,6 +105,7 @@ function initCartDrawer() {
     overlay.classList.add('opacity-100');
     drawer.classList.add('is-open');
     document.body.style.overflow = 'hidden';
+    openButtons.forEach((b) => b.setAttribute('aria-expanded', 'true'));
     releaseFocus = trapFocus(drawer);
   };
 
@@ -112,6 +114,7 @@ function initCartDrawer() {
     overlay.classList.add('pointer-events-none', 'opacity-0');
     overlay.classList.remove('opacity-100');
     document.body.style.overflow = '';
+    openButtons.forEach((b) => b.setAttribute('aria-expanded', 'false'));
     if (releaseFocus) releaseFocus();
     releaseFocus = null;
   };

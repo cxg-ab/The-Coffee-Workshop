@@ -24,6 +24,7 @@
   },
   "accessibility": {
     "skip_to_content": "تخطي إلى المحتوى",
+    "expand_submenu": "توسيع القائمة الفرعية",
     "close": "إغلاق",
     "menu": "القائمة",
     "loading": "جاري التحميل"

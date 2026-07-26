@@ -24,6 +24,7 @@
   },
   "accessibility": {
     "skip_to_content": "Skip to content",
+    "expand_submenu": "Expand submenu",
     "close": "Close",
     "menu": "Menu",
     "loading": "Loading"

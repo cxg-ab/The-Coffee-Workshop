@@ -46,6 +46,12 @@
     z-index: 0;
     opacity: 0.5;
   }
+  /* Respect reduced-motion: stop the auto-playing, looping background video
+     (WCAG 2.2.2 Pause/Stop/Hide, 2.3). Content stays readable on the dark
+     base (#0d0c0b) + scrim. JS below also pauses playback for these users. */
+  @media (prefers-reduced-motion: reduce) {
+    .cs-video-bg { display: none; }
+  }
   .cs-video-scrim {
     position: absolute;
     inset: 0;
@@ -270,6 +276,17 @@
   {%- if has_video -%}
     {{ section.settings.video | video_tag: class: 'cs-video-bg', autoplay: true, loop: true, muted: true, controls: false, playsinline: true, image_size: '1920x' }}
     <div class="cs-video-scrim" aria-hidden="true"></div>
+    <script>
+      /* Pause the background video for visitors who prefer reduced motion. */
+      (function () {
+        try {
+          if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            var v = document.querySelector('.cs-video-bg');
+            if (v && typeof v.pause === 'function') { v.removeAttribute('autoplay'); v.pause(); }
+          }
+        } catch (e) {}
+      })();
+    </script>
   {%- endif -%}
 
   <div class="cs-content">
