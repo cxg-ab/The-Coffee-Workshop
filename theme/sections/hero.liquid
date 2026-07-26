@@ -33,35 +33,6 @@
           {%- endif -%}
         {%- endfor -%}
       </h1>
-
-      {%- if section.settings.subheading != blank -%}
-        <p class="hero-lead prose-brand" data-hero-sub>
-          {{ section.settings.subheading }}
-        </p>
-      {%- endif -%}
-
-      <div class="hero-cta flex flex-wrap gap-3 lg:gap-4" data-hero-cta>
-        {%- if section.settings.cta_primary_label != blank -%}
-          <a href="{{ section.settings.cta_primary_link | default: routes.all_products_collection_url }}" class="btn-primary">
-            {{ section.settings.cta_primary_label }}
-          </a>
-        {%- endif -%}
-        {%- if section.settings.cta_secondary_label != blank -%}
-          <a href="{{ section.settings.cta_secondary_link | default: '#visit-workshop' }}" class="btn-outline">
-            {{ section.settings.cta_secondary_label }}
-          </a>
-        {%- endif -%}
-      </div>
-
-      {%- if section.settings.show_trust_line -%}
-        <p class="hero-trust-line" data-hero-trust>
-          {%- if section.settings.trust_line != blank -%}
-            {{ section.settings.trust_line }}
-          {%- else -%}
-            {{ 'home.hero.trust' | t }}
-          {%- endif -%}
-        </p>
-      {%- endif -%}
     </div>
 
     <div class="hero-3d-stage relative z-10 flex min-h-[140px] w-full shrink-0 items-center justify-center sm:min-h-[180px]" data-hero-3d>
@@ -121,47 +92,6 @@
       "id": "heading",
       "label": "Heading",
       "default": "Small batches. ماستر roasted."
-    },
-    {
-      "type": "textarea",
-      "id": "subheading",
-      "label": "Subheading",
-      "default": "We discover, sample, and reserve micro-lot Arabica — roasted in small batches in Ras Al Khaimah for home brewers and advanced enthusiasts."
-    },
-    {
-      "type": "text",
-      "id": "cta_primary_label",
-      "label": "Primary button label",
-      "default": "Shop beans"
-    },
-    {
-      "type": "url",
-      "id": "cta_primary_link",
-      "label": "Primary button link"
-    },
-    {
-      "type": "text",
-      "id": "cta_secondary_label",
-      "label": "Secondary button label",
-      "default": "Visit us"
-    },
-    {
-      "type": "url",
-      "id": "cta_secondary_link",
-      "label": "Secondary button link",
-      "info": "Defaults to the Visit us section on the homepage."
-    },
-    {
-      "type": "checkbox",
-      "id": "show_trust_line",
-      "label": "Show trust line under buttons",
-      "default": true
-    },
-    {
-      "type": "text",
-      "id": "trust_line",
-      "label": "Trust line (optional override)",
-      "info": "Leave blank to use the default locale string."
     },
     {
       "type": "image_picker",
