@@ -99,7 +99,7 @@
     <li>
       <a
         href="{{ routes.root_url }}"
-        class="{{ link_class }}{% if request.page_type == 'index' %} text-brand{% endif %} whitespace-nowrap"
+        class="{{ link_class }} whitespace-nowrap"
         {% if request.page_type == 'index' %}aria-current="page"{% endif %}
       >
         {{ 'header.home' | t }}
