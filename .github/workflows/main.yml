@@ -1,0 +1,56 @@
+name: Theme Quality & Security Audit
+
+on:
+  push:
+    branches: [ main, refactor_tcw_staging_phases ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # 1. Shopify Theme Bug & Syntax Audit
+  theme-check:
+    name: Shopify Theme Check (Liquid Bug Scanner)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Shopify Theme Check
+        uses: Shopify/theme-check-action@v1
+        with:
+          path: 'theme'
+
+  # 2. Tailwind & JS Build Verification
+  build-check:
+    name: Tailwind CSS & JS Build Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Assets
+        run: npm run build
+
+  # 3. Security Code Scanning
+  security-scan:
+    name: CodeQL Security Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+
+      - name: Perform CodeQL Security Analysis
+        uses: github/codeql-action/analyze@v3
