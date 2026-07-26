@@ -277,7 +277,9 @@
       function frameStep(){
         if(isPhone()) return 3;
         if(isTablet()) return 2;
-        return 1;
+        return 2; /* desktop: every 2nd frame (~108 of 217) — halves the
+                     lazy-loaded roast download (~47MB -> ~24MB) with a scrub
+                     still smooth enough at this length. */
       }
       function roastIndex(p){
         if(stopIdx <= 0) return 0;
