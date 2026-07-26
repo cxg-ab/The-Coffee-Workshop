@@ -1,0 +1,62 @@
+<section class="home-shop-cta" data-home-shop-cta>
+  <div class="site-container">
+    <div class="home-shop-cta__panel" data-reveal>
+      <div class="home-shop-cta__copy">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="section-eyebrow home-shop-cta__eyebrow">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="home-shop-cta__heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.text != blank -%}
+          <p class="home-shop-cta__text">{{ section.settings.text }}</p>
+        {%- endif -%}
+      </div>
+      {%- if section.settings.button_label != blank -%}
+        <a href="{{ section.settings.button_link | default: routes.all_products_collection_url }}" class="btn-primary home-shop-cta__btn">
+          {{ section.settings.button_label }}
+        </a>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Home shop CTA",
+  "tag": "section",
+  "class": "home-shop-cta-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Roasted to order"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Take home a micro-lot"
+    },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "Supporting text",
+      "default": "Small batches from Ethiopia, Panama, Yemen, and beyond — shipped across the UAE."
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Shop beans"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    }
+  ],
+  "presets": [{ "name": "Home shop CTA" }]
+}
+{% endschema %}
