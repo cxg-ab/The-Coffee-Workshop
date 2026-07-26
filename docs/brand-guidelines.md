@@ -1,6 +1,6 @@
 # The Coffee Workshop Co. — Brand Guidelines
 
-> Derived from `The coffee workshop .pdf`, `tcw logo.pdf`, and approved project plan.
+> Derived from the approved brand assets and project plan.
 
 ## Logo
 

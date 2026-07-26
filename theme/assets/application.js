@@ -45,12 +45,29 @@ function initMobileMenu() {
   const menu = document.querySelector('[data-mobile-menu]');
   if (!toggle || !menu) return;
 
+  // The mobile menu is an inline dropdown (not a full-screen modal), so we do
+  // NOT lock body scroll. Flipping body{overflow:hidden} mid-momentum-scroll
+  // freezes the page on iOS Safari — that was the "tap menu while scrolling →
+  // freeze" bug. Just show/hide the panel and keep aria in sync.
+  const setMenuOpen = (open) => {
+    menu.classList.toggle('hidden', !open);
+    toggle.setAttribute('aria-expanded', String(open));
+  };
   toggle.addEventListener('click', () => {
-    const isOpen = !menu.classList.contains('hidden');
-    menu.classList.toggle('hidden', isOpen);
-    toggle.setAttribute('aria-expanded', String(!isOpen));
-    document.body.style.overflow = isOpen ? '' : 'hidden';
+    setMenuOpen(menu.classList.contains('hidden'));
   });
+  // Close after choosing a link, and whenever we grow to the desktop layout
+  // (where the panel is hidden) so it can never get stuck open.
+  menu.addEventListener('click', (event) => {
+    if (event.target.closest('a')) setMenuOpen(false);
+  });
+  window.addEventListener('resize', () => {
+    if (window.matchMedia('(min-width: 1024px)').matches) setMenuOpen(false);
+  });
+  // Safety: clear any stale scroll lock a previous version may have left.
+  if (document.body.style.overflow === 'hidden' && !document.querySelector('[data-cart-drawer].is-open')) {
+    document.body.style.overflow = '';
+  }
 
   const mobileDropdowns = document.querySelectorAll('[data-mobile-dropdown]');
   mobileDropdowns.forEach((dropdown) => {
@@ -106,6 +123,29 @@ function initCartDrawer() {
     if (event.key === 'Escape' && drawer.classList.contains('is-open')) close();
   });
 
+  // Line quantity + remove controls (delegated so re-rendered lines keep working).
+  drawer.addEventListener('click', (event) => {
+    const li = event.target.closest('[data-cart-line-item]');
+    if (!li) return;
+    const input = li.querySelector('[data-qty-input]');
+    const current = Number(input && input.value) || 0;
+    let next = null;
+    if (event.target.closest('[data-qty-plus]')) next = current + 1;
+    else if (event.target.closest('[data-qty-minus]')) next = current - 1;
+    else if (event.target.closest('[data-line-remove]')) next = 0;
+    if (next === null) return;
+    event.preventDefault();
+    applyDrawerLineChange(li, li.getAttribute('data-cart-line-item'), next);
+  });
+
+  drawer.addEventListener('change', (event) => {
+    const input = event.target.closest('[data-qty-input]');
+    if (!input) return;
+    const li = input.closest('[data-cart-line-item]');
+    if (!li) return;
+    applyDrawerLineChange(li, li.getAttribute('data-cart-line-item'), Number(input.value) || 0);
+  });
+
   window.TCW = window.TCW || {};
   window.TCW.openCartDrawer = open;
   window.TCW.closeCartDrawer = close;
@@ -148,6 +188,8 @@ function buildCartLineHtml(item) {
       ? `<p class="mt-1 text-xs text-muted">${escapeHtml(item.variant_title)}</p>`
       : '';
 
+  const strings = (window.theme && window.theme.strings) || {};
+
   return `
     <li class="flex gap-4 py-4" data-cart-line-item="${key}">
       ${image}
@@ -155,8 +197,17 @@ function buildCartLineHtml(item) {
         <a href="${url}" class="block text-sm font-medium text-ink hover:text-brand">${title}</a>
         ${variant}
         <div class="mt-2 flex items-center justify-between gap-2">
-          <span class="text-sm font-semibold text-brand">${formatMoney(item.final_line_price, moneyFormat())}</span>
-          <span class="text-xs text-muted">× ${escapeHtml(item.quantity)}</span>
+          <span class="text-sm font-semibold text-brand" data-line-price>${formatMoney(item.final_line_price, moneyFormat())}</span>
+          <div class="flex items-center gap-1.5">
+            <div class="cd-qty" data-qty>
+              <button type="button" class="cd-qty__btn" data-qty-minus aria-label="${escapeHtml(strings.decreaseQuantity || 'Decrease quantity')}">&minus;</button>
+              <input class="cd-qty__input" data-qty-input type="number" inputmode="numeric" min="0" value="${escapeHtml(item.quantity)}" aria-label="${escapeHtml(strings.quantity || 'Quantity')}">
+              <button type="button" class="cd-qty__btn" data-qty-plus aria-label="${escapeHtml(strings.increaseQuantity || 'Increase quantity')}">+</button>
+            </div>
+            <button type="button" class="cd-remove" data-line-remove aria-label="${escapeHtml(strings.removeItem || 'Remove item')}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
         </div>
       </div>
     </li>
@@ -186,6 +237,37 @@ function renderCartDrawer(cart) {
   }
 
   updateCartCount(cart.item_count);
+}
+
+/* Change a single cart line by its line-item key (robust against index drift). */
+function changeCartLine(key, quantity) {
+  return fetch('/cart/change.js', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+    body: JSON.stringify({ id: key, quantity: Math.max(0, quantity) }),
+  }).then((r) => {
+    if (!r.ok) throw new Error('cart_change_failed');
+    return r.json();
+  });
+}
+
+function applyDrawerLineChange(li, key, quantity) {
+  if (!key) return;
+  li.classList.add('cart-line--busy');
+  li.querySelectorAll('button, input').forEach((el) => {
+    el.disabled = true;
+  });
+  changeCartLine(key, quantity)
+    .then((cart) => {
+      renderCartDrawer(cart);
+    })
+    .catch(() => {
+      window.location.reload();
+    });
 }
 
 async function fetchCart() {
