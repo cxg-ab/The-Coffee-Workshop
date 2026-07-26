@@ -49,7 +49,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div class="space-y-2">
               <label class="text-[11px] font-bold uppercase tracking-[0.2em] text-muted ml-2" for="ContactForm-name">{{ 'contact.name_label' | t }}</label>
-              <input class="w-full bg-surface border border-line rounded-sm px-6 py-4 text-ink placeholder-muted/60 focus:border-brand focus:bg-canvas focus:ring-1 focus:ring-brand/30 focus:outline-none transition-colors" autocomplete="name" type="text" id="ContactForm-name" name="contact[name]" value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}" placeholder="{{ 'contact.name_placeholder' | t }}">
+              <input class="w-full bg-surface border border-line rounded-sm px-6 py-4 text-ink placeholder-muted/60 focus:border-brand focus:bg-canvas focus:ring-1 focus:ring-brand/30 focus:outline-none transition-colors" autocomplete="name" type="text" id="ContactForm-name" name="contact[name]" value="{% if form.name %}{{ form.name | escape }}{% elsif customer %}{{ customer.name | escape }}{% endif %}" placeholder="{{ 'contact.name_placeholder' | t }}">
             </div>
 
             <div class="space-y-2">
@@ -62,7 +62,7 @@
                 name="contact[email]"
                 spellcheck="false"
                 autocapitalize="off"
-                value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"
+                value="{% if form.email %}{{ form.email | escape }}{% elsif customer %}{{ customer.email | escape }}{% endif %}"
                 aria-required="true"
                 placeholder="hello@example.com"
                 required
@@ -72,7 +72,7 @@
 
           <div class="space-y-2">
             <label class="text-[11px] font-bold uppercase tracking-[0.2em] text-muted ml-2" for="ContactForm-phone">{{ 'contact.phone_label' | t }}</label>
-            <input type="tel" id="ContactForm-phone" class="w-full bg-surface border border-line rounded-sm px-6 py-4 text-ink placeholder-muted/60 focus:border-brand focus:bg-canvas focus:ring-1 focus:ring-brand/30 focus:outline-none transition-colors" autocomplete="tel" name="contact[phone]" pattern="[0-9\-]*" value="{% if form.phone %}{{ form.phone }}{% elsif customer %}{{ customer.phone }}{% endif %}" placeholder="{{ 'contact.phone_placeholder' | t }}">
+            <input type="tel" id="ContactForm-phone" class="w-full bg-surface border border-line rounded-sm px-6 py-4 text-ink placeholder-muted/60 focus:border-brand focus:bg-canvas focus:ring-1 focus:ring-brand/30 focus:outline-none transition-colors" autocomplete="tel" name="contact[phone]" pattern="[0-9\-]*" value="{% if form.phone %}{{ form.phone | escape }}{% elsif customer %}{{ customer.phone | escape }}{% endif %}" placeholder="{{ 'contact.phone_placeholder' | t }}">
           </div>
 
           <div class="space-y-2">
@@ -83,7 +83,7 @@
               class="w-full bg-surface border border-line rounded-sm px-6 py-4 text-ink placeholder-muted/60 focus:border-brand focus:bg-canvas focus:ring-1 focus:ring-brand/30 focus:outline-none transition-colors resize-none"
               name="contact[body]"
               placeholder="{{ 'contact.message_placeholder' | t }}"
-            >{{- form.body -}}</textarea>
+            >{{- form.body | escape -}}</textarea>
           </div>
 
           <div class="pt-4">
