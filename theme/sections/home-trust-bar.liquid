@@ -121,18 +121,18 @@
       <div class="plp-filter-panel" id="plp-filter-panel" data-filter-panel hidden>
         <div class="plp-filter-panel__grab" aria-hidden="true"></div>
         <p class="plp-filter-panel__title">{{ 'collections.filter' | t }}</p>
-        <div class="plp-filter-group" data-filter-group="origin" hidden>
-          <p class="plp-filter-group-title">{{ 'products.origin' | t }}</p>
+        <details class="plp-filter-group" data-filter-group="origin" hidden>
+          <summary class="plp-filter-group-title">{{ 'products.origin' | t }}<svg class="plp-filter-group-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg></summary>
           <div class="plp-filter-options" data-filter-options="origin"></div>
-        </div>
-        <div class="plp-filter-group" data-filter-group="notes" hidden>
-          <p class="plp-filter-group-title">{{ 'products.flavor_notes' | t }}</p>
+        </details>
+        <details class="plp-filter-group" data-filter-group="notes" hidden>
+          <summary class="plp-filter-group-title">{{ 'products.flavor_notes' | t }}<svg class="plp-filter-group-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg></summary>
           <div class="plp-filter-options" data-filter-options="notes"></div>
-        </div>
-        <div class="plp-filter-group" data-filter-group="process" hidden>
-          <p class="plp-filter-group-title">{{ 'products.process' | t }}</p>
+        </details>
+        <details class="plp-filter-group" data-filter-group="process" hidden>
+          <summary class="plp-filter-group-title">{{ 'products.process' | t }}<svg class="plp-filter-group-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg></summary>
           <div class="plp-filter-options" data-filter-options="process"></div>
-        </div>
+        </details>
         <button type="button" class="plp-filter-clear" data-filter-clear hidden>{% if request.locale.iso_code == 'ar' %}مسح الكل{% else %}Clear all{% endif %}</button>
       </div>
     </section>
