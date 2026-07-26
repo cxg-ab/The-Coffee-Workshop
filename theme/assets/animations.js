@@ -135,7 +135,7 @@
     if (typeof gsap === 'undefined') return;
 
     gsap.set(
-      '[data-hero-visual], [data-hero-orb], [data-hero-copy] [data-hero-eyebrow], [data-hero-copy] [data-hero-heading], [data-hero-copy] [data-hero-sub], [data-hero-copy] [data-hero-cta] > *, [data-reveal], [data-reveal-item], .product-card, [data-footer-reveal], [data-origin-media], [data-origin-media] img, [data-origin-copy] > *',
+      '[data-hero-visual], [data-hero-orb], [data-hero-copy] [data-hero-eyebrow], [data-hero-copy] [data-hero-heading], [data-reveal], .product-card, [data-footer-reveal], [data-origin-media], [data-origin-media] img, [data-origin-copy] > *',
       { clearProps: 'opacity,visibility,transform,clipPath' }
     );
   }
@@ -258,8 +258,6 @@
     const rule = copy?.querySelector('.hero-brand-rule');
     const headingLines = copy?.querySelectorAll('[data-hero-heading-line] .hero-heading__inner');
     const heading = copy?.querySelector('[data-hero-heading]');
-    const sub = copy?.querySelector('[data-hero-sub]');
-    const ctas = copy?.querySelectorAll('[data-hero-cta] > *');
 
     if (tagline) tl.from(tagline, { y: 20, autoAlpha: 0, duration: 0.6 });
     if (eyebrow) tl.from(eyebrow, { y: 28, autoAlpha: 0, duration: 0.7 }, tagline ? '-=0.35' : 0);
@@ -285,9 +283,6 @@
     } else if (heading) {
       tl.from(heading, { y: 48, autoAlpha: 0, duration: 0.95 }, eyebrow || tagline ? '-=0.4' : 0);
     }
-
-    if (sub) tl.from(sub, { y: 32, autoAlpha: 0, duration: 0.8 }, '-=0.55');
-    if (ctas.length) tl.from(ctas, { y: 22, autoAlpha: 0, duration: 0.55, stagger: 0.12 }, '-=0.45');
 
     const visual = section.querySelector('[data-hero-visual]');
     const orbs = section.querySelectorAll('[data-hero-orb]');
@@ -439,33 +434,6 @@
           start: 'top 90%',
           toggleActions: 'play none none none',
           once: true,
-        },
-      });
-    });
-  }
-
-  function initRevealGroups() {
-    gsap.utils.toArray('[data-reveal-group]').forEach((group) => {
-      if (group.closest('[data-about-section]')) return;
-      const children = group.querySelectorAll('[data-reveal-item]');
-      if (!children.length) return;
-
-      gsap.set(children, { y: 48, autoAlpha: 0, scale: 0.94 });
-
-      ScrollTrigger.batch(children, {
-        trigger: group,
-        start: 'top 88%',
-        once: true,
-        onEnter: (batch) => {
-          gsap.to(batch, {
-            y: 0,
-            autoAlpha: 1,
-            scale: 1,
-            duration: 0.85,
-            ease: 'power3.out',
-            stagger: 0.12,
-            overwrite: true,
-          });
         },
       });
     });
@@ -666,48 +634,6 @@
     });
   }
 
-  /* ─── Origins kinetic marquee ─── */
-  function initOriginsKineticMarquee() {
-    const section = document.querySelector('[data-origins-kinetic]');
-    if (!section || !enabled()) return;
-
-    const trackA = section.querySelector('[data-origins-track-a]');
-    const trackB = section.querySelector('[data-origins-track-b]');
-    if (!trackA) return;
-
-    gsap.from(section, {
-      autoAlpha: 0,
-      y: 40,
-      duration: 1,
-      ease: 'power2.out',
-      scrollTrigger: { trigger: section, start: 'top 92%', once: true },
-    });
-
-    gsap.to(trackA, {
-      xPercent: -8,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: section,
-        start: 'top bottom',
-        end: 'bottom top',
-        scrub: true,
-      },
-    });
-
-    if (trackB) {
-      gsap.to(trackB, {
-        xPercent: 8,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: section,
-          start: 'top bottom',
-          end: 'bottom top',
-          scrub: true,
-        },
-      });
-    }
-  }
-
   /* ─── Product cards ─── */
   function initProductCards() {
     const cards = document.querySelectorAll('.product-card');
@@ -774,10 +700,6 @@
     });
   }
 
-  function initMarqueeEnhancement() {
-    initOriginsKineticMarquee();
-  }
-
   function initFaqAccordion() {
     document.querySelectorAll('.faq-section details').forEach((detail) => {
       const content = detail.querySelector('.faq-answer');
@@ -834,13 +756,11 @@
     initHeroParallax();
     initSplitTitles();
     initScrollReveals();
-    initRevealGroups();
     initAboutStory();
     initOriginStory();
     initProductCards();
     initProductGallery();
     initFooterReveal();
-    initMarqueeEnhancement();
     initFaqAccordion();
     initButtonMotion();
     initParallaxSections();
