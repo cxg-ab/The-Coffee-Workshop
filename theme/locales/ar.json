@@ -14,6 +14,7 @@
       "page": "صفحة {{ page }}"
     },
     "continue_shopping": "متابعة التسوق",
+    "language": "اللغة",
     "search": "بحث",
     "404": {
       "title": "الصفحة غير موجودة",
@@ -123,7 +124,9 @@
     "no_image": "لا توجد صورة",
     "signature_roast": "تحميص مميز",
     "quick_add": "إضافة سريعة",
-    "adding_to_cart": "جاري الإضافة…"
+    "adding_to_cart": "جاري الإضافة…",
+    "quantity": "الكمية",
+    "zoom": "عرض صورة أكبر"
   },
   "search": {
     "no_results": "لم يتم العثور على منتجات. جرّب بحثاً آخر.",

@@ -14,6 +14,7 @@
       "page": "Page {{ page }}"
     },
     "continue_shopping": "Continue shopping",
+    "language": "Language",
     "search": "Search",
     "404": {
       "title": "Page not found",
@@ -119,7 +120,9 @@
     "no_image": "No image",
     "signature_roast": "Signature Roast",
     "quick_add": "Quick Add",
-    "adding_to_cart": "Adding…"
+    "adding_to_cart": "Adding…",
+    "quantity": "Quantity",
+    "zoom": "View larger image"
   },
   "search": {
     "no_results": "No products found. Try a different search.",
