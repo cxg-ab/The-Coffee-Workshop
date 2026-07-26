@@ -96,6 +96,15 @@
   </ul>
 {%- elsif fallback == 'main' -%}
   <ul class="{{ list_class }}" role="list">
+    <li>
+      <a
+        href="{{ routes.root_url }}"
+        class="{{ link_class }}{% if request.page_type == 'index' %} text-brand{% endif %} whitespace-nowrap"
+        {% if request.page_type == 'index' %}aria-current="page"{% endif %}
+      >
+        {{ 'header.home' | t }}
+      </a>
+    </li>
     {% render 'shop-beans-nav-item', link_class: link_class, shop_link: shop_link %}
     <li><a href="/pages/about" class="{{ link_class }}">{{ 'header.about' | t }}</a></li>
     <li><a href="/pages/contact" class="{{ link_class }}">{{ 'footer.contact' | t }}</a></li>
