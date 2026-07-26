@@ -28,7 +28,7 @@
           {%- assign trimmed = line | strip -%}
           {%- if trimmed != blank -%}
             <span class="hero-heading__line" data-hero-heading-line style="display: block;">
-              <span class="hero-heading__inner">{{ trimmed | raw }}</span>
+              <span class="hero-heading__inner">{{ trimmed }}</span>
             </span>
           {%- endif -%}
         {%- endfor -%}
