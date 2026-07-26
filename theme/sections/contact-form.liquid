@@ -29,7 +29,7 @@
           {%- elsif form.errors -%}
             <div class="p-5 rounded-sm bg-red-50 border border-red-200 text-red-700 text-sm mb-8">
               <p class="font-bold mb-2">{{ 'contact.error_heading' | t }}</p>
-              <ul class="list-disc pl-5">
+              <ul class="list-disc ps-5">
                 {%- for field in form.errors -%}
                   <li>
                     {%- if field == 'form' -%}
@@ -48,12 +48,12 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div class="space-y-2">
-              <label class="text-[11px] font-bold uppercase tracking-[0.2em] text-muted ml-2" for="ContactForm-name">{{ 'contact.name_label' | t }}</label>
+              <label class="text-[11px] font-bold uppercase tracking-[0.2em] text-muted ms-2" for="ContactForm-name">{{ 'contact.name_label' | t }}</label>
               <input class="w-full bg-surface border border-line rounded-sm px-6 py-4 text-ink placeholder-muted/60 focus:border-brand focus:bg-canvas focus:ring-1 focus:ring-brand/30 focus:outline-none transition-colors" autocomplete="name" type="text" id="ContactForm-name" name="contact[name]" value="{% if form.name %}{{ form.name | escape }}{% elsif customer %}{{ customer.name | escape }}{% endif %}" placeholder="{{ 'contact.name_placeholder' | t }}">
             </div>
 
             <div class="space-y-2">
-              <label class="text-[11px] font-bold uppercase tracking-[0.2em] text-muted ml-2" for="ContactForm-email">{{ 'contact.email_label' | t }} <span class="text-brand">*</span></label>
+              <label class="text-[11px] font-bold uppercase tracking-[0.2em] text-muted ms-2" for="ContactForm-email">{{ 'contact.email_label' | t }} <span class="text-brand">*</span></label>
               <input
                 autocomplete="email"
                 type="email"
@@ -71,12 +71,12 @@
           </div>
 
           <div class="space-y-2">
-            <label class="text-[11px] font-bold uppercase tracking-[0.2em] text-muted ml-2" for="ContactForm-phone">{{ 'contact.phone_label' | t }}</label>
+            <label class="text-[11px] font-bold uppercase tracking-[0.2em] text-muted ms-2" for="ContactForm-phone">{{ 'contact.phone_label' | t }}</label>
             <input type="tel" id="ContactForm-phone" class="w-full bg-surface border border-line rounded-sm px-6 py-4 text-ink placeholder-muted/60 focus:border-brand focus:bg-canvas focus:ring-1 focus:ring-brand/30 focus:outline-none transition-colors" autocomplete="tel" name="contact[phone]" pattern="[0-9\-]*" value="{% if form.phone %}{{ form.phone | escape }}{% elsif customer %}{{ customer.phone | escape }}{% endif %}" placeholder="{{ 'contact.phone_placeholder' | t }}">
           </div>
 
           <div class="space-y-2">
-            <label class="text-[11px] font-bold uppercase tracking-[0.2em] text-muted ml-2" for="ContactForm-body">{{ 'contact.message_label' | t }}</label>
+            <label class="text-[11px] font-bold uppercase tracking-[0.2em] text-muted ms-2" for="ContactForm-body">{{ 'contact.message_label' | t }}</label>
             <textarea
               rows="4"
               id="ContactForm-body"

@@ -48,13 +48,13 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
               </svg>
             </a>
-            <button type="button" class="lg:hidden p-3 -mr-3 text-[#1C1917]/50 hover:text-brand transition-colors" data-mobile-dropdown-toggle aria-expanded="false" aria-label="{{ 'accessibility.expand_submenu' | t }}">
+            <button type="button" class="lg:hidden p-3 -me-3 text-[#1C1917]/50 hover:text-brand transition-colors" data-mobile-dropdown-toggle aria-expanded="false" aria-label="{{ 'accessibility.expand_submenu' | t }}">
               <svg class="w-4 h-4 transition-transform duration-300" data-mobile-dropdown-icon fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
           </div>
-          <ul class="tcw-dropdown-menu hidden lg:flex flex-col pl-4 mt-2 space-y-2 lg:pl-0 lg:mt-0 lg:space-y-0" data-mobile-dropdown-menu>
+          <ul class="tcw-dropdown-menu hidden lg:flex flex-col ps-4 mt-2 space-y-2 lg:ps-0 lg:mt-0 lg:space-y-0" data-mobile-dropdown-menu>
             {%- for sublink in link.links -%}
               <li class="tcw-dropdown-item" style="transition-delay: {{ forloop.index | times: 50 }}ms;">
                 <a href="{{ sublink.url }}" class="group relative flex items-center justify-between px-2 py-2 lg:px-6 lg:py-3.5 text-[12px] font-bold tracking-[0.15em] uppercase text-[#1C1917]/80 lg:text-[#1C1917]/70 transition-colors duration-300 hover:text-[#C5A059] lg:rounded-lg overflow-hidden">
