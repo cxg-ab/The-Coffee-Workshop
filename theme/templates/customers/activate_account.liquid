@@ -1,0 +1,34 @@
+{%- comment -%} Activate customer account — TCW themed. {%- endcomment -%}
+{% render 'account-styles' %}
+
+<div class="acct">
+  <div class="site-container">
+    <div class="acct-auth">
+      <header class="acct-head" style="text-align:center;">
+        <p class="acct-head__eyebrow">{{ 'customer.account.eyebrow' | t }}</p>
+        <h1 class="acct-head__title">{{ 'customer.activate.title' | t }}</h1>
+        <p class="acct-head__sub">{{ 'customer.activate.text' | t }}</p>
+      </header>
+
+      {%- form 'activate_customer_password' -%}
+        {%- if form.errors -%}
+          <div class="acct-alert acct-alert--error" role="alert">{{ form.errors | default_errors }}</div>
+        {%- endif -%}
+        <div class="acct-form">
+          <div class="acct-field">
+            <label class="acct-label" for="activate_password">{{ 'customer.activate.password' | t }}</label>
+            <input type="password" name="customer[password]" id="activate_password" class="acct-input" autocomplete="new-password" required>
+          </div>
+          <div class="acct-field">
+            <label class="acct-label" for="activate_password_confirmation">{{ 'customer.activate.confirm' | t }}</label>
+            <input type="password" name="customer[password_confirmation]" id="activate_password_confirmation" class="acct-input" autocomplete="new-password" required>
+          </div>
+          <div class="acct-actions" style="flex-direction:column;align-items:stretch;">
+            <button type="submit" class="btn-primary acct-btn-full">{{ 'customer.activate.submit' | t }}</button>
+            <button type="submit" name="decline" class="btn-outline acct-btn-full">{{ 'customer.activate.decline' | t }}</button>
+          </div>
+        </div>
+      {%- endform -%}
+    </div>
+  </div>
+</div>

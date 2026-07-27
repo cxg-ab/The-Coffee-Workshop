@@ -1,0 +1,21 @@
+{%- comment -%}
+  Account sidebar navigation. Pass `current` = 'dashboard' | 'orders' | 'addresses'.
+{%- endcomment -%}
+<nav class="acct-nav" aria-label="{{ 'customer.account.title' | t }}">
+  <a href="{{ routes.account_url }}" class="acct-nav__link"{% if current == 'dashboard' %} aria-current="page"{% endif %}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10h5v-6h4v6h5V10"/></svg>
+    {{ 'customer.account.dashboard' | t }}
+  </a>
+  <a href="{{ routes.account_url }}#orders" class="acct-nav__link"{% if current == 'orders' %} aria-current="page"{% endif %}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 2h9l5 5v15a1 1 0 01-1 1H6a1 1 0 01-1-1V3a1 1 0 011-1zM14 2v6h6M9 13h6M9 17h6"/></svg>
+    {{ 'customer.orders.title' | t }}
+  </a>
+  <a href="{{ routes.account_addresses_url }}" class="acct-nav__link"{% if current == 'addresses' %} aria-current="page"{% endif %}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-7-6.4-7-11a7 7 0 1114 0c0 4.6-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+    {{ 'customer.addresses.title' | t }}
+  </a>
+  <a href="{{ routes.account_logout_url }}" class="acct-nav__link acct-nav__logout">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12H3m0 0l4-4m-4 4l4 4M13 4h6a1 1 0 011 1v14a1 1 0 01-1 1h-6"/></svg>
+    {{ 'customer.account.logout' | t }}
+  </a>
+</nav>

@@ -1,0 +1,107 @@
+{%- comment -%} Customer login + password recovery — TCW themed. {%- endcomment -%}
+{% render 'account-styles' %}
+
+<div class="acct">
+  <div class="site-container">
+
+    {%- comment -%} ============ LOGIN ============ {%- endcomment -%}
+    <div class="acct-auth" id="login" data-login-view>
+      <header class="acct-head" style="text-align:center;">
+        <p class="acct-head__eyebrow">{{ 'customer.account.eyebrow' | t }}</p>
+        <h1 class="acct-head__title">{{ 'customer.login.title' | t }}</h1>
+      </header>
+
+      {%- form 'customer_login', novalidate: 'novalidate' -%}
+        {%- if form.errors -%}
+          <div class="acct-alert acct-alert--error" role="alert">
+            {{ form.errors | default_errors }}
+          </div>
+        {%- endif -%}
+
+        <div class="acct-form">
+          <div class="acct-field">
+            <label class="acct-label" for="customer_email">{{ 'customer.login.email' | t }}</label>
+            <input type="email" name="customer[email]" id="customer_email" class="acct-input" autocomplete="email" autocapitalize="off" autocorrect="off" required>
+          </div>
+
+          {%- if form.password_needed -%}
+            <div class="acct-field">
+              <label class="acct-label" for="customer_password">{{ 'customer.login.password' | t }}</label>
+              <input type="password" name="customer[password]" id="customer_password" class="acct-input" autocomplete="current-password" required>
+            </div>
+            <div style="text-align:end;">
+              <a href="#recover" class="acct-link" data-recover-toggle>{{ 'customer.login.forgot' | t }}</a>
+            </div>
+          {%- endif -%}
+
+          <button type="submit" class="btn-primary acct-btn-full">{{ 'customer.login.sign_in' | t }}</button>
+        </div>
+      {%- endform -%}
+
+      <p class="acct-meta">
+        {{ 'customer.login.no_account' | t }}
+        <a href="{{ routes.account_register_url }}" class="acct-link">{{ 'customer.login.create' | t }}</a>
+      </p>
+    </div>
+
+    {%- comment -%} ============ RECOVER ============ {%- endcomment -%}
+    <div class="acct-auth" id="recover" data-recover-view hidden>
+      <header class="acct-head" style="text-align:center;">
+        <p class="acct-head__eyebrow">{{ 'customer.account.eyebrow' | t }}</p>
+        <h1 class="acct-head__title">{{ 'customer.login.recover_title' | t }}</h1>
+        <p class="acct-head__sub">{{ 'customer.login.recover_text' | t }}</p>
+      </header>
+
+      {%- form 'recover_customer_password' -%}
+        {%- if form.posted_successfully? -%}
+          <div class="acct-alert acct-alert--success" role="status" data-recover-success>{{ 'customer.login.recover_success' | t }}</div>
+        {%- endif -%}
+        {%- if form.errors -%}
+          <div class="acct-alert acct-alert--error" role="alert">{{ form.errors | default_errors }}</div>
+        {%- endif -%}
+
+        <div class="acct-form">
+          <div class="acct-field">
+            <label class="acct-label" for="recover_email">{{ 'customer.login.email' | t }}</label>
+            <input type="email" name="email" id="recover_email" class="acct-input" autocomplete="email" autocapitalize="off" autocorrect="off" required>
+          </div>
+          <button type="submit" class="btn-primary acct-btn-full">{{ 'customer.login.submit_recover' | t }}</button>
+          <div style="text-align:center;">
+            <a href="#login" class="acct-link" data-recover-toggle>{{ 'customer.login.cancel' | t }}</a>
+          </div>
+        </div>
+      {%- endform -%}
+    </div>
+
+  </div>
+</div>
+
+<script>
+  (function () {
+    var loginView = document.querySelector('[data-login-view]');
+    var recoverView = document.querySelector('[data-recover-view]');
+    if (!loginView || !recoverView) return;
+
+    function show(which) {
+      var recover = which === 'recover';
+      recoverView.hidden = !recover;
+      loginView.hidden = recover;
+      // move focus to first field for a11y
+      var target = (recover ? recoverView : loginView).querySelector('input');
+      if (target) { try { target.focus({ preventScroll: true }); } catch (e) { target.focus(); } }
+    }
+
+    document.querySelectorAll('[data-recover-toggle]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        e.preventDefault();
+        show(window.location.hash === '#recover' ? 'login' : 'recover');
+        history.replaceState(null, '', el.getAttribute('href'));
+      });
+    });
+
+    // Open recover view when the URL asks for it, or a recover-success message was rendered.
+    if (window.location.hash === '#recover' || document.querySelector('[data-recover-success]')) {
+      show('recover');
+    }
+  })();
+</script>

@@ -1,0 +1,109 @@
+{%- comment -%} Customer order detail — TCW themed. {%- endcomment -%}
+{% render 'account-styles' %}
+
+<div class="acct">
+  <div class="site-container">
+    <a href="{{ routes.account_url }}" class="acct-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"/></svg>
+      {{ 'customer.order.back' | t }}
+    </a>
+
+    <header class="acct-head" data-reveal>
+      <p class="acct-head__eyebrow">{{ 'customer.orders.title' | t }}</p>
+      <h1 class="acct-head__title">{{ 'customer.order.title' | t: name: order.name }}</h1>
+      {%- assign order_date = order.created_at | date: '%d %B %Y' -%}
+      <p class="acct-head__sub">{{ 'customer.order.placed_on' | t: date: order_date }}</p>
+    </header>
+
+    {%- if order.cancelled -%}
+      {%- assign cancelled_date = order.cancelled_at | date: '%d %B %Y' -%}
+      <div class="acct-alert acct-alert--error">
+        {{ 'customer.order.cancelled' | t: date: cancelled_date }}
+        {%- if order.cancel_reason %} — {{ order.cancel_reason_label }}{% endif -%}
+      </div>
+    {%- endif -%}
+
+    <div class="acct-order-grid">
+      <main>
+        <section class="acct-card" data-reveal>
+          <div class="acct-card__head">
+            <h2 class="acct-card__title">{{ 'customer.order.items' | t }}</h2>
+            <span class="acct-badge acct-badge--muted">{{ order.fulfillment_status_label }}</span>
+          </div>
+
+          {%- for line_item in order.line_items -%}
+            <div class="acct-li">
+              {%- if line_item.image -%}
+                <img class="acct-li__img" src="{{ line_item.image | image_url: width: 128 }}" alt="{{ line_item.title | escape }}" width="64" height="64" loading="lazy">
+              {%- else -%}
+                <span class="acct-li__img" aria-hidden="true"></span>
+              {%- endif -%}
+              <div class="acct-li__body">
+                {%- if line_item.product.url -%}
+                  <a href="{{ line_item.product.url }}" class="acct-li__title">{{ line_item.title }}</a>
+                {%- else -%}
+                  <span class="acct-li__title">{{ line_item.title }}</span>
+                {%- endif -%}
+                {%- if line_item.variant.title and line_item.variant.title != 'Default Title' -%}
+                  <div class="acct-li__meta">{{ line_item.variant.title }}</div>
+                {%- endif -%}
+                {%- if line_item.sku != blank -%}
+                  <div class="acct-li__meta">{{ 'customer.order.sku' | t }}: {{ line_item.sku }}</div>
+                {%- endif -%}
+                <div class="acct-li__meta">{{ 'customer.order.quantity' | t }}: {{ line_item.quantity }} × {{ line_item.price | money }}</div>
+              </div>
+              <div class="acct-li__price">{{ line_item.final_line_price | money }}</div>
+            </div>
+          {%- endfor -%}
+        </section>
+      </main>
+
+      <aside>
+        <section class="acct-card" data-reveal>
+          <h2 class="acct-card__title" style="margin-bottom:1.25rem;">{{ 'customer.order.summary' | t }}</h2>
+          <div class="acct-totals">
+            <div class="acct-totals__row"><span>{{ 'customer.order.subtotal' | t }}</span><span>{{ order.line_items_subtotal_price | money }}</span></div>
+            {%- for discount in order.cart_level_discount_applications -%}
+              <div class="acct-totals__row"><span>{{ 'customer.order.discount' | t }} ({{ discount.title }})</span><span>−{{ discount.total_allocated_amount | money }}</span></div>
+            {%- endfor -%}
+            <div class="acct-totals__row"><span>{{ 'customer.order.shipping' | t }}</span><span>{{ order.shipping_price | money }}</span></div>
+            {%- for tax_line in order.tax_lines -%}
+              <div class="acct-totals__row"><span>{{ 'customer.order.tax' | t }} ({{ tax_line.title }} {{ tax_line.rate_percentage }}%)</span><span>{{ tax_line.price | money }}</span></div>
+            {%- endfor -%}
+            <div class="acct-totals__row acct-totals__row--grand"><span>{{ 'customer.order.total' | t }}</span><span>{{ order.total_price | money }}</span></div>
+          </div>
+        </section>
+
+        <section class="acct-card" data-reveal>
+          <h2 class="acct-card__title" style="margin-bottom:1rem;">{{ 'customer.order.shipping_address' | t }}</h2>
+          {%- if order.shipping_address -%}
+            <address class="acct-addr">
+              {%- if order.shipping_address.name != blank %}<strong>{{ order.shipping_address.name }}</strong><br>{% endif -%}
+              {{ order.shipping_address.address1 }}<br>
+              {%- if order.shipping_address.address2 != blank %}{{ order.shipping_address.address2 }}<br>{% endif -%}
+              {{ order.shipping_address.city }}{% if order.shipping_address.province != blank %}, {{ order.shipping_address.province }}{% endif %} {{ order.shipping_address.zip }}<br>
+              {{ order.shipping_address.country }}
+              {%- if order.shipping_address.phone != blank %}<br>{{ order.shipping_address.phone }}{% endif -%}
+            </address>
+          {%- else -%}
+            <p class="acct-li__meta">—</p>
+          {%- endif -%}
+        </section>
+
+        {%- if order.billing_address -%}
+          <section class="acct-card" data-reveal>
+            <h2 class="acct-card__title" style="margin-bottom:1rem;">{{ 'customer.order.billing_address' | t }}</h2>
+            <address class="acct-addr">
+              {%- if order.billing_address.name != blank %}<strong>{{ order.billing_address.name }}</strong><br>{% endif -%}
+              {{ order.billing_address.address1 }}<br>
+              {%- if order.billing_address.address2 != blank %}{{ order.billing_address.address2 }}<br>{% endif -%}
+              {{ order.billing_address.city }}{% if order.billing_address.province != blank %}, {{ order.billing_address.province }}{% endif %} {{ order.billing_address.zip }}<br>
+              {{ order.billing_address.country }}
+              {%- if order.billing_address.phone != blank %}<br>{{ order.billing_address.phone }}{% endif -%}
+            </address>
+          </section>
+        {%- endif -%}
+      </aside>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,152 @@
+{%- comment -%} Customer addresses — TCW themed (add / edit / delete). {%- endcomment -%}
+{% render 'account-styles' %}
+{{ 'shopify_common.js' | shopify_asset_url | script_tag }}
+
+<div class="acct">
+  <div class="site-container">
+    <a href="{{ routes.account_url }}" class="acct-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"/></svg>
+      {{ 'customer.addresses.back' | t }}
+    </a>
+
+    <header class="acct-head" data-reveal>
+      <p class="acct-head__eyebrow">{{ 'customer.account.eyebrow' | t }}</p>
+      <h1 class="acct-head__title">{{ 'customer.addresses.title' | t }}</h1>
+    </header>
+
+    <div class="acct-actions" style="margin-bottom:1.5rem;">
+      <button type="button" class="btn-primary" data-toggle="AddressNewForm" aria-expanded="false">{{ 'customer.addresses.add' | t }}</button>
+    </div>
+
+    {%- comment -%} ---------- NEW ADDRESS FORM ---------- {%- endcomment -%}
+    <div id="AddressNewForm" class="acct-card acct-addr-form" data-address-form data-target="AddressNewForm">
+      <h2 class="acct-card__title" style="margin-bottom:1.25rem;">{{ 'customer.addresses.add' | t }}</h2>
+      {%- form 'customer_address', customer.new_address -%}
+        <div class="acct-form">
+          <div class="acct-grid-2">
+            <div class="acct-field"><label class="acct-label" for="AddressFirstNameNew">{{ 'customer.addresses.first_name' | t }}</label><input type="text" id="AddressFirstNameNew" name="address[first_name]" class="acct-input" autocomplete="given-name"></div>
+            <div class="acct-field"><label class="acct-label" for="AddressLastNameNew">{{ 'customer.addresses.last_name' | t }}</label><input type="text" id="AddressLastNameNew" name="address[last_name]" class="acct-input" autocomplete="family-name"></div>
+          </div>
+          <div class="acct-field"><label class="acct-label" for="AddressCompanyNew">{{ 'customer.addresses.company' | t }}</label><input type="text" id="AddressCompanyNew" name="address[company]" class="acct-input" autocomplete="organization"></div>
+          <div class="acct-field"><label class="acct-label" for="AddressAddress1New">{{ 'customer.addresses.address1' | t }}</label><input type="text" id="AddressAddress1New" name="address[address1]" class="acct-input" autocomplete="address-line1"></div>
+          <div class="acct-field"><label class="acct-label" for="AddressAddress2New">{{ 'customer.addresses.address2' | t }}</label><input type="text" id="AddressAddress2New" name="address[address2]" class="acct-input" autocomplete="address-line2"></div>
+          <div class="acct-grid-2">
+            <div class="acct-field"><label class="acct-label" for="AddressCityNew">{{ 'customer.addresses.city' | t }}</label><input type="text" id="AddressCityNew" name="address[city]" class="acct-input" autocomplete="address-level2"></div>
+            <div class="acct-field"><label class="acct-label" for="AddressZipNew">{{ 'customer.addresses.zip' | t }}</label><input type="text" id="AddressZipNew" name="address[zip]" class="acct-input" autocapitalize="characters" autocomplete="postal-code"></div>
+          </div>
+          <div class="acct-grid-2">
+            <div class="acct-field"><label class="acct-label" for="AddressCountryNew">{{ 'customer.addresses.country' | t }}</label><select id="AddressCountryNew" name="address[country]" class="acct-select" data-default="{{ customer.new_address.country }}">{{ country_option_tags }}</select></div>
+            <div class="acct-field" id="AddressProvinceContainerNew"><label class="acct-label" for="AddressProvinceNew">{{ 'customer.addresses.province' | t }}</label><select id="AddressProvinceNew" name="address[province]" class="acct-select" data-default="{{ customer.new_address.province }}"></select></div>
+          </div>
+          <div class="acct-field"><label class="acct-label" for="AddressPhoneNew">{{ 'customer.addresses.phone' | t }}</label><input type="tel" id="AddressPhoneNew" name="address[phone]" class="acct-input" autocomplete="tel"></div>
+          <label class="acct-checkbox">{{ form.set_as_default_checkbox }} {{ 'customer.addresses.set_default' | t }}</label>
+          <div class="acct-actions">
+            <button type="submit" class="btn-primary">{{ 'customer.addresses.save' | t }}</button>
+            <button type="button" class="btn-outline" data-toggle="AddressNewForm">{{ 'customer.addresses.cancel' | t }}</button>
+          </div>
+        </div>
+      {%- endform -%}
+    </div>
+
+    {%- comment -%} ---------- ADDRESS LIST ---------- {%- endcomment -%}
+    {%- paginate customer.addresses by 6 -%}
+      {%- if customer.addresses.size > 0 -%}
+        <div class="acct-addr-grid">
+          {%- for address in customer.addresses -%}
+            <div class="acct-addr-card">
+              {%- if address == customer.default_address -%}
+                <span class="acct-addr-card__tag acct-badge acct-badge--paid">{{ 'customer.addresses.default' | t }}</span>
+              {%- endif -%}
+              <address class="acct-addr">
+                {%- if address.name != blank %}<strong>{{ address.name }}</strong><br>{% endif -%}
+                {%- if address.company != blank %}{{ address.company }}<br>{% endif -%}
+                {{ address.address1 }}<br>
+                {%- if address.address2 != blank %}{{ address.address2 }}<br>{% endif -%}
+                {{ address.city }}{% if address.province != blank %}, {{ address.province }}{% endif %} {{ address.zip }}<br>
+                {{ address.country }}
+                {%- if address.phone != blank %}<br>{{ address.phone }}{% endif -%}
+              </address>
+              <div class="acct-addr-card__actions">
+                <button type="button" class="acct-addr-card__btn acct-addr-card__btn--edit" data-toggle="EditAddress_{{ address.id }}" aria-expanded="false">{{ 'customer.addresses.edit_btn' | t }}</button>
+                <button type="button" class="acct-addr-card__btn acct-addr-card__btn--del" data-delete="{{ address.url }}">{{ 'customer.addresses.delete' | t }}</button>
+              </div>
+            </div>
+
+            {%- comment -%} ---- EDIT FORM ---- {%- endcomment -%}
+            <div id="EditAddress_{{ address.id }}" class="acct-card acct-addr-form" data-address-form data-target="EditAddress_{{ address.id }}" style="grid-column:1 / -1;">
+              <h2 class="acct-card__title" style="margin-bottom:1.25rem;">{{ 'customer.addresses.edit' | t }}</h2>
+              {%- form 'customer_address', address -%}
+                <div class="acct-form">
+                  <div class="acct-grid-2">
+                    <div class="acct-field"><label class="acct-label" for="AddressFirstName_{{ address.id }}">{{ 'customer.addresses.first_name' | t }}</label><input type="text" id="AddressFirstName_{{ address.id }}" name="address[first_name]" class="acct-input" value="{{ address.first_name | escape }}" autocomplete="given-name"></div>
+                    <div class="acct-field"><label class="acct-label" for="AddressLastName_{{ address.id }}">{{ 'customer.addresses.last_name' | t }}</label><input type="text" id="AddressLastName_{{ address.id }}" name="address[last_name]" class="acct-input" value="{{ address.last_name | escape }}" autocomplete="family-name"></div>
+                  </div>
+                  <div class="acct-field"><label class="acct-label" for="AddressCompany_{{ address.id }}">{{ 'customer.addresses.company' | t }}</label><input type="text" id="AddressCompany_{{ address.id }}" name="address[company]" class="acct-input" value="{{ address.company | escape }}" autocomplete="organization"></div>
+                  <div class="acct-field"><label class="acct-label" for="AddressAddress1_{{ address.id }}">{{ 'customer.addresses.address1' | t }}</label><input type="text" id="AddressAddress1_{{ address.id }}" name="address[address1]" class="acct-input" value="{{ address.address1 | escape }}" autocomplete="address-line1"></div>
+                  <div class="acct-field"><label class="acct-label" for="AddressAddress2_{{ address.id }}">{{ 'customer.addresses.address2' | t }}</label><input type="text" id="AddressAddress2_{{ address.id }}" name="address[address2]" class="acct-input" value="{{ address.address2 | escape }}" autocomplete="address-line2"></div>
+                  <div class="acct-grid-2">
+                    <div class="acct-field"><label class="acct-label" for="AddressCity_{{ address.id }}">{{ 'customer.addresses.city' | t }}</label><input type="text" id="AddressCity_{{ address.id }}" name="address[city]" class="acct-input" value="{{ address.city | escape }}" autocomplete="address-level2"></div>
+                    <div class="acct-field"><label class="acct-label" for="AddressZip_{{ address.id }}">{{ 'customer.addresses.zip' | t }}</label><input type="text" id="AddressZip_{{ address.id }}" name="address[zip]" class="acct-input" value="{{ address.zip | escape }}" autocapitalize="characters" autocomplete="postal-code"></div>
+                  </div>
+                  <div class="acct-grid-2">
+                    <div class="acct-field"><label class="acct-label" for="AddressCountry_{{ address.id }}">{{ 'customer.addresses.country' | t }}</label><select id="AddressCountry_{{ address.id }}" name="address[country]" class="acct-select" data-default="{{ address.country }}">{{ country_option_tags }}</select></div>
+                    <div class="acct-field" id="AddressProvinceContainer_{{ address.id }}"><label class="acct-label" for="AddressProvince_{{ address.id }}">{{ 'customer.addresses.province' | t }}</label><select id="AddressProvince_{{ address.id }}" name="address[province]" class="acct-select" data-default="{{ address.province }}"></select></div>
+                  </div>
+                  <div class="acct-field"><label class="acct-label" for="AddressPhone_{{ address.id }}">{{ 'customer.addresses.phone' | t }}</label><input type="tel" id="AddressPhone_{{ address.id }}" name="address[phone]" class="acct-input" value="{{ address.phone | escape }}" autocomplete="tel"></div>
+                  <label class="acct-checkbox">{{ form.set_as_default_checkbox }} {{ 'customer.addresses.set_default' | t }}</label>
+                  <div class="acct-actions">
+                    <button type="submit" class="btn-primary">{{ 'customer.addresses.update' | t }}</button>
+                    <button type="button" class="btn-outline" data-toggle="EditAddress_{{ address.id }}">{{ 'customer.addresses.cancel' | t }}</button>
+                  </div>
+                </div>
+              {%- endform -%}
+            </div>
+          {%- endfor -%}
+        </div>
+
+        {%- if paginate.pages > 1 -%}
+          <div class="acct-actions" style="justify-content:center;margin-top:1.5rem;">{{ paginate | default_pagination }}</div>
+        {%- endif -%}
+      {%- else -%}
+        <div class="acct-card acct-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-7-6.4-7-11a7 7 0 1114 0c0 4.6-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          <p>{{ 'customer.addresses.none' | t }}</p>
+        </div>
+      {%- endif -%}
+    {%- endpaginate -%}
+  </div>
+</div>
+
+<script>
+  (function () {
+    // Toggle add/edit forms
+    document.querySelectorAll('[data-toggle]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var el = document.getElementById(btn.getAttribute('data-toggle'));
+        if (!el) return;
+        var open = el.classList.toggle('is-open');
+        document.querySelectorAll('[data-toggle="' + btn.getAttribute('data-toggle') + '"]').forEach(function (b) {
+          if (b.hasAttribute('aria-expanded')) b.setAttribute('aria-expanded', String(open));
+        });
+        if (open) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+    });
+
+    // Delete address (Shopify.postLink adds the _method=delete)
+    document.querySelectorAll('[data-delete]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (window.confirm({{ 'customer.addresses.delete_confirm' | t | json }})) {
+          Shopify.postLink(btn.getAttribute('data-delete'), { parameters: { _method: 'delete' } });
+        }
+      });
+    });
+
+    // Country / province selectors
+    if (window.Shopify && Shopify.CountryProvinceSelector) {
+      new Shopify.CountryProvinceSelector('AddressCountryNew', 'AddressProvinceNew', { hideElement: 'AddressProvinceContainerNew' });
+      {%- for address in customer.addresses -%}
+        new Shopify.CountryProvinceSelector('AddressCountry_{{ address.id }}', 'AddressProvince_{{ address.id }}', { hideElement: 'AddressProvinceContainer_{{ address.id }}' });
+      {%- endfor -%}
+    }
+  })();
+</script>

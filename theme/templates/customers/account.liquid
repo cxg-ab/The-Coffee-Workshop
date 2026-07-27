@@ -1,0 +1,122 @@
+{%- comment -%} Customer account dashboard — TCW themed (classic customer accounts). {%- endcomment -%}
+{% render 'account-styles' %}
+
+<div class="acct">
+  <div class="site-container">
+
+    <header class="acct-head" data-reveal>
+      <p class="acct-head__eyebrow">{{ 'customer.account.eyebrow' | t }}</p>
+      <h1 class="acct-head__title">
+        {%- if customer.first_name != blank -%}
+          {{ 'customer.account.welcome_name' | t: name: customer.first_name }}
+        {%- else -%}
+          {{ 'customer.account.title' | t }}
+        {%- endif -%}
+      </h1>
+      <p class="acct-head__sub">{{ customer.email }}</p>
+    </header>
+
+    <div class="acct-layout">
+      {% render 'account-nav', current: 'dashboard' %}
+
+      <main>
+        {%- comment -%} Quick stats {%- endcomment -%}
+        <div class="acct-stats" data-reveal>
+          <div class="acct-stat">
+            <div class="acct-stat__num">{{ customer.orders_count }}</div>
+            <div class="acct-stat__label">{{ 'customer.account.total_orders' | t }}</div>
+          </div>
+          <div class="acct-stat">
+            <div class="acct-stat__num">{{ customer.addresses_count }}</div>
+            <div class="acct-stat__label">{{ 'customer.account.saved_addresses' | t }}</div>
+          </div>
+          <div class="acct-stat">
+            <div class="acct-stat__num">{{ customer.total_spent | money_without_trailing_zeros }}</div>
+            <div class="acct-stat__label">{{ 'customer.account.total_spent' | t }}</div>
+          </div>
+        </div>
+
+        {%- comment -%} Recent orders {%- endcomment -%}
+        <section class="acct-card" id="orders" data-reveal>
+          <div class="acct-card__head">
+            <h2 class="acct-card__title">{{ 'customer.orders.title' | t }}</h2>
+          </div>
+
+          {%- paginate customer.orders by 10 -%}
+            {%- if customer.orders.size > 0 -%}
+              <table class="acct-table">
+                <thead>
+                  <tr>
+                    <th>{{ 'customer.orders.order_number' | t }}</th>
+                    <th>{{ 'customer.orders.date' | t }}</th>
+                    <th>{{ 'customer.orders.payment_status' | t }}</th>
+                    <th>{{ 'customer.orders.fulfillment_status' | t }}</th>
+                    <th>{{ 'customer.orders.total' | t }}</th>
+                    <th><span class="sr-only">{{ 'customer.orders.view' | t }}</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {%- for order in customer.orders -%}
+                    <tr>
+                      <td data-label="{{ 'customer.orders.order_number' | t }}" class="acct-table__num">{{ order.name }}</td>
+                      <td data-label="{{ 'customer.orders.date' | t }}">{{ order.created_at | date: '%d %b %Y' }}</td>
+                      <td data-label="{{ 'customer.orders.payment_status' | t }}">
+                        {%- if order.financial_status == 'paid' -%}
+                          <span class="acct-badge acct-badge--paid">{{ order.financial_status_label }}</span>
+                        {%- else -%}
+                          <span class="acct-badge acct-badge--pending">{{ order.financial_status_label }}</span>
+                        {%- endif -%}
+                      </td>
+                      <td data-label="{{ 'customer.orders.fulfillment_status' | t }}">
+                        <span class="acct-badge acct-badge--muted">{{ order.fulfillment_status_label }}</span>
+                      </td>
+                      <td data-label="{{ 'customer.orders.total' | t }}" class="acct-table__num">{{ order.total_price | money }}</td>
+                      <td data-label="">
+                        <a href="{{ order.customer_url }}" class="acct-table__view">{{ 'customer.orders.view' | t }}</a>
+                      </td>
+                    </tr>
+                  {%- endfor -%}
+                </tbody>
+              </table>
+
+              {%- if paginate.pages > 1 -%}
+                <div class="acct-actions" style="justify-content:center;margin-top:1.5rem;">
+                  {{ paginate | default_pagination }}
+                </div>
+              {%- endif -%}
+            {%- else -%}
+              <div class="acct-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 2h9l5 5v15a1 1 0 01-1 1H6a1 1 0 01-1-1V3a1 1 0 011-1zM14 2v6h6M9 13h6M9 17h6"/></svg>
+                <p>{{ 'customer.orders.none' | t }}</p>
+                <a href="{{ routes.all_products_collection_url }}" class="btn-primary">{{ 'customer.orders.start_shopping' | t }}</a>
+              </div>
+            {%- endif -%}
+          {%- endpaginate -%}
+        </section>
+
+        {%- comment -%} Default address {%- endcomment -%}
+        <section class="acct-card" data-reveal>
+          <div class="acct-card__head">
+            <h2 class="acct-card__title">{{ 'customer.account.default_address' | t }}</h2>
+            <a href="{{ routes.account_addresses_url }}" class="acct-card__link">{{ 'customer.account.manage_addresses' | t }}</a>
+          </div>
+          {%- if customer.default_address -%}
+            <address class="acct-addr">
+              {%- if customer.default_address.name != blank %}<strong>{{ customer.default_address.name }}</strong><br>{% endif -%}
+              {{ customer.default_address.address1 }}<br>
+              {%- if customer.default_address.address2 != blank %}{{ customer.default_address.address2 }}<br>{% endif -%}
+              {{ customer.default_address.city }}{% if customer.default_address.province != blank %}, {{ customer.default_address.province }}{% endif %} {{ customer.default_address.zip }}<br>
+              {{ customer.default_address.country }}
+              {%- if customer.default_address.phone != blank %}<br>{{ customer.default_address.phone }}{% endif -%}
+            </address>
+          {%- else -%}
+            <div class="acct-empty" style="padding:1.5rem 1rem;">
+              <p>{{ 'customer.addresses.none' | t }}</p>
+              <a href="{{ routes.account_addresses_url }}" class="btn-outline">{{ 'customer.addresses.add' | t }}</a>
+            </div>
+          {%- endif -%}
+        </section>
+      </main>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,46 @@
+{%- comment -%} Customer registration — TCW themed. {%- endcomment -%}
+{% render 'account-styles' %}
+
+<div class="acct">
+  <div class="site-container">
+    <div class="acct-auth">
+      <header class="acct-head" style="text-align:center;">
+        <p class="acct-head__eyebrow">{{ 'customer.account.eyebrow' | t }}</p>
+        <h1 class="acct-head__title">{{ 'customer.register.title' | t }}</h1>
+      </header>
+
+      {%- form 'create_customer', novalidate: 'novalidate' -%}
+        {%- if form.errors -%}
+          <div class="acct-alert acct-alert--error" role="alert">{{ form.errors | default_errors }}</div>
+        {%- endif -%}
+
+        <div class="acct-form">
+          <div class="acct-grid-2">
+            <div class="acct-field">
+              <label class="acct-label" for="reg_first">{{ 'customer.register.first_name' | t }}</label>
+              <input type="text" name="customer[first_name]" id="reg_first" class="acct-input" autocomplete="given-name" {% if form.first_name %}value="{{ form.first_name | escape }}"{% endif %}>
+            </div>
+            <div class="acct-field">
+              <label class="acct-label" for="reg_last">{{ 'customer.register.last_name' | t }}</label>
+              <input type="text" name="customer[last_name]" id="reg_last" class="acct-input" autocomplete="family-name" {% if form.last_name %}value="{{ form.last_name | escape }}"{% endif %}>
+            </div>
+          </div>
+          <div class="acct-field">
+            <label class="acct-label" for="reg_email">{{ 'customer.register.email' | t }}</label>
+            <input type="email" name="customer[email]" id="reg_email" class="acct-input" autocomplete="email" autocapitalize="off" autocorrect="off" required {% if form.email %}value="{{ form.email | escape }}"{% endif %}>
+          </div>
+          <div class="acct-field">
+            <label class="acct-label" for="reg_password">{{ 'customer.register.password' | t }}</label>
+            <input type="password" name="customer[password]" id="reg_password" class="acct-input" autocomplete="new-password" required>
+          </div>
+          <button type="submit" class="btn-primary acct-btn-full">{{ 'customer.register.submit' | t }}</button>
+        </div>
+      {%- endform -%}
+
+      <p class="acct-meta">
+        {{ 'customer.register.has_account' | t }}
+        <a href="{{ routes.account_login_url }}" class="acct-link">{{ 'customer.register.sign_in' | t }}</a>
+      </p>
+    </div>
+  </div>
+</div>
