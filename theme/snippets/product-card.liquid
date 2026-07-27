@@ -2,7 +2,6 @@
   .product-card--luxury { border: none; background: transparent; }
   .product-card--luxury:hover { box-shadow: none; }
 
-  .product-card__origin-slot { min-height: 1rem; margin-bottom: 0.5rem; }
   .product-card__title {
     min-height: 2.75rem;
     display: -webkit-box;
@@ -95,7 +94,6 @@
   assign product_url = card_product.url
   assign featured_image = card_product.featured_media.preview_image
   assign is_limited = card_product.metafields.coffee.is_limited.value
-  assign country = card_product.metafields.coffee.country.value
   assign region = card_product.metafields.coffee.region.value
   assign flavor_notes = card_product.metafields.coffee.flavor_notes.value
   assign roast_level = card_product.metafields.coffee.roast_level.value
@@ -155,14 +153,6 @@
   </a>
 
   <div class="flex flex-1 flex-col pt-6">
-    <div class="product-card__origin-slot">
-      {%- if country != blank -%}
-        <p class="text-[10px] font-medium uppercase tracking-[0.2em] text-brand">
-          {{ country }}
-        </p>
-      {%- endif -%}
-    </div>
-
     <a href="{{ product_url }}" class="product-card__title font-display text-lg font-bold uppercase tracking-wide text-ink">
       {{ card_product.title | remove: '[PLACEHOLDER] ' }}
     </a>
