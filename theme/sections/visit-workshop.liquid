@@ -183,18 +183,16 @@
         {%- endif -%}
       </ul>
 
-      {%- if settings.maps_url != blank -%}
-        <div class="visit-modern__actions">
-          <a
-            href="{{ settings.maps_url }}"
-            class="btn-primary visit-modern__cta"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {{ visit_cta }}
-          </a>
-        </div>
-      {%- endif -%}
+      <div class="visit-modern__actions">
+        <a
+          href="https://www.google.com/maps/dir/?api=1&destination=The%20Coffee%20Workshop%20Co.%2C%20Ras%20Al%20Khaimah"
+          class="btn-primary visit-modern__cta"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {{ visit_cta }}
+        </a>
+      </div>
     </div>
   </div>
 </div>
