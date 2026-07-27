@@ -18,7 +18,26 @@
   }
   .product-card:hover .product-card__title { background-size: 100% 1px; }
 
-  .product-card__note-slot { min-height: 2.25rem; margin-top: 0.85rem; }
+  .product-card__region-slot { min-height: 1.05rem; margin-top: 0.45rem; }
+  .product-card__region {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    margin: 0;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted, #6B6B6B);
+  }
+  .product-card__region-pin {
+    width: 0.85rem;
+    height: 0.85rem;
+    color: var(--color-brand, #C5A059);
+    flex-shrink: 0;
+  }
+
+  .product-card__note-slot { min-height: 2.25rem; margin-top: 0.6rem; }
 
   .product-card__badge {
     display: inline-flex;
@@ -77,6 +96,7 @@
   assign featured_image = card_product.featured_media.preview_image
   assign is_limited = card_product.metafields.coffee.is_limited.value
   assign country = card_product.metafields.coffee.country.value
+  assign region = card_product.metafields.coffee.region.value
   assign flavor_notes = card_product.metafields.coffee.flavor_notes.value
   assign roast_level = card_product.metafields.coffee.roast_level.value
 
@@ -146,6 +166,18 @@
     <a href="{{ product_url }}" class="product-card__title font-display text-lg font-bold uppercase tracking-wide text-ink">
       {{ card_product.title | remove: '[PLACEHOLDER] ' }}
     </a>
+
+    <div class="product-card__region-slot">
+      {%- if region != blank -%}
+        <p class="product-card__region">
+          <svg class="product-card__region-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-7-6.4-7-11a7 7 0 1114 0c0 4.6-7 11-7 11z"/>
+            <circle cx="12" cy="10" r="2.4"/>
+          </svg>
+          <span>{{ region }}</span>
+        </p>
+      {%- endif -%}
+    </div>
 
     <div class="product-card__note-slot">
       {%- if flavor_notes != blank -%}
