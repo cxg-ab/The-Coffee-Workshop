@@ -153,9 +153,9 @@
       },
       {
         "type": "text",
-        "id": "social_whatsapp",
-        "label": "WhatsApp number (with country code)",
-        "default": "97172224466"
+        "id": "social_facebook",
+        "label": "Facebook URL",
+        "info": "Full link, e.g. https://facebook.com/thecoffeeworkshop"
       }
     ]
   }
