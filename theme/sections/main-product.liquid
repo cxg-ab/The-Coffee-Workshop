@@ -28,6 +28,7 @@
 
   # Admin-authored custom rows for the Details list (one per line, "Label: Value")
   assign custom_details = product.metafields.custom.pdp_details.value
+  assign remark_note = product.metafields.coffee.remark.value
   assign has_details = has_specs
   if custom_details != blank
     assign has_details = true
@@ -315,6 +316,15 @@
   }
   .pdp__desc p { margin: 0 0 0.75rem; }
   .pdp__desc p:last-child { margin-bottom: 0; }
+  .pdp__remark {
+    margin: 0 0 1.1rem;
+    padding: 0.8rem 1rem;
+    border-inline-start: 3px solid var(--color-brand, #C5A059);
+    background: color-mix(in srgb, var(--color-brand, #C5A059) 7%, transparent);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--color-text, #1C1917);
+  }
 
   .pdp__panel {
     border-top: 1px solid var(--pdp-line);
@@ -740,6 +750,10 @@
 
         {%- if product.description != blank -%}
           <div class="pdp__desc prose-brand">{{ product.description }}</div>
+        {%- endif -%}
+
+        {%- if remark_note != blank -%}
+          <p class="pdp__remark">{{ remark_note | newline_to_br }}</p>
         {%- endif -%}
 
         {%- if has_details -%}
