@@ -15,32 +15,7 @@
         "eyebrow": "Est. 2018 · Ras Al Khaimah, UAE",
         "heading": "FINE COFFEE &<br>HAND-SELECTED BEANS",
         "subheading": "The Coffee Workshop celebrates the art of fine coffee — sourcing the world's most remarkable beans and roasting them with precision and passion in Ras Al Khaimah to deliver a truly refined experience in every cup and every bean."
-      },
-      "blocks": {
-        "badge_1": {
-          "type": "badge",
-          "settings": {
-            "label": "Roasted in RAK"
-          }
-        },
-        "badge_2": {
-          "type": "badge",
-          "settings": {
-            "label": "Flat AED 30 shipping"
-          }
-        },
-        "badge_3": {
-          "type": "badge",
-          "settings": {
-            "label": "Small batches"
-          }
-        }
-      },
-      "block_order": [
-        "badge_1",
-        "badge_2",
-        "badge_3"
-      ]
+      }
     },
     "coffee_bean_roast": {
       "type": "coffee-bean-roast",

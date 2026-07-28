@@ -11,7 +11,13 @@
   - No infinite pulses. No blur-everywhere. No hover-scale on repeated items.
 {%- endcomment -%}
 
-<section class="hero-section relative overflow-hidden bg-white text-[#1C1917]" data-hero-section>
+{%- assign heading_scale = section.settings.heading_scale | default: 100 -%}
+{%- assign sub_scale = section.settings.subheading_scale | default: 100 -%}
+<section
+  class="hero-section relative overflow-hidden bg-white text-[#1C1917]"
+  data-hero-section
+  style="--hero-heading-scale: {{ heading_scale | divided_by: 100.0 }}; --hero-sub-scale: {{ sub_scale | divided_by: 100.0 }};"
+>
   <div class="hero-clip" data-hero-clip>
     {% render 'hero-arabic-bg' %}
 
@@ -53,18 +59,6 @@
         </p>
       {%- endif -%}
 
-      {%- if section.blocks.size > 0 -%}
-        <ul class="hero-badges" data-reveal data-reveal-delay="0.35" role="list">
-          {%- for block in section.blocks -%}
-            {%- if block.type == 'badge' and block.settings.label != blank -%}
-              <li class="hero-badge" {{ block.shopify_attributes }}>
-                <span class="hero-badge__dot" aria-hidden="true"></span>
-                <span>{{ block.settings.label }}</span>
-              </li>
-            {%- endif -%}
-          {%- endfor -%}
-        </ul>
-      {%- endif -%}
     </div>
 
     <div class="hero-3d-stage relative z-10 flex min-h-[140px] w-full shrink-0 items-center justify-center sm:min-h-[180px]" data-hero-3d>
@@ -108,38 +102,24 @@
 </section>
 
 <style>
+  /* Admin-adjustable font size. Scales are multipliers (0.5–1.5) applied
+     on top of the responsive clamp(), so responsive behaviour is kept. */
+  .hero-section .hero-heading {
+    font-size: calc(clamp(1.6rem, 3.2vw, 2.25rem) * var(--hero-heading-scale, 1));
+  }
   /* Subheading: sits under the heading, brand-muted, comfortable measure. */
   .hero-subheading {
     margin: 1.25rem 0 0;
     max-width: 46ch;
-    font-size: clamp(0.95rem, 1.05vw, 1.05rem);
+    font-size: calc(clamp(0.95rem, 1.05vw, 1.05rem) * var(--hero-sub-scale, 1));
     line-height: 1.7;
     color: var(--color-text-muted, #6B6B6B);
     font-weight: 300;
   }
 
-  /* Trust badges — small, muted, single row on desktop; wrap on mobile.
-     No pulse dots (anti-slop): the dot is a static gold marker, not
-     an infinite scale/opacity loop. */
-  .hero-badges {
-    display: flex; flex-wrap: wrap; gap: 0.6rem 1.1rem;
-    margin: 1.5rem 0 0; padding: 0; list-style: none;
-  }
-  .hero-badge {
-    display: inline-flex; align-items: center; gap: 0.5rem;
-    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.14em;
-    text-transform: uppercase; color: var(--color-text-muted, #6B6B6B);
-  }
-  .hero-badge__dot {
-    width: 0.45rem; height: 0.45rem; border-radius: 50%;
-    background: var(--color-brand, #C5A059);
-    flex-shrink: 0;
-  }
-
   /* Motion — the existing hero GSAP timeline handles eyebrow/rule/heading/
      visual entries. New children use [data-reveal] which already respects
      prefers-reduced-motion via the theme's global reveal handler. */
-  /* RTL alignment: badges wrap naturally in the reversed order. */
 </style>
 
 {% schema %}
@@ -174,6 +154,32 @@
     },
     {
       "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "range",
+      "id": "heading_scale",
+      "label": "Heading size",
+      "info": "Percentage of the default size. Responsive scaling is preserved.",
+      "min": 50,
+      "max": 150,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "subheading_scale",
+      "label": "Subheading size",
+      "info": "Percentage of the default size.",
+      "min": 50,
+      "max": 150,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "header",
       "content": "Visual"
     },
     {
@@ -183,30 +189,8 @@
       "info": "Square or portrait image — displayed inside the circle."
     }
   ],
-  "blocks": [
-    {
-      "type": "badge",
-      "name": "Trust badge",
-      "limit": 4,
-      "settings": [
-        {
-          "type": "text",
-          "id": "label",
-          "label": "Label",
-          "default": "Roasted in RAK"
-        }
-      ]
-    }
-  ],
   "presets": [
-    {
-      "name": "Hero",
-      "blocks": [
-        { "type": "badge", "settings": { "label": "Roasted in RAK" }},
-        { "type": "badge", "settings": { "label": "Flat AED 30 shipping" }},
-        { "type": "badge", "settings": { "label": "Small batches" }}
-      ]
-    }
+    { "name": "Hero" }
   ]
 }
 {% endschema %}
