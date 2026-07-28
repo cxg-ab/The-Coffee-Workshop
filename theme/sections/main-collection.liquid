@@ -67,11 +67,12 @@
   data-l-of="{% if request.locale.iso_code == 'ar' %}من{% else %}of{% endif %}"
   data-l-none="{% if request.locale.iso_code == 'ar' %}لا توجد منتجات مطابقة{% else %}No products match these filters{% endif %}"
   data-total="{{ collection.products_count }}"
+  data-currency="{{ shop.currency }}"
 >
   {%- if collection.products.size > 0 -%}
     <div class="plp-grid" data-plp-grid>
       {%- for product in collection.products -%}
-        {%- assign p_origin = product.metafields.coffee.country.value -%}
+        {%- assign p_region = product.metafields.coffee.region.value -%}
         {%- assign p_process = product.metafields.coffee.process.value -%}
         {%- assign p_notes = '' -%}
         {%- if product.metafields.coffee.flavor_notes.value -%}
@@ -83,7 +84,7 @@
           {%- if known_cats contains th -%}{%- assign p_cats = p_cats | append: ' ' | append: th -%}{%- endif -%}
         {%- endfor -%}
         {%- if known_cats contains collection.handle and p_cats == '' -%}{%- assign p_cats = collection.handle -%}{%- endif -%}
-        <div class="plp-item" data-cats="{{ p_cats | strip }}" data-origin="{{ p_origin | escape }}" data-process="{{ p_process | escape }}" data-notes="{{ p_notes | escape }}">
+        <div class="plp-item" data-cats="{{ p_cats | strip }}" data-region="{{ p_region | escape }}" data-process="{{ p_process | escape }}" data-notes="{{ p_notes | escape }}" data-price="{{ product.price }}">
           {% render 'product-card', card_product: product %}
         </div>
       {%- endfor -%}
@@ -157,11 +158,13 @@
     var base = root.getAttribute('data-base') || window.location.pathname;
 
     var groups = [
-      { key: 'origin', attr: 'data-origin', multi: false },
-      { key: 'notes', attr: 'data-notes', multi: true, sep: '||' },
-      { key: 'process', attr: 'data-process', multi: false }
+      { key: 'region', attr: 'data-region', multi: false },
+      { key: 'process', attr: 'data-process', multi: false },
+      { key: 'notes', attr: 'data-notes', multi: true, sep: '||' }
     ];
-    var selected = { origin: [], notes: [], process: [] };
+    var selected = { region: [], process: [], notes: [] };
+    var priceBuckets = [];   // { label, min, max } in minor currency units
+    var selectedPrice = [];  // indices into priceBuckets
     var activeCat = 'all';
 
     function itemValues(item, g) {
@@ -180,6 +183,14 @@
         var vals = itemValues(item, g).map(function (s) { return s.toLowerCase(); });
         var hit = selected[g.key].some(function (s) { return vals.indexOf(s) !== -1; });
         if (!hit) return false;
+      }
+      if (selectedPrice.length) {
+        var price = parseInt(item.getAttribute('data-price'), 10);
+        var inRange = selectedPrice.some(function (idx) {
+          var b = priceBuckets[idx];
+          return b && price >= b.min && price <= b.max;
+        });
+        if (!inRange) return false;
       }
       return true;
     }
@@ -205,7 +216,7 @@
         it.classList.toggle('is-hidden', !v);
         if (v) visible++;
       });
-      var mfCount = selected.origin.length + selected.notes.length + selected.process.length;
+      var mfCount = selected.region.length + selected.process.length + selected.notes.length + selectedPrice.length;
       var filtering = mfCount > 0 || activeCat !== 'all';
       if (badge) { badge.textContent = mfCount; badge.classList.toggle('is-shown', mfCount > 0); }
       if (clearBtn) clearBtn.hidden = mfCount === 0;
@@ -293,6 +304,49 @@
       });
     });
 
+    // Price Range — dynamic buckets built from the actual product prices.
+    (function buildPrice() {
+      var groupEl = document.querySelector('[data-filter-group="price"]');
+      var optsEl = document.querySelector('[data-filter-options="price"]');
+      if (!groupEl || !optsEl) return;
+      var prices = items.map(function (it) { return parseInt(it.getAttribute('data-price'), 10); })
+        .filter(function (n) { return !isNaN(n) && n > 0; });
+      if (prices.length < 2) return;
+      var min = Math.min.apply(null, prices);
+      var max = Math.max.apply(null, prices);
+      if (max <= min) return;
+      var cur = root.getAttribute('data-currency') || '';
+      var lo = min / 100, hi = max / 100;
+      function r5(n) { return Math.round(n / 5) * 5; }
+      var t1 = r5(lo + (hi - lo) / 3);
+      var t2 = r5(lo + 2 * (hi - lo) / 3);
+      if (t1 <= lo) t1 = Math.ceil((lo + 1) / 5) * 5;
+      if (t2 <= t1) t2 = t1 + 5;
+      var defs = [
+        { label: cur + ' <' + t1, min: 0, max: (t1 * 100) - 1 },
+        { label: cur + ' ' + t1 + '–' + t2, min: t1 * 100, max: (t2 * 100) - 1 },
+        { label: cur + ' ' + t2 + '+', min: t2 * 100, max: Infinity }
+      ];
+      defs.forEach(function (d) {
+        var count = prices.filter(function (p) { return p >= d.min && p <= d.max; }).length;
+        if (count === 0) return;
+        var idx = priceBuckets.length;
+        priceBuckets.push(d);
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'plp-filter-opt';
+        btn.textContent = (cur ? d.label : d.label.trim());
+        btn.addEventListener('click', function () {
+          var pos = selectedPrice.indexOf(idx);
+          if (pos === -1) { selectedPrice.push(idx); btn.classList.add('is-active'); }
+          else { selectedPrice.splice(pos, 1); btn.classList.remove('is-active'); }
+          apply();
+        });
+        optsEl.appendChild(btn);
+      });
+      if (priceBuckets.length >= 2) { hasAnyFilter = true; groupEl.hidden = false; }
+    })();
+
     if (hasAnyFilter && toggle) {
       toggle.hidden = false;
       toggle.addEventListener('click', function () {
@@ -305,7 +359,8 @@
     }
     if (clearBtn) {
       clearBtn.addEventListener('click', function () {
-        selected = { origin: [], notes: [], process: [] };
+        selected = { region: [], process: [], notes: [] };
+        selectedPrice = [];
         document.querySelectorAll('.plp-filter-opt.is-active').forEach(function (b) { b.classList.remove('is-active'); });
         apply();
       });

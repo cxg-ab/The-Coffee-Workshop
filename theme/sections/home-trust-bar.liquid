@@ -121,17 +121,21 @@
       <div class="plp-filter-panel" id="plp-filter-panel" data-filter-panel hidden>
         <div class="plp-filter-panel__grab" aria-hidden="true"></div>
         <p class="plp-filter-panel__title">{{ 'collections.filter' | t }}</p>
-        <details class="plp-filter-group" data-filter-group="origin" hidden>
-          <summary class="plp-filter-group-title">{{ 'products.origin' | t }}<svg class="plp-filter-group-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg></summary>
-          <div class="plp-filter-options" data-filter-options="origin"></div>
-        </details>
-        <details class="plp-filter-group" data-filter-group="notes" hidden>
-          <summary class="plp-filter-group-title">{{ 'products.flavor_notes' | t }}<svg class="plp-filter-group-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg></summary>
-          <div class="plp-filter-options" data-filter-options="notes"></div>
+        <details class="plp-filter-group" data-filter-group="region" hidden>
+          <summary class="plp-filter-group-title">{{ 'products.region' | t }}<svg class="plp-filter-group-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg></summary>
+          <div class="plp-filter-options" data-filter-options="region"></div>
         </details>
         <details class="plp-filter-group" data-filter-group="process" hidden>
           <summary class="plp-filter-group-title">{{ 'products.process' | t }}<svg class="plp-filter-group-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg></summary>
           <div class="plp-filter-options" data-filter-options="process"></div>
+        </details>
+        <details class="plp-filter-group" data-filter-group="price" hidden>
+          <summary class="plp-filter-group-title">{% if request.locale.iso_code == 'ar' %}نطاق السعر{% else %}Price Range{% endif %}<svg class="plp-filter-group-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg></summary>
+          <div class="plp-filter-options" data-filter-options="price"></div>
+        </details>
+        <details class="plp-filter-group" data-filter-group="notes" hidden>
+          <summary class="plp-filter-group-title">{{ 'products.flavor_notes' | t }}<svg class="plp-filter-group-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg></summary>
+          <div class="plp-filter-options" data-filter-options="notes"></div>
         </details>
         <button type="button" class="plp-filter-clear" data-filter-clear hidden>{% if request.locale.iso_code == 'ar' %}مسح الكل{% else %}Clear all{% endif %}</button>
       </div>

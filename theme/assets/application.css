@@ -2825,7 +2825,9 @@ html.lenis body {
   background: rgba(28, 25, 23, 0.4);
 }
 .plp-filter-backdrop[hidden] { display: none; }
-html.plp-filter-open { overflow: hidden; }
+/* Lock page scroll ONLY on mobile, where the panel is a fixed bottom-sheet.
+   On desktop the panel is inline content, so locking scroll froze the page. */
+@media (max-width: 767px) { html.plp-filter-open { overflow: hidden; } }
 
 .plp-filter-panel {
   display: grid;
@@ -2856,7 +2858,7 @@ html.plp-filter-open { overflow: hidden; }
 }
 @media (min-width: 768px) {
   .plp-filter-panel {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     padding-inline: 1.5rem;
   }
   .plp-filter-backdrop { display: none !important; }
