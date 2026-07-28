@@ -123,12 +123,6 @@
         "id": "contact_address",
         "label": "Address",
         "default": "Al Nahdah St, Dafan Al Khor, Ras Al Khaimah, United Arab Emirates"
-      },
-      {
-        "type": "text",
-        "id": "maps_url",
-        "label": "Google Maps URL",
-        "default": "https://maps.google.com/?q=Al+Nahdah+St+Dafan+Al+Khor+Ras+Al+Khaimah"
       }
     ]
   },

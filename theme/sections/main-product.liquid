@@ -1,7 +1,6 @@
 {%- liquid
   assign current_variant = product.selected_or_first_available_variant
   assign is_limited = product.metafields.coffee.is_limited.value
-  assign country = product.metafields.coffee.country.value
   assign region = product.metafields.coffee.region.value
   assign variety = product.metafields.coffee.variety.value
   assign altitude = product.metafields.coffee.altitude.value
@@ -22,7 +21,7 @@
   endcase
 
   assign has_specs = false
-  if country != blank or region != blank or variety != blank or altitude != blank or process != blank or roast_level != blank or flavor_notes != blank
+  if region != blank or variety != blank or altitude != blank or process != blank or roast_level != blank or flavor_notes != blank
     assign has_specs = true
   endif
 
@@ -740,11 +739,7 @@
           </p>
         {%- endif -%}
 
-        {%- if country != blank -%}
-          <p class="pdp__origin">
-            {{ country }}{% if region != blank %} · {{ region }}{% endif %}
-          </p>
-        {%- elsif region != blank -%}
+        {%- if region != blank -%}
           <p class="pdp__origin">{{ region }}</p>
         {%- endif -%}
 
@@ -760,12 +755,6 @@
           <div class="pdp__panel">
             <p class="pdp__panel-label">{% if request.locale.iso_code == 'ar' %}التفاصيل{% else %}Details{% endif %}</p>
             <dl class="pdp__specs">
-              {%- if country != blank -%}
-                <div class="pdp__spec">
-                  <dt>{{ 'products.origin' | t | default: 'Origin' }}</dt>
-                  <dd>{{ country }}</dd>
-                </div>
-              {%- endif -%}
               {%- if region != blank -%}
                 <div class="pdp__spec">
                   <dt>{{ 'products.region' | t | default: 'Region' }}</dt>
