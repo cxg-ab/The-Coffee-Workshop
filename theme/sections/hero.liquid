@@ -1,3 +1,16 @@
+{%- comment -%}
+  Hero — TCW landing.
+  Structure (top → bottom on mobile; two-col from lg): eyebrow · rule · heading
+  · subheading · CTA row · trust badges · visual.
+
+  Motion strategy (Jakub polish primary, Emil restraint for buttons/badges,
+  Jhey allowed for heading word-mask — one deliberate moment only):
+  - existing GSAP timeline in animations.js runs eyebrow/rule/headingLines/
+    visual; we add the subheading + CTAs into that same rhythm via
+    [data-reveal] so they inherit the same stagger and reduced-motion guard.
+  - No infinite pulses. No blur-everywhere. No hover-scale on repeated items.
+{%- endcomment -%}
+
 <section class="hero-section relative overflow-hidden bg-white text-[#1C1917]" data-hero-section>
   <div class="hero-clip" data-hero-clip>
     {% render 'hero-arabic-bg' %}
@@ -33,6 +46,40 @@
           {%- endif -%}
         {%- endfor -%}
       </h1>
+
+      {%- if section.settings.subheading != blank -%}
+        <p class="hero-subheading" data-reveal data-reveal-delay="0.15">
+          {{ section.settings.subheading | escape | newline_to_br }}
+        </p>
+      {%- endif -%}
+
+      {%- if section.settings.cta_primary_label != blank or section.settings.cta_secondary_label != blank -%}
+        <div class="hero-ctas" data-reveal data-reveal-delay="0.25">
+          {%- if section.settings.cta_primary_label != blank -%}
+            <a class="btn-primary hero-cta hero-cta--primary" href="{{ section.settings.cta_primary_link | default: '#' }}">
+              {{ section.settings.cta_primary_label }}
+            </a>
+          {%- endif -%}
+          {%- if section.settings.cta_secondary_label != blank -%}
+            <a class="btn-outline hero-cta hero-cta--secondary" href="{{ section.settings.cta_secondary_link | default: '#' }}">
+              {{ section.settings.cta_secondary_label }}
+            </a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if section.blocks.size > 0 -%}
+        <ul class="hero-badges" data-reveal data-reveal-delay="0.35" role="list">
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'badge' and block.settings.label != blank -%}
+              <li class="hero-badge" {{ block.shopify_attributes }}>
+                <span class="hero-badge__dot" aria-hidden="true"></span>
+                <span>{{ block.settings.label }}</span>
+              </li>
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
     </div>
 
     <div class="hero-3d-stage relative z-10 flex min-h-[140px] w-full shrink-0 items-center justify-center sm:min-h-[180px]" data-hero-3d>
@@ -75,12 +122,68 @@
   </div>
 </section>
 
+<style>
+  /* Subheading: sits under the heading, brand-muted, comfortable measure. */
+  .hero-subheading {
+    margin: 1.25rem 0 0;
+    max-width: 34ch;
+    font-size: clamp(0.95rem, 1.05vw, 1.05rem);
+    line-height: 1.65;
+    color: var(--color-text-muted, #6B6B6B);
+    font-weight: 300;
+  }
+
+  /* CTA row — hierarchy: primary (gold) + outlined secondary. Emil-safe:
+     no scale-on-hover, no bounce; buttons already inherit the theme's
+     ~300ms color transition (application.css). */
+  .hero-ctas {
+    display: flex; flex-wrap: wrap; gap: 0.75rem;
+    margin-top: 1.75rem;
+  }
+  .hero-cta {
+    min-width: 10rem;
+    /* Emil: press feedback beats decorative hover. */
+  }
+  .hero-cta:active { transform: scale(0.98); }
+
+  /* Trust badges — small, muted, single row on desktop; wrap on mobile.
+     No pulse dots (anti-slop): the dot is a static gold marker, not
+     an infinite scale/opacity loop. */
+  .hero-badges {
+    display: flex; flex-wrap: wrap; gap: 0.6rem 1.1rem;
+    margin: 1.5rem 0 0; padding: 0; list-style: none;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--color-text-muted, #6B6B6B);
+  }
+  .hero-badge__dot {
+    width: 0.45rem; height: 0.45rem; border-radius: 50%;
+    background: var(--color-brand, #C5A059);
+    flex-shrink: 0;
+  }
+
+  /* Motion — the existing hero GSAP timeline handles eyebrow/rule/heading/
+     visual entries. New children use [data-reveal] which already respects
+     prefers-reduced-motion via the theme's global reveal handler. */
+  @media (prefers-reduced-motion: reduce) {
+    .hero-cta:active { transform: none; }
+  }
+
+  /* RTL alignment: keep the flex row natural; buttons wrap the same. */
+</style>
+
 {% schema %}
 {
   "name": "Hero",
   "tag": "section",
   "class": "hero-section",
   "settings": [
+    {
+      "type": "header",
+      "content": "Text"
+    },
     {
       "type": "text",
       "id": "eyebrow",
@@ -94,12 +197,73 @@
       "default": "Small batches. ماستر roasted."
     },
     {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "info": "One or two lines of supporting copy. Line breaks are respected.",
+      "default": "Specialty single-origin coffee, roasted in small batches in Ras Al Khaimah for peak flavour at every brew."
+    },
+    {
+      "type": "header",
+      "content": "Buttons"
+    },
+    {
+      "type": "text",
+      "id": "cta_primary_label",
+      "label": "Primary button label",
+      "default": "Shop coffee"
+    },
+    {
+      "type": "url",
+      "id": "cta_primary_link",
+      "label": "Primary button link"
+    },
+    {
+      "type": "text",
+      "id": "cta_secondary_label",
+      "label": "Secondary button label",
+      "default": "Our story"
+    },
+    {
+      "type": "url",
+      "id": "cta_secondary_link",
+      "label": "Secondary button link"
+    },
+    {
+      "type": "header",
+      "content": "Visual"
+    },
+    {
       "type": "image_picker",
       "id": "hero_image",
       "label": "Hero image (optional)",
       "info": "Square or portrait image — displayed inside the circle."
     }
   ],
-  "presets": [{ "name": "Hero" }]
+  "blocks": [
+    {
+      "type": "badge",
+      "name": "Trust badge",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Roasted in RAK"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero",
+      "blocks": [
+        { "type": "badge", "settings": { "label": "Roasted in RAK" }},
+        { "type": "badge", "settings": { "label": "Flat AED 30 shipping" }},
+        { "type": "badge", "settings": { "label": "Small batches" }}
+      ]
+    }
+  ]
 }
 {% endschema %}
