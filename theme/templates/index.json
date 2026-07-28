@@ -11,9 +11,34 @@
   "sections": {
     "hero": {
       "type": "hero",
+      "blocks": {
+        "badge_1": {
+          "type": "badge",
+          "settings": {
+            "label": ""
+          }
+        },
+        "badge_2": {
+          "type": "badge",
+          "settings": {
+            "label": ""
+          }
+        },
+        "badge_3": {
+          "type": "badge",
+          "settings": {
+            "label": ""
+          }
+        }
+      },
+      "block_order": [
+        "badge_1",
+        "badge_2",
+        "badge_3"
+      ],
       "settings": {
         "eyebrow": "Est. 2018 · Ras Al Khaimah, UAE",
-        "heading": "FINE COFFEE &<br>HAND-SELECTED BEANS",
+        "heading": "FINE COFFEE &HAND SELECTED BEANS",
         "subheading": "The Coffee Workshop celebrates the art of fine coffee — sourcing the world's most remarkable beans and roasting them with precision and passion in Ras Al Khaimah to deliver a truly refined experience in every cup and every bean."
       }
     },
@@ -63,10 +88,10 @@
         "origin_yemen": {
           "type": "origin",
           "settings": {
-            "link": "",
-            "name": "DAYE",
-            "region": "Arabian Peninsula",
-            "profile": "Dried fruit · Spice · Complex",
+            "link": "https://thecoffeeworkshop.ae/products/team-pegasin",
+            "name": "TEAM PEGASIN GEISHA",
+            "region": "COLOMBIA",
+            "profile": "CARAMEL · ORANGE · BLOSSOM · VANILLA",
             "note": "",
             "image": "shopify://shop_images/TCWDrip.webp"
           }
@@ -74,21 +99,21 @@
         "origin_colombia": {
           "type": "origin",
           "settings": {
-            "link": "",
-            "name": "Colombia",
-            "region": "South America",
-            "profile": "Caramel · Red apple · Balanced",
+            "link": "https://thecoffeeworkshop.ae/products/abaca-coffee-paper-filter-copy",
+            "name": "FILTER-DRIP COFFEEMAKER",
+            "region": "Brand : CHEMEX",
+            "profile": "Iconic Design",
             "note": "",
-            "image": "shopify://shop_images/product-placeholder.webp"
+            "image": "shopify://shop_images/CHEMEX.webp"
           }
         },
         "origin_kenya": {
           "type": "origin",
           "settings": {
-            "link": "",
-            "name": "Kenya",
-            "region": "East Africa",
-            "profile": "Blackcurrant · Tomato · Bright",
+            "link": "https://thecoffeeworkshop.ae/products/yabai-don-eli",
+            "name": "YABAI DON ELI",
+            "region": "LOS SANTOS",
+            "profile": "GREEN MUSCAT GRAPE · YELLOW PEAR · SAUVBLANC · YELLOW PEACH",
             "note": "",
             "image": "shopify://shop_images/product-placeholder.webp"
           }

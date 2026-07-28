@@ -59,6 +59,19 @@
         </p>
       {%- endif -%}
 
+      {%- if section.blocks.size > 0 -%}
+        <ul class="hero-badges" data-reveal data-reveal-delay="0.35" role="list">
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'badge' and block.settings.label != blank -%}
+              <li class="hero-badge" {{ block.shopify_attributes }}>
+                <span class="hero-badge__dot" aria-hidden="true"></span>
+                <span>{{ block.settings.label }}</span>
+              </li>
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+
     </div>
 
     <div class="hero-3d-stage relative z-10 flex min-h-[140px] w-full shrink-0 items-center justify-center sm:min-h-[180px]" data-hero-3d>
@@ -115,6 +128,24 @@
     line-height: 1.7;
     color: var(--color-text-muted, #6B6B6B);
     font-weight: 300;
+  }
+
+  /* Trust badges — small, muted, single row on desktop; wrap on mobile.
+     No pulse dots (anti-slop): the dot is a static gold marker, not
+     an infinite scale/opacity loop. */
+  .hero-badges {
+    display: flex; flex-wrap: wrap; gap: 0.6rem 1.1rem;
+    margin: 1.5rem 0 0; padding: 0; list-style: none;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--color-text-muted, #6B6B6B);
+  }
+  .hero-badge__dot {
+    width: 0.45rem; height: 0.45rem; border-radius: 50%;
+    background: var(--color-brand, #C5A059);
+    flex-shrink: 0;
   }
 
   /* Motion — the existing hero GSAP timeline handles eyebrow/rule/heading/
@@ -189,8 +220,30 @@
       "info": "Square or portrait image — displayed inside the circle."
     }
   ],
+  "blocks": [
+    {
+      "type": "badge",
+      "name": "Trust badge",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Roasted in RAK"
+        }
+      ]
+    }
+  ],
   "presets": [
-    { "name": "Hero" }
+    {
+      "name": "Hero",
+      "blocks": [
+        { "type": "badge", "settings": { "label": "Roasted in RAK" }},
+        { "type": "badge", "settings": { "label": "Flat AED 30 shipping" }},
+        { "type": "badge", "settings": { "label": "Small batches" }}
+      ]
+    }
   ]
 }
 {% endschema %}
