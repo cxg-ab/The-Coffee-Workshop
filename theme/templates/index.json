@@ -13,15 +13,34 @@
       "type": "hero",
       "settings": {
         "eyebrow": "Est. 2018 · Ras Al Khaimah, UAE",
-        "heading": "Small batches. ماستر roasted.",
-        "subheading": "We discover, sample, and reserve micro-lot Arabica — roasted in small batches in Ras Al Khaimah for home brewers and advanced enthusiasts.",
-        "cta_primary_label": "Shop beans",
-        "cta_primary_link": "/collections/all-beans",
-        "cta_secondary_label": "Visit us",
-        "cta_secondary_link": "#visit-workshop",
-        "show_trust_line": false,
-        "trust_line": ""
-      }
+        "heading": "FINE COFFEE &<br>HAND-SELECTED BEANS",
+        "subheading": "The Coffee Workshop celebrates the art of fine coffee — sourcing the world's most remarkable beans and roasting them with precision and passion in Ras Al Khaimah to deliver a truly refined experience in every cup and every bean."
+      },
+      "blocks": {
+        "badge_1": {
+          "type": "badge",
+          "settings": {
+            "label": "Roasted in RAK"
+          }
+        },
+        "badge_2": {
+          "type": "badge",
+          "settings": {
+            "label": "Flat AED 30 shipping"
+          }
+        },
+        "badge_3": {
+          "type": "badge",
+          "settings": {
+            "label": "Small batches"
+          }
+        }
+      },
+      "block_order": [
+        "badge_1",
+        "badge_2",
+        "badge_3"
+      ]
     },
     "coffee_bean_roast": {
       "type": "coffee-bean-roast",
@@ -47,56 +66,56 @@
         "origin_ethiopia": {
           "type": "origin",
           "settings": {
-            "product": "",
-            "name": "Ethiopia",
-            "region": "African highlands",
-            "profile": "Floral · Citrus · Tea-like",
-            "note": "Bright washed lots from Yirgacheffe and Guji — expressive and clean in the cup.",
-            "image": "shopify://shop_images/workshop-coffee_article.webp"
+            "link": "https://thecoffeeworkshop.ae/products/bombe-basha-bekele",
+            "name": "BOMBE BASHA BEKELE",
+            "region": "SIDAMA",
+            "profile": "SATSUMA PLUM · HONEY · JASMINE ·  RIPE PAPAYA",
+            "note": "",
+            "image": "shopify://shop_images/product-placeholder.webp"
           }
         },
         "origin_panama": {
           "type": "origin",
           "settings": {
-            "product": "",
-            "name": "Panama",
-            "region": "Central America",
-            "profile": "Jasmine · Bergamot · Honey",
-            "note": "Geisha and prized micro-lots from Boquete — reserved in small quantities each harvest.",
-            "image": "shopify://shop_images/caravan-coffee_house.webp"
+            "link": "https://thecoffeeworkshop.ae/products/wush-wush",
+            "name": "WUSH WUSH",
+            "region": "COLOMBIA",
+            "profile": "CRANBERRY· FLORAL· MANGO · PASSION FRUIT",
+            "note": "",
+            "image": "shopify://shop_images/TCWCapsules_ebed6be0-2d95-48d7-8619-27287d915fce.webp"
           }
         },
         "origin_yemen": {
           "type": "origin",
           "settings": {
-            "product": "",
-            "name": "Yemen",
+            "link": "",
+            "name": "DAYE",
             "region": "Arabian Peninsula",
             "profile": "Dried fruit · Spice · Complex",
-            "note": "Ancient terroir, traditional drying — among the most sought-after lots we source.",
-            "image": "shopify://shop_images/atb-coffee_01-brazil-guatemala.webp"
+            "note": "",
+            "image": "shopify://shop_images/TCWDrip.webp"
           }
         },
         "origin_colombia": {
           "type": "origin",
           "settings": {
-            "product": "",
+            "link": "",
             "name": "Colombia",
             "region": "South America",
             "profile": "Caramel · Red apple · Balanced",
-            "note": "Small-farm Colombia Huila lots — versatile and sweet, roasted for everyday brewers.",
-            "image": "shopify://shop_images/lindfield_alma-road_297363b4-5ef2-4017-85ad-5448a5114063.webp"
+            "note": "",
+            "image": "shopify://shop_images/product-placeholder.webp"
           }
         },
         "origin_kenya": {
           "type": "origin",
           "settings": {
-            "product": "",
+            "link": "",
             "name": "Kenya",
             "region": "East Africa",
             "profile": "Blackcurrant · Tomato · Bright",
-            "note": "AA-grade Kenyan auctions — vibrant acidity with a syrupy body when roasted medium.",
-            "image": "shopify://shop_images/pact-coffee_house-espresso.webp"
+            "note": "",
+            "image": "shopify://shop_images/product-placeholder.webp"
           }
         }
       },

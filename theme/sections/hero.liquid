@@ -53,21 +53,6 @@
         </p>
       {%- endif -%}
 
-      {%- if section.settings.cta_primary_label != blank or section.settings.cta_secondary_label != blank -%}
-        <div class="hero-ctas" data-reveal data-reveal-delay="0.25">
-          {%- if section.settings.cta_primary_label != blank -%}
-            <a class="btn-primary hero-cta hero-cta--primary" href="{{ section.settings.cta_primary_link | default: '#' }}">
-              {{ section.settings.cta_primary_label }}
-            </a>
-          {%- endif -%}
-          {%- if section.settings.cta_secondary_label != blank -%}
-            <a class="btn-outline hero-cta hero-cta--secondary" href="{{ section.settings.cta_secondary_link | default: '#' }}">
-              {{ section.settings.cta_secondary_label }}
-            </a>
-          {%- endif -%}
-        </div>
-      {%- endif -%}
-
       {%- if section.blocks.size > 0 -%}
         <ul class="hero-badges" data-reveal data-reveal-delay="0.35" role="list">
           {%- for block in section.blocks -%}
@@ -126,25 +111,12 @@
   /* Subheading: sits under the heading, brand-muted, comfortable measure. */
   .hero-subheading {
     margin: 1.25rem 0 0;
-    max-width: 34ch;
+    max-width: 46ch;
     font-size: clamp(0.95rem, 1.05vw, 1.05rem);
-    line-height: 1.65;
+    line-height: 1.7;
     color: var(--color-text-muted, #6B6B6B);
     font-weight: 300;
   }
-
-  /* CTA row — hierarchy: primary (gold) + outlined secondary. Emil-safe:
-     no scale-on-hover, no bounce; buttons already inherit the theme's
-     ~300ms color transition (application.css). */
-  .hero-ctas {
-    display: flex; flex-wrap: wrap; gap: 0.75rem;
-    margin-top: 1.75rem;
-  }
-  .hero-cta {
-    min-width: 10rem;
-    /* Emil: press feedback beats decorative hover. */
-  }
-  .hero-cta:active { transform: scale(0.98); }
 
   /* Trust badges — small, muted, single row on desktop; wrap on mobile.
      No pulse dots (anti-slop): the dot is a static gold marker, not
@@ -167,11 +139,7 @@
   /* Motion — the existing hero GSAP timeline handles eyebrow/rule/heading/
      visual entries. New children use [data-reveal] which already respects
      prefers-reduced-motion via the theme's global reveal handler. */
-  @media (prefers-reduced-motion: reduce) {
-    .hero-cta:active { transform: none; }
-  }
-
-  /* RTL alignment: keep the flex row natural; buttons wrap the same. */
+  /* RTL alignment: badges wrap naturally in the reversed order. */
 </style>
 
 {% schema %}
@@ -194,40 +162,15 @@
       "type": "text",
       "id": "heading",
       "label": "Heading",
-      "default": "Small batches. ماستر roasted."
+      "info": "Use <br> to force a line break (e.g. 'FINE COFFEE &<br>HAND-SELECTED BEANS').",
+      "default": "FINE COFFEE &<br>HAND-SELECTED BEANS"
     },
     {
       "type": "textarea",
       "id": "subheading",
       "label": "Subheading",
       "info": "One or two lines of supporting copy. Line breaks are respected.",
-      "default": "Specialty single-origin coffee, roasted in small batches in Ras Al Khaimah for peak flavour at every brew."
-    },
-    {
-      "type": "header",
-      "content": "Buttons"
-    },
-    {
-      "type": "text",
-      "id": "cta_primary_label",
-      "label": "Primary button label",
-      "default": "Shop coffee"
-    },
-    {
-      "type": "url",
-      "id": "cta_primary_link",
-      "label": "Primary button link"
-    },
-    {
-      "type": "text",
-      "id": "cta_secondary_label",
-      "label": "Secondary button label",
-      "default": "Our story"
-    },
-    {
-      "type": "url",
-      "id": "cta_secondary_link",
-      "label": "Secondary button link"
+      "default": "The Coffee Workshop celebrates the art of fine coffee — sourcing the world's most remarkable beans and roasting them with precision and passion in Ras Al Khaimah to deliver a truly refined experience in every cup and every bean."
     },
     {
       "type": "header",
