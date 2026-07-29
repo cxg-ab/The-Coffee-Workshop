@@ -4,7 +4,7 @@
 <div class="acct">
   <div class="site-container">
 
-    <header class="acct-head" data-reveal>
+    <header class="acct-head">
       <p class="acct-head__eyebrow">{{ 'customer.account.eyebrow' | t }}</p>
       <h1 class="acct-head__title">
         {%- if customer.first_name != blank -%}
@@ -21,7 +21,7 @@
 
       <main>
         {%- comment -%} Quick stats {%- endcomment -%}
-        <div class="acct-stats" data-reveal>
+        <div class="acct-stats">
           <div class="acct-stat">
             <div class="acct-stat__num">{{ customer.orders_count }}</div>
             <div class="acct-stat__label">{{ 'customer.account.total_orders' | t }}</div>
@@ -37,7 +37,7 @@
         </div>
 
         {%- comment -%} Recent orders {%- endcomment -%}
-        <section class="acct-card" id="orders" data-reveal>
+        <section class="acct-card" id="orders">
           <div class="acct-card__head">
             <h2 class="acct-card__title">{{ 'customer.orders.title' | t }}</h2>
           </div>
@@ -95,7 +95,7 @@
         </section>
 
         {%- comment -%} Default address {%- endcomment -%}
-        <section class="acct-card" data-reveal>
+        <section class="acct-card">
           <div class="acct-card__head">
             <h2 class="acct-card__title">{{ 'customer.account.default_address' | t }}</h2>
             <a href="{{ routes.account_addresses_url }}" class="acct-card__link">{{ 'customer.account.manage_addresses' | t }}</a>

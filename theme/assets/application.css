@@ -514,9 +514,16 @@ video {
     --font-arabic-display: 'Noto Kufi Arabic', 'Noto Sans Arabic', system-ui, sans-serif;
   }
 
-  html {
-  scroll-behavior: smooth;
-}
+  /* Lenis owns smooth scrolling on fine-pointer devices and its own guidance
+     is to remove this property, because both intercept programmatic scrolling
+     and fight over the same anchor jump (the skip-link and the footer's
+     in-page links). Lenis deliberately bails on coarse pointers, so scope the
+     CSS smoothing to exactly the case Lenis does not cover. */
+  @media (pointer: coarse) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
 
   body {
   background-color: var(--color-bg);
@@ -731,7 +738,7 @@ video {
   border-radius: 42% 58% 65% 35% / 38% 42% 58% 62%;
   filter: blur(52px);
   opacity: 0.55;
-  will-change: transform, border-radius;
+  will-change: transform;
 }
 .about-liquid-blob--1 {
   top: -18%;
@@ -749,17 +756,22 @@ video {
   background: radial-gradient(circle at 60% 40%, rgba(201, 169, 98, 0.22), rgba(201, 169, 98, 0) 70%);
   animation: about-liquid-drift-b 22s ease-in-out infinite alternate;
 }
+/* border-radius is deliberately NOT animated here. It is not a compositable
+   property, so every frame repainted the element — and these blobs carry
+   filter: blur(52px) at up to 380px square, so each repaint re-ran the blur,
+   continuously, for as long as the page stayed open. The translate/scale
+   drift alone reads identically. */
 @keyframes about-liquid-drift-a {
-  0% { transform: translate(0, 0) scale(1); border-radius: 42% 58% 65% 35% / 38% 42% 58% 62%; }
-  100% { transform: translate(4%, 6%) scale(1.06); border-radius: 58% 42% 38% 62% / 52% 38% 62% 48%; }
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(4%, 6%) scale(1.06); }
 }
 @keyframes about-liquid-drift-b {
-  0% { transform: translate(0, 0) scale(1); border-radius: 55% 45% 40% 60% / 45% 55% 45% 55%; }
-  100% { transform: translate(-5%, -4%) scale(1.08); border-radius: 40% 60% 55% 45% / 60% 40% 55% 45%; }
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-5%, -4%) scale(1.08); }
 }
 @keyframes about-liquid-drift-c {
-  0% { transform: translate(0, 0); border-radius: 48% 52% 58% 42% / 42% 58% 42% 58%; }
-  100% { transform: translate(-3%, 5%); border-radius: 52% 48% 44% 56% / 58% 42% 58% 42%; }
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-3%, 5%); }
 }
 .about-glass-panel {
   position: relative;
@@ -898,15 +910,23 @@ html[dir='rtl'] .about-story-rule {
   top: 0;
   inset-inline-start: 0;
   height: 2px;
-  width: 0;
+  /* Full width, revealed by scaling. Animating `width` (the previous
+     approach) is a layout property: every frame ran layout, then paint, then
+     composite. scaleX runs on the compositor alone. */
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
   background-color: var(--color-brand);
   border-radius: 1px;
-  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+[dir='rtl'] .about-value-card::before {
+  transform-origin: right center;
 }
 .about-value-card.is-visible::before,
 .about-value-card:hover::before,
 .about-value-card:focus-within::before {
-  width: 100%;
+  transform: scaleX(1);
 }
 .about-value-card--glass:hover {
   transform: translateY(-3px);
@@ -973,7 +993,7 @@ html[dir='rtl'] .about-story-rule {
   border-radius: 42% 58% 65% 35% / 38% 42% 58% 62%;
   filter: blur(52px);
   opacity: 0.55;
-  will-change: transform, border-radius;
+  will-change: transform;
 }
 .tcw-liquid-blob--1,
 .about-liquid-blob--1 {

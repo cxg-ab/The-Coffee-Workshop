@@ -8,7 +8,7 @@
       {{ 'customer.order.back' | t }}
     </a>
 
-    <header class="acct-head" data-reveal>
+    <header class="acct-head">
       <p class="acct-head__eyebrow">{{ 'customer.orders.title' | t }}</p>
       <h1 class="acct-head__title">{{ 'customer.order.title' | t: name: order.name }}</h1>
       {%- assign order_date = order.created_at | date: '%d %B %Y' -%}
@@ -25,7 +25,7 @@
 
     <div class="acct-order-grid">
       <main>
-        <section class="acct-card" data-reveal>
+        <section class="acct-card">
           <div class="acct-card__head">
             <h2 class="acct-card__title">{{ 'customer.order.items' | t }}</h2>
             <span class="acct-badge acct-badge--muted">{{ order.fulfillment_status_label }}</span>
@@ -59,7 +59,7 @@
       </main>
 
       <aside>
-        <section class="acct-card" data-reveal>
+        <section class="acct-card">
           <h2 class="acct-card__title" style="margin-bottom:1.25rem;">{{ 'customer.order.summary' | t }}</h2>
           <div class="acct-totals">
             <div class="acct-totals__row"><span>{{ 'customer.order.subtotal' | t }}</span><span>{{ order.line_items_subtotal_price | money }}</span></div>
@@ -74,7 +74,7 @@
           </div>
         </section>
 
-        <section class="acct-card" data-reveal>
+        <section class="acct-card">
           <h2 class="acct-card__title" style="margin-bottom:1rem;">{{ 'customer.order.shipping_address' | t }}</h2>
           {%- if order.shipping_address -%}
             <address class="acct-addr">
@@ -91,7 +91,7 @@
         </section>
 
         {%- if order.billing_address -%}
-          <section class="acct-card" data-reveal>
+          <section class="acct-card">
             <h2 class="acct-card__title" style="margin-bottom:1rem;">{{ 'customer.order.billing_address' | t }}</h2>
             <address class="acct-addr">
               {%- if order.billing_address.name != blank %}<strong>{{ order.billing_address.name }}</strong><br>{% endif -%}

@@ -316,14 +316,21 @@
 
       const strength = parseFloat(el.dataset.magnetic) || 0.35;
 
+      /* quickTo builds the tween once and retargets its value on each call.
+         The previous gsap.to(..., overwrite: true) per pointer event forced
+         GSAP to scan and kill existing tweens before constructing a new one,
+         every single move. */
+      const xTo = gsap.quickTo(el, 'x', { duration: 0.4, ease: 'power2.out' });
+      const yTo = gsap.quickTo(el, 'y', { duration: 0.4, ease: 'power2.out' });
+
       const onMove = (event) => {
         const r = el.getBoundingClientRect();
-        const mx = event.clientX - (r.left + r.width / 2);
-        const my = event.clientY - (r.top + r.height / 2);
-        gsap.to(el, { x: mx * strength, y: my * strength, duration: 0.4, ease: 'power2.out', overwrite: true });
+        xTo((event.clientX - (r.left + r.width / 2)) * strength);
+        yTo((event.clientY - (r.top + r.height / 2)) * strength);
       };
       const onLeave = () => {
-        gsap.to(el, { x: 0, y: 0, duration: 0.5, ease: 'power3.out', overwrite: true });
+        xTo(0);
+        yTo(0);
       };
 
       el.addEventListener('mousemove', onMove);
@@ -340,9 +347,26 @@
 
     if (window.matchMedia('(max-width: 767px)').matches) return;
 
+    /* One reusable tween per animated property. This handler runs on every
+       pointer move — at 120Hz the old version constructed two tweens and ran
+       two overwrite scans per event, roughly 240 of each per second. */
+    const vRotY = gsap.quickTo(visual, 'rotationY', { duration: 0.6, ease: 'power2.out' });
+    const vRotX = gsap.quickTo(visual, 'rotationX', { duration: 0.6, ease: 'power2.out' });
+    const vX = gsap.quickTo(visual, 'x', { duration: 0.6, ease: 'power2.out' });
+    const vY = gsap.quickTo(visual, 'y', { duration: 0.6, ease: 'power2.out' });
+
+    const hasOrbs = orbs && orbs.length;
+    /* Stagger is dropped: quickTo has no stagger, and a 40ms offset on a
+       pointer-follow effect is imperceptible anyway. */
+    const oX = hasOrbs ? gsap.quickTo(orbs, 'x', { duration: 0.75, ease: 'power2.out' }) : null;
+    const oY = hasOrbs ? gsap.quickTo(orbs, 'y', { duration: 0.75, ease: 'power2.out' }) : null;
+
     const reset = () => {
-      gsap.to(visual, { rotateX: 0, rotateY: 0, x: 0, y: 0, duration: 0.8, ease: 'power2.out' });
-      gsap.to(orbs, { x: 0, y: 0, duration: 0.8, ease: 'power2.out' });
+      vRotY(0);
+      vRotX(0);
+      vX(0);
+      vY(0);
+      if (oX) { oX(0); oY(0); }
     };
 
     heroMouseHandler = (event) => {
@@ -350,24 +374,15 @@
       const px = (event.clientX - rect.left) / rect.width - 0.5;
       const py = (event.clientY - rect.top) / rect.height - 0.5;
 
-      gsap.to(visual, {
-        rotateY: px * 18,
-        rotateX: -py * 14,
-        x: px * 14,
-        y: py * 10,
-        duration: 0.6,
-        ease: 'power2.out',
-        overwrite: true,
-      });
+      vRotY(px * 18);
+      vRotX(-py * 14);
+      vX(px * 14);
+      vY(py * 10);
 
-      gsap.to(orbs, {
-        x: px * -28,
-        y: py * -18,
-        duration: 0.75,
-        ease: 'power2.out',
-        overwrite: true,
-        stagger: 0.04,
-      });
+      if (oX) {
+        oX(px * -28);
+        oY(py * -18);
+      }
     };
 
     heroMouseHandler.leave = reset;
@@ -442,7 +457,7 @@
     gsap.utils.toArray('[data-reveal]').forEach((el) => {
       if (el.closest('[data-hero-section]') || el.closest('[data-about-section]')) return;
 
-      const y = parseFloat(el.dataset.revealY || 56);
+      const y = parseFloat(el.dataset.revealY || 24);
       const scale = parseFloat(el.dataset.revealScale || 0.96);
       const delay = parseFloat(el.dataset.revealDelay || 0);
 
@@ -450,7 +465,11 @@
         y,
         scale,
         autoAlpha: 0,
-        duration: 1,
+        /* Was 1s with y:56 — a full second before copy the visitor is trying
+           to read settles, applied identically to every [data-reveal] on the
+           site. Shorter travel over a third of the time reads as polish
+           rather than as waiting. */
+        duration: 0.32,
         delay,
         ease: 'power3.out',
         scrollTrigger: {
