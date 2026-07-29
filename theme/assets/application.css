@@ -2463,9 +2463,12 @@ html.lenis body {
 
 .home-trust-bar {
   border-block: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
-  background: rgba(255, 255, 255, 0.95);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  /* PERF: backdrop-filter removed. This bar lives inside the sticky
+     #header-group, so the blur forced a full-width GPU backdrop
+     re-composite on every scroll frame — a leading cause of scroll jank on
+     mobile. The background was already 95% opaque, so the blur was
+     effectively invisible; solid white renders the same and costs nothing. */
+  background: #FFFFFF;
   padding-block: 0.65rem;
 }
 .home-trust-bar--nav {
@@ -2492,9 +2495,13 @@ html.lenis body {
 /* Shop sticky bar: Sort | Pills | Filter (desktop) · Filter | Pills | Sort (mobile) */
 .shop-trust-bar {
   border-bottom: 1px solid var(--color-line, #E8E4DC);
-  background: rgba(255, 255, 255, 0.95);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  /* PERF: backdrop-filter removed — same reason as .home-trust-bar (sticky
+     ancestor => full-width blur re-composite every scroll frame, behind a
+     95%-opaque background where it was invisible anyway).
+     BONUS: backdrop-filter also made this element the containing block for
+     position:fixed descendants, which is what broke the mobile filter
+     panel. Removing it eliminates that trap permanently. */
+  background: #FFFFFF;
   padding: 0.5rem 0;
 }
 .shop-trust-bar__row {

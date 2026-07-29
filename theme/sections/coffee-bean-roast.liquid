@@ -245,9 +245,14 @@
       }
 
       function maxDpr(){
-        if(isPhone()) return 2;
-        if(isTablet()) return 2.5;
-        return 3;
+        /* PERF: every scrub frame does a drawImage from a 1440x1440 source
+           (~7.9MB decoded). Canvas pixel count is the dominant per-frame
+           raster cost, and it scales with dpr^2. Capping dpr on phones cuts
+           that work ~44% with no visible loss on a photographic sequence
+           at this display size. */
+        if(isPhone()) return 1.5;
+        if(isTablet()) return 2;
+        return 2.5;
       }
 
       ctx.imageSmoothingEnabled = true;
