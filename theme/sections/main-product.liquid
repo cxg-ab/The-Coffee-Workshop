@@ -126,7 +126,7 @@
 
 <style>
   .pdp {
-    --pdp-ink: var(--color-ink, #1A1A1A);
+    --pdp-ink: var(--color-text, #1A1A1A);
     --pdp-muted: var(--color-text-muted, #6B6B6B);
     --pdp-line: var(--color-border, #E8E4DC);
     --pdp-canvas: var(--color-bg, #FAFAF8);
@@ -326,6 +326,14 @@
     text-transform: uppercase;
     color: var(--pdp-brand-strong);
   }
+  .pdp__brand {
+  margin: 0;
+  font-size: 0.700rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pdp-brand-strong);
+}
   .pdp__title {
     margin: 0;
     font-family: var(--font-display), system-ui, sans-serif;
@@ -703,6 +711,12 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 2rem 1rem;
   }
+  @media (min-width: 768px) {
+    .pdp__related-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 2.25rem 1.25rem;
+    }
+  }
   @media (min-width: 1024px) {
     .pdp__related-grid {
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -778,6 +792,7 @@
                     type="button"
                     class="pdp__thumb{% if forloop.first %} is-active{% endif %}"
                     data-pdp-thumb
+                    aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
                     data-full="{{ media | image_url: width: 1600 }}"
                     data-zoom="{{ media | image_url: width: 2048 }}"
                     data-alt="{{ media.alt | default: product.title | escape }}"
@@ -810,7 +825,11 @@
 
       <div class="pdp__info">
         <p class="pdp__eyebrow">{{ settings.brand_tagline | default: 'Specialty Coffee' }}</p>
-        <h1 class="pdp__title">{{ product.title | remove: '[PLACEHOLDER] ' }}</h1>
+        {%- if product.metafields.custom.brand.value != blank -%}
+  <p class="pdp__brand">{{ product.metafields.custom.brand.value | first }}</p>
+{%- endif -%}
+<h1 class="pdp__title">{{ product.title | remove: '[PLACEHOLDER] ' }}</h1>
+        {{ product.selected_or_first_available_variant.metafields.custom.brand }}
 
         <div class="pdp__meta-row">
           <p class="pdp__price" data-product-price>{{ current_variant.price | money }}</p>
@@ -837,20 +856,12 @@
           <div class="pdp__desc prose-brand">{{ product.description }}</div>
         {%- endif -%}
 
-        {%- if remark_note != blank -%}
-          <p class="pdp__remark">{{ remark_note | newline_to_br }}</p>
-        {%- endif -%}
+        
 
         {%- if has_details -%}
           <div class="pdp__panel">
-            <p class="pdp__panel-label">{% if request.locale.iso_code == 'ar' %}التفاصيل{% else %}Details{% endif %}</p>
             <dl class="pdp__specs">
-              {%- if r_brand -%}
-                <div class="pdp__spec">
-                  <dt>{{ 'products.brand' | t | default: 'Brand' }}</dt>
-                  <dd>{{ brand }}</dd>
-                </div>
-              {%- endif -%}
+            
               {%- if r_region -%}
                 <div class="pdp__spec">
                   <dt>{{ 'products.region' | t | default: 'Region' }}</dt>
@@ -945,16 +956,24 @@
         {%- if r_how -%}
           <div class="pdp__panel">
             <p class="pdp__panel-label">{% if request.locale.iso_code == 'ar' %}طريقة الاستخدام{% else %}How to use{% endif %}</p>
-            <div class="pdp__how prose-brand">{{ how_to_use }}</div>
+            <div class="pdp__how prose-brand">{{ how_to_use | metafield_tag }}</div>
           </div>
         {%- endif -%}
 
         {% form 'product', product, class: 'pdp__form', id: 'product-form', data-ajax-cart: true %}
           <p class="pdp__error" data-cart-error role="alert" hidden></p>
 
-          {%- if product.variants.size > 1 -%}
+          {%- comment -%}
+            Show the option picker whenever the admin has configured a real option
+            on the product (weight, size, etc.) — even a single value like "150g" —
+            rather than only when there are 2+ variants. This surfaces exactly what
+            the admin added in Shopify; when they add more values, they appear here
+            automatically. Products with no real option (default variant only) keep
+            the hidden id input and show nothing to choose.
+          {%- endcomment -%}
+          {%- unless product.has_only_default_variant -%}
             <div class="pdp__panel">
-              <p class="pdp__panel-label">{{ 'products.variant' | t | default: 'Options' }}</p>
+              <p class="pdp__panel-label">{{ product.options_with_values.first.name | default: 'Options' }}</p>
               <div class="pdp__variants" data-variant-picker>
                 {%- for variant in product.variants -%}
                   <label class="pdp-variant{% if variant == current_variant %} is-selected{% endif %}{% unless variant.available %} is-disabled{% endunless %}">
@@ -973,7 +992,7 @@
             </div>
           {%- else -%}
             <input type="hidden" name="id" value="{{ current_variant.id }}">
-          {%- endif -%}
+          {%- endunless -%}
 
           <div class="pdp__panel pdp__buy">
             <div class="pdp__qty-row">
@@ -1005,8 +1024,14 @@
                 {%- else -%}
                   {{ 'products.sold_out' | t | default: 'Sold Out' }}
                 {%- endif -%}
-              </button>
+                            </button>
+
+              {%- if remark_note != blank -%}
+                <p class="pdp__remark">{{ remark_note | newline_to_br }}</p>
+              {%- endif -%}
+
             </div>
+
           </div>
         {% endform %}
 
@@ -1017,7 +1042,7 @@
           </div>
           <div class="pdp__trust-item" role="listitem">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7h11v8H3zM14 10h4l3 3v2h-7z"/><circle cx="7" cy="17" r="1.6"/><circle cx="17.5" cy="17" r="1.6"/></svg>
-            <span>{% if request.locale.iso_code == 'ar' %}شحن بسعر ثابت داخل الإمارات{% else %}Flat-rate shipping across the UAE{% endif %}</span>
+            <span>{% if request.locale.iso_code == 'ar' %}شحن بسعر ثابت داخل الإمارات{% else %}Easy UAE-Wide Delivery{% endif %}</span>
           </div>
           <div class="pdp__trust-item" role="listitem">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
@@ -1102,8 +1127,9 @@
 
   thumbs.forEach(function (btn) {
     btn.addEventListener('click', function () {
-      thumbs.forEach(function (t) { t.classList.remove('is-active'); });
+      thumbs.forEach(function (t) { t.classList.remove('is-active'); t.setAttribute('aria-pressed', 'false'); });
       btn.classList.add('is-active');
+      btn.setAttribute('aria-pressed', 'true');
       if (mainImg && btn.dataset.full) {
         mainImg.src = btn.dataset.full;
         if (btn.dataset.zoom) mainImg.dataset.zoom = btn.dataset.zoom;

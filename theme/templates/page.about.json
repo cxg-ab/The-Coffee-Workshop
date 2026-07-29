@@ -11,8 +11,12 @@
   "sections": {
     "main": {
       "type": "main-page-about",
-      "settings": {}
+      "settings": {
+        "image": "shopify://shop_images/TCW_Image_pouring.svg"
+      }
     }
   },
-  "order": ["main"]
+  "order": [
+    "main"
+  ]
 }

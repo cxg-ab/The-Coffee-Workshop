@@ -35,8 +35,13 @@
   }
 </style>
 
-{%- assign per_page = section.settings.products_per_page | default: 12 -%}
-{%- paginate collection.products by per_page -%}
+{%- comment -%}
+  Load the full collection in one page (Shopify's 50-item max) so the client-side
+  filters and the "Showing X of Y" count stay accurate across the WHOLE collection,
+  not just the current page. The catalog is small; if it ever exceeds 50 products,
+  move filtering server-side (Shopify storefront filters) rather than raising this.
+{%- endcomment -%}
+{%- paginate collection.products by 50 -%}
 
 {%- assign known_cats = 'single-origin,micro-lot,exotic,capsules-drip,accessories' | split: ',' -%}
 
@@ -293,11 +298,12 @@
         btn.type = 'button';
         btn.className = 'plp-filter-opt';
         btn.textContent = v;
+        btn.setAttribute('aria-pressed', 'false');
         btn.addEventListener('click', function () {
           var val = v.toLowerCase();
           var idx = selected[g.key].indexOf(val);
-          if (idx === -1) { selected[g.key].push(val); btn.classList.add('is-active'); }
-          else { selected[g.key].splice(idx, 1); btn.classList.remove('is-active'); }
+          if (idx === -1) { selected[g.key].push(val); btn.classList.add('is-active'); btn.setAttribute('aria-pressed', 'true'); }
+          else { selected[g.key].splice(idx, 1); btn.classList.remove('is-active'); btn.setAttribute('aria-pressed', 'false'); }
           apply();
         });
         optsEl.appendChild(btn);
@@ -336,10 +342,11 @@
         btn.type = 'button';
         btn.className = 'plp-filter-opt';
         btn.textContent = (cur ? d.label : d.label.trim());
+        btn.setAttribute('aria-pressed', 'false');
         btn.addEventListener('click', function () {
           var pos = selectedPrice.indexOf(idx);
-          if (pos === -1) { selectedPrice.push(idx); btn.classList.add('is-active'); }
-          else { selectedPrice.splice(pos, 1); btn.classList.remove('is-active'); }
+          if (pos === -1) { selectedPrice.push(idx); btn.classList.add('is-active'); btn.setAttribute('aria-pressed', 'true'); }
+          else { selectedPrice.splice(pos, 1); btn.classList.remove('is-active'); btn.setAttribute('aria-pressed', 'false'); }
           apply();
         });
         optsEl.appendChild(btn);
@@ -361,7 +368,7 @@
       clearBtn.addEventListener('click', function () {
         selected = { region: [], process: [], notes: [] };
         selectedPrice = [];
-        document.querySelectorAll('.plp-filter-opt.is-active').forEach(function (b) { b.classList.remove('is-active'); });
+        document.querySelectorAll('.plp-filter-opt.is-active').forEach(function (b) { b.classList.remove('is-active'); b.setAttribute('aria-pressed', 'false'); });
         apply();
       });
     }
@@ -372,16 +379,6 @@
 {
   "name": "Collection",
   "class": "collection-section",
-  "settings": [
-    {
-      "type": "range",
-      "id": "products_per_page",
-      "label": "Products per page",
-      "min": 6,
-      "max": 24,
-      "step": 3,
-      "default": 12
-    }
-  ]
+  "settings": []
 }
 {% endschema %}

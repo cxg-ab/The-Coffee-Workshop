@@ -105,7 +105,8 @@
     "pagination_page": "Page {{ number }}"
   },
   "products": {
-    "add_to_cart": "Add to cart",
+  "brand": "Brand",
+  "add_to_cart": "Add to cart",
     "sold_out": "Sold out",
     "limited_batch": "Limited batch",
     "flavor_notes": "Tasting Notes",
