@@ -13,9 +13,17 @@
   /* Sticky header group pins announcement + header + trust nav together */
   #header-group { position: sticky; top: 0; z-index: 50; }
   #header-group .home-trust-bar-section { background: transparent; }
-  .tcw-header { transition: box-shadow 0.3s ease; border-bottom-color: transparent; }
-  .tcw-header__inner { transition: height 0.3s ease; }
-  .tcw-logo__img { transition: max-height 0.3s ease; }
+  /* The compact state changes `height` (and the logo's `max-height`), which are
+     layout properties. Transitioning them meant that for 300ms at the exact
+     moment the visitor started scrolling, every frame re-laid-out the whole
+     page below this sticky header — a strong contributor to scroll stutter.
+     It also desynced `--tcw-header-h`, which the script below sets instantly:
+     consumers of that variable (the collection toolbar, the bean-roast stage)
+     jumped while the header was still animating.
+     The shrink is a discrete state change, so it now snaps. Only box-shadow —
+     a compositable property — transitions, on a real curve rather than the
+     built-in `ease`. */
+  .tcw-header { transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-bottom-color: transparent; }
   .tcw-header.is-compact { box-shadow: 0 6px 24px rgba(26, 26, 26, 0.06); }
   .tcw-header.is-compact .tcw-header__inner { height: 3.5rem; }
   .tcw-header.is-compact .tcw-logo__img { max-height: 2.25rem; }

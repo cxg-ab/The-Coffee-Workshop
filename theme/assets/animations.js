@@ -5,7 +5,6 @@
  */
 (function () {
   const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const TRANSITION_KEY = 'tcw-page-transition';
   let heroMouseHandler = null;
   let lenis = null;
   let lenisTicker = null;
@@ -154,88 +153,38 @@
     resetMotionTargets();
   }
 
-  /* ─── Page transitions (GSAP overlay — complete implementation) ─── */
+  /* ─── Page enter ───
+     There is deliberately no exit animation. The previous implementation
+     intercepted every same-origin click, called preventDefault(), played a
+     350ms fade, and only set window.location.href in the timeline's
+     onComplete — so the browser was not told where to go until the animation
+     finished. That put 350ms of dead time in front of the highest-frequency
+     action on a store (every product card, every nav item), with no network
+     work happening during it. Worse, the "overlay" it faded in had no CSS
+     beyond `visibility: visible` — no position, size or background — so the
+     only thing the visitor actually saw was the page content vanishing while
+     they waited. Navigation is now native and instant; the arrival is
+     animated instead, which costs nothing. */
   function initPageEnter() {
     const main = document.querySelector('#main-content');
-    const overlay = document.querySelector('#page-transition');
     if (!main) return;
-
-    const fromTransition = sessionStorage.getItem(TRANSITION_KEY) === '1';
-    sessionStorage.removeItem(TRANSITION_KEY);
-
-    if (fromTransition && overlay) {
-      gsap.set(overlay, { autoAlpha: 1 });
-      gsap.to(overlay, { autoAlpha: 0, duration: 0.5, ease: 'power2.inOut' });
-    }
 
     gsap.from(main, {
       autoAlpha: 0,
-      y: fromTransition ? 28 : 16,
+      y: 16,
       duration: 0.65,
       ease: 'power3.out',
-      delay: fromTransition ? 0.08 : 0.05,
+      delay: 0.05,
     });
   }
 
-  function initPageExit() {
-    document.addEventListener('click', (event) => {
-      const link = event.target.closest('a[href]');
-      if (!shouldPageTransition(event, link)) return;
-
-      event.preventDefault();
-      const href = link.href;
-      const main = document.querySelector('#main-content');
-      const overlay = document.querySelector('#page-transition');
-
-      sessionStorage.setItem(TRANSITION_KEY, '1');
-
-      const tl = gsap.timeline({
-        onComplete: () => {
-          window.location.href = href;
-        },
-      });
-
-      if (main) tl.to(main, { autoAlpha: 0, y: -20, duration: 0.35, ease: 'power2.in' }, 0);
-      if (overlay) tl.to(overlay, { autoAlpha: 1, duration: 0.35, ease: 'power2.in' }, 0);
-    });
-
-    /* bfcache: restore visibility when navigating back to a page whose
-       exit animation left #main-content hidden. */
+  /* bfcache: a restored page keeps whatever inline styles the enter tween
+     left behind, so clear them on the way back in. */
+  function initBfcacheRestore() {
     window.addEventListener('pageshow', (event) => {
       if (!event.persisted) return;
       const main = document.querySelector('#main-content');
-      const overlay = document.querySelector('#page-transition');
       if (main && typeof gsap !== 'undefined') gsap.set(main, { clearProps: 'opacity,visibility,transform' });
-      if (overlay && typeof gsap !== 'undefined') gsap.set(overlay, { autoAlpha: 0 });
-    });
-  }
-
-  function shouldPageTransition(event, link) {
-    if (!link || link.target === '_blank' || link.hasAttribute('download')) return false;
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
-    if (link.closest('[data-cart-drawer]') || link.closest('form')) return false;
-
-    const href = link.getAttribute('href');
-    if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return false;
-    if (href.includes('/checkout') || href.includes('account/logout')) return false;
-
-    try {
-      const url = new URL(link.href, window.location.origin);
-      return url.origin === window.location.origin;
-    } catch {
-      return false;
-    }
-  }
-
-  /* ─── Header shrink on scroll ─── */
-  function initHeaderScroll() {
-    const header = document.querySelector('[data-header]');
-    if (!header) return;
-
-    ScrollTrigger.create({
-      start: 'top -60',
-      onEnter: () => header.classList.add('is-scrolled'),
-      onLeaveBack: () => header.classList.remove('is-scrolled'),
     });
   }
 
@@ -824,8 +773,7 @@
     injectSplitStyle();
 
     initPageEnter();
-    initPageExit();
-    initHeaderScroll();
+    initBfcacheRestore();
     initHeroEntrance();
     initHero3DMouse();
     initHeroMagnetic();

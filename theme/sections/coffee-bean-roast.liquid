@@ -330,8 +330,14 @@
       function size(){
         var dpr = Math.min(devicePixelRatio || 1, maxDpr());
         var r = cv.getBoundingClientRect();
-        cv.width = Math.max(1, Math.round(r.width * dpr));
-        cv.height = Math.max(1, Math.round(r.height * dpr));
+        var w = Math.max(1, Math.round(r.width * dpr));
+        var h = Math.max(1, Math.round(r.height * dpr));
+        /* Writing cv.width/height clears the canvas even when the value is
+           unchanged, so bail when nothing actually moved. iOS fires
+           visualViewport resize continuously while the URL bar slides. */
+        if(w === cv.width && h === cv.height) return;
+        cv.width = w;
+        cv.height = h;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         if(ready && cur >= 0) paint(cur, true);
       }
@@ -567,6 +573,16 @@
 
       addEventListener('scroll', onScroll, { passive: true });
       addEventListener('resize', size);
+      /* The stage is sized from --tcw-header-h, which the header script
+         rewrites when it compacts. A custom-property change fires no resize
+         event, so the CSS box shrank while the canvas backing store kept its
+         old dimensions and the painted frame was left stretched. Observing the
+         canvas catches that, and every other silent box change (font swap,
+         orientation) with it. Writing cv.width/height does not alter the
+         element's CSS box, so this cannot feed itself. */
+      if(window.ResizeObserver){
+        new ResizeObserver(function(){ size(); }).observe(cv);
+      }
       if(window.visualViewport){
         window.visualViewport.addEventListener('resize', size);
         window.visualViewport.addEventListener('scroll', onScroll, { passive: true });

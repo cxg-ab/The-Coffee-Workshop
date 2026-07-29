@@ -1381,23 +1381,6 @@ html[dir='rtl'] .about-story-rule {
 /* Back bean — left, dark */
 /* Center bean — hero focal point */
 /* Front bean — right, gold accent */
-.tcw-header.is-scrolled {
-  --tw-shadow: 0 8px 30px rgba(26,26,26,0.06);
-  --tw-shadow-colored: 0 8px 30px var(--tw-shadow-color);
-  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
-}
-.tcw-header.is-scrolled .tcw-header__inner {
-  height: 4rem;
-}
-@media (min-width: 1024px) {
-
-  .tcw-header.is-scrolled .tcw-header__inner {
-    height: 4.5rem;
-  }
-}
-.js .page-transition {
-    visibility: visible;
-  }
 html.lenis,
 html.lenis body {
   height: auto;
