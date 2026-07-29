@@ -327,13 +327,61 @@
         imgs[i] = im;
       }
 
+      function usable(i){
+        var im = imgs[i];
+        return !!(im && im.complete && im.naturalWidth);
+      }
+      /* Nearest already-decoded frame to idx. Without this, a first paint on
+         an unloaded frame returned early and left the canvas blank — on a
+         section whose only content is the canvas that reads as a white
+         screen, and it never self-corrected because paint() early-returns
+         while idx === cur. Now any decoded frame is shown immediately and
+         the exact one swaps in when it arrives. */
+      function nearestLoaded(idx){
+        if(usable(idx)) return idx;
+        for(var d = 1; d <= N; d++){
+          if(idx - d >= 0 && usable(idx - d)) return idx - d;
+          if(idx + d <= stopIdx && usable(idx + d)) return idx + d;
+        }
+        return -1;
+      }
+
+      /* iOS Safari caps decoded-image memory per tab. On a phone this sequence
+         retains ~73 frames at 1440x1440 — roughly 600MB once decoded, far past
+         that ceiling. When Safari purges a decoded bitmap the <img> still
+         reports complete/naturalWidth, but drawImage() silently paints
+         nothing: exactly the blank ("white") section reported on iPhone.
+         So bound what we hold on phones. Only fully-loaded frames are
+         released — releasing an in-flight one would strand preload()'s
+         `active` counter and stall the queue. Released frames come back from
+         the HTTP cache, and nearestLoaded() covers the gap meanwhile. */
+      var KEEP = 36;
+      var lastTrim = -1e9;
+      function trim(center){
+        if(!isPhone()) return;
+        if(Math.abs(center - lastTrim) < 12) return;
+        lastTrim = center;
+        for(var i = 0; i < N; i++){
+          if(i === 0 || i === stopIdx || i === center) continue;
+          if(Math.abs(i - center) <= KEEP) continue;
+          var im = imgs[i];
+          if(!im || !im.complete) continue;
+          im.onload = im.onerror = null;
+          im.src = '';
+          imgs[i] = null;
+        }
+      }
+
       function paint(idx, force){
         if(idx === cur && !force) return;
-        var im = imgs[idx];
-        if(!im || !im.complete || !im.naturalWidth){
+        if(!usable(idx)){
           if(idx <= stopIdx) requestFrame(idx);
-          return;
+          var alt = nearestLoaded(idx);
+          if(alt < 0) return;          // genuinely nothing decoded yet
+          if(alt === cur && !force) return;
+          idx = alt;                   // draw the closest frame we do have
         }
+        var im = imgs[idx];
         cur = idx;
 
         var r = cv.getBoundingClientRect();
@@ -349,6 +397,7 @@
 
         ctx.clearRect(0, 0, cw, ch);
         ctx.drawImage(im, dx, dy, dw, dh);
+        trim(idx);
       }
 
       function render(){

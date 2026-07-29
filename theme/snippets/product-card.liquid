@@ -17,7 +17,28 @@
   }
   .product-card:hover .product-card__title { background-size: 100% 1px; }
 
-  .product-card__region-slot { min-height: 1.05rem; margin-top: 0.5rem; }
+  .product-card__region-slot {
+    min-height: 1.05rem;
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.15rem 0.5rem;
+  }
+  .product-card__weight {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted, #6B6B6B);
+    white-space: nowrap;
+  }
+  /* Hairline separator, only when a region/brand line precedes the weight. */
+  .product-card__region + .product-card__weight::before {
+    content: "·";
+    margin-inline-end: 0.5rem;
+    color: var(--color-border, #E8E4DC);
+  }
   .product-card__region {
     display: inline-flex;
     align-items: center;
@@ -47,6 +68,7 @@
     border: 1px solid rgba(255,255,255,0.7);
     color: #fff;
     background: rgba(28,25,23,0.55);
+    -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
     font-size: 0.6rem;
     font-weight: 700;
@@ -60,6 +82,7 @@
     background: #8B5E3C;
     border-color: #8B5E3C;
     color: #fff;
+    -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
   /* Explicit positioning for the badge stack. The Tailwind offset utilities
@@ -109,6 +132,20 @@
   assign brand = card_product.metafields.custom.brand.value
   assign categories = card_product.metafields.custom.categories.value
   assign grid_fields = card_product.metafields.custom.grid_fields.value
+
+  # Weight is a variant OPTION ("Weight" → "150g"), not a metafield. Read the
+  # first matching option and show every value it carries. Names are stripped
+  # because some products were saved as "Weight " with a trailing space.
+  # Not gated by custom.grid_fields — that tick-list has no "Weight" choice, so
+  # products with the list already set would silently hide it.
+  assign weight_option = nil
+  for opt in card_product.options_with_values
+    assign opt_name = opt.name | strip | downcase
+    if opt_name == 'weight' or opt_name == 'الوزن'
+      assign weight_option = opt
+      break
+    endif
+  endfor
 
   # Barista Tools / accessory items render Name / Brand / Price instead of the
   # coffee layout. Detected by the collection being viewed OR the product's own
@@ -220,6 +257,13 @@
           </svg>
           <span>{{ region }}</span>
         </p>
+      {%- endif -%}
+      {%- if weight_option -%}
+        <span class="product-card__weight">
+          {%- for v in weight_option.values -%}
+            {%- unless forloop.first %} / {% endunless -%}{{ v }}
+          {%- endfor -%}
+        </span>
       {%- endif -%}
     </div>
 

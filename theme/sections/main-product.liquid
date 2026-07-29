@@ -12,6 +12,20 @@
   assign custom_details = product.metafields.custom.pdp_details.value
   assign remark_note = product.metafields.coffee.remark.value
 
+  # Weight comes from the product's own variant option (admin names it
+  # "Weight" with values like "150g"), not from a metafield. Until now it only
+  # existed as a radio in the option picker, so a single-weight product read as
+  # "no weight shown". Surface it as a stated spec as well. Names are stripped
+  # because some products carry a trailing space ("Weight ").
+  assign weight_option = nil
+  for opt in product.options_with_values
+    assign opt_name = opt.name | strip | downcase
+    if opt_name == 'weight' or opt_name == 'الوزن'
+      assign weight_option = opt
+      break
+    endif
+  endfor
+
   # Barista Tools / accessories detection — mirrors product-card.liquid.
   # Renders a scannable, tool-appropriate description block instead of prose.
   assign categories = product.metafields.custom.categories.value
@@ -128,8 +142,16 @@
     assign r_how = true
   endif
 
+  # Weight is deliberately NOT gated by custom.pdp_fields: that tick-list has no
+  # "Weight" choice, so any product with the list already set would silently
+  # hide it. It shows whenever the product actually has a Weight option.
+  assign r_weight = false
+  if weight_option
+    assign r_weight = true
+  endif
+
   assign has_specs = false
-  if r_region or r_variety or r_altitude or r_process or r_roast or r_notes or r_brand
+  if r_weight or r_region or r_variety or r_altitude or r_process or r_roast or r_notes or r_brand
     assign has_specs = true
   endif
   assign has_details = has_specs
@@ -902,6 +924,16 @@
           <div class="pdp__panel">
             <dl class="pdp__specs">
             
+              {%- if r_weight -%}
+                <div class="pdp__spec">
+                  <dt>{% if request.locale.iso_code == 'ar' %}الوزن{% else %}Weight{% endif %}</dt>
+                  <dd>
+                    {%- for v in weight_option.values -%}
+                      {%- unless forloop.first %} / {% endunless -%}{{ v }}
+                    {%- endfor -%}
+                  </dd>
+                </div>
+              {%- endif -%}
               {%- if r_region -%}
                 <div class="pdp__spec">
                   <dt>{{ 'products.region' | t | default: 'Region' }}</dt>
