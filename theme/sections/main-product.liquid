@@ -952,9 +952,17 @@
         {% form 'product', product, class: 'pdp__form', id: 'product-form', data-ajax-cart: true %}
           <p class="pdp__error" data-cart-error role="alert" hidden></p>
 
-          {%- if product.variants.size > 1 -%}
+          {%- comment -%}
+            Show the option picker whenever the admin has configured a real option
+            on the product (weight, size, etc.) — even a single value like "150g" —
+            rather than only when there are 2+ variants. This surfaces exactly what
+            the admin added in Shopify; when they add more values, they appear here
+            automatically. Products with no real option (default variant only) keep
+            the hidden id input and show nothing to choose.
+          {%- endcomment -%}
+          {%- unless product.has_only_default_variant -%}
             <div class="pdp__panel">
-              <p class="pdp__panel-label">{{ 'products.variant' | t | default: 'Options' }}</p>
+              <p class="pdp__panel-label">{{ product.options_with_values.first.name | default: 'Options' }}</p>
               <div class="pdp__variants" data-variant-picker>
                 {%- for variant in product.variants -%}
                   <label class="pdp-variant{% if variant == current_variant %} is-selected{% endif %}{% unless variant.available %} is-disabled{% endunless %}">
@@ -973,7 +981,7 @@
             </div>
           {%- else -%}
             <input type="hidden" name="id" value="{{ current_variant.id }}">
-          {%- endif -%}
+          {%- endunless -%}
 
           <div class="pdp__panel pdp__buy">
             <div class="pdp__qty-row">
