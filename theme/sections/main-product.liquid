@@ -428,87 +428,6 @@
   .pdp__desc p { margin: 0 0 0.75rem; }
   .pdp__desc p:last-child { margin-bottom: 0; }
 
-  /* ── Barista Tools description block ─────────────────────────────
-     UI principles: clear hierarchy (brand chip → heading → prose),
-     brand-accented gold rule, checkmark bullets so Shopify-editor
-     lists read as a scannable feature list, generous line-height,
-     RTL-safe via logical properties.
-     ─────────────────────────────────────────────────────────────── */
-  .pdp__tool-desc {
-    margin: 0;
-    padding: 1.25rem 1.4rem;
-    border: 1px solid var(--pdp-line);
-    background: var(--pdp-surface);
-    border-inline-start: 3px solid var(--pdp-brand-strong);
-    max-width: 42rem;
-  }
-  .pdp__tool-desc-head {
-    display: flex;
-    align-items: baseline;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    margin-bottom: 0.85rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--pdp-line);
-  }
-  .pdp__tool-desc-brand {
-    display: inline-block;
-    padding: 0.2rem 0.55rem;
-    background: color-mix(in srgb, var(--pdp-brand-strong) 12%, transparent);
-    color: var(--pdp-brand-strong);
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    border-radius: 999px;
-  }
-  .pdp__tool-desc-title {
-    margin: 0;
-    font-family: var(--font-display), system-ui, sans-serif;
-    font-size: 0.95rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--pdp-ink);
-  }
-  .pdp__tool-desc-body {
-    margin: 0;
-    font-size: 0.95rem;
-    line-height: 1.7;
-    color: var(--pdp-muted);
-  }
-  .pdp__tool-desc-body p  { margin: 0 0 0.75rem; }
-  .pdp__tool-desc-body p:last-child { margin-bottom: 0; }
-  .pdp__tool-desc-body strong { color: var(--pdp-ink); font-weight: 700; }
-  /* Turn any list in the description into a checkmark feature list. */
-  .pdp__tool-desc-body ul,
-  .pdp__tool-desc-body ol {
-    list-style: none;
-    padding: 0;
-    margin: 0.5rem 0 0.85rem;
-    display: grid;
-    gap: 0.5rem;
-  }
-  .pdp__tool-desc-body li {
-    position: relative;
-    padding-inline-start: 1.6rem;
-    color: var(--pdp-ink);
-  }
-  .pdp__tool-desc-body li::before {
-    content: "";
-    position: absolute;
-    inset-inline-start: 0;
-    top: 0.45em;
-    width: 0.85rem;
-    height: 0.85rem;
-    background: var(--pdp-brand-strong);
-    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='black' d='M9.55 17.6 4.4 12.45l1.4-1.4 3.75 3.75 8.6-8.6 1.4 1.4z'/></svg>") center/contain no-repeat;
-            mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='black' d='M9.55 17.6 4.4 12.45l1.4-1.4 3.75 3.75 8.6-8.6 1.4 1.4z'/></svg>") center/contain no-repeat;
-    flex-shrink: 0;
-  }
-  @media (min-width: 768px) {
-    .pdp__tool-desc { padding: 1.5rem 1.75rem; }
-  }
   .pdp__remark {
     margin: 0 0 1.1rem;
     padding: 0.8rem 1rem;
@@ -949,28 +868,32 @@
         {%- endif -%}
 
         {%- if product.description != blank -%}
+          {%- comment -%}
+            One shared description look for coffee AND tools (Capsules / Exotic /
+            Barista Tools all match). No card, no rules — just clean prose.
+            "Logic for text" — for tool products only, if the admin's description
+            has NO HTML block tags (a bare paragraph of text), split it on
+            double newlines into distinct <p> paragraphs so long tool copy
+            still reads as scannable blocks instead of one wall.
+          {%- endcomment -%}
+          {%- assign desc_html = product.description -%}
           {%- if is_tool -%}
-            {%- comment -%}
-              Barista Tools description: scannable card layout with an "About this tool"
-              heading, brand chip, and — if the description contains a <ul>/<ol> — the
-              lists get gold check-marks so specs read as a bullet-checked feature list.
-            {%- endcomment -%}
-            <section class="pdp__tool-desc" aria-labelledby="pdp-tool-about">
-              <header class="pdp__tool-desc-head">
-                {%- if brand != blank -%}
-                  <span class="pdp__tool-desc-brand">{{ brand }}</span>
-                {%- endif -%}
-                <h2 id="pdp-tool-about" class="pdp__tool-desc-title">
-                  {% if request.locale.iso_code == 'ar' %}عن هذه الأداة{% else %}About this tool{% endif %}
-                </h2>
-              </header>
-              <div class="pdp__tool-desc-body prose-brand">
-                {{ product.description }}
-              </div>
-            </section>
-          {%- else -%}
-            <div class="pdp__desc prose-brand">{{ product.description }}</div>
+            {%- assign has_html_block = false -%}
+            {%- if desc_html contains '<p' or desc_html contains '<ul' or desc_html contains '<ol' or desc_html contains '<h' or desc_html contains '<br' -%}
+              {%- assign has_html_block = true -%}
+            {%- endif -%}
+            {%- unless has_html_block -%}
+              {%- capture rebuilt -%}
+                {%- assign _paras = desc_html | newline_to_br | replace: '<br /><br />', '§§' | split: '§§' -%}
+                {%- for p in _paras -%}
+                  {%- assign _trim = p | strip -%}
+                  {%- if _trim != blank -%}<p>{{ _trim | replace: '<br />', ' ' }}</p>{%- endif -%}
+                {%- endfor -%}
+              {%- endcapture -%}
+              {%- assign desc_html = rebuilt -%}
+            {%- endunless -%}
           {%- endif -%}
+          <div class="pdp__desc prose-brand">{{ desc_html }}</div>
         {%- endif -%}
 
         
