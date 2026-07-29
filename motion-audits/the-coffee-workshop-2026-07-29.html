@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>the-coffee-workshop motion audit — 2026-07-29</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #111111;
+    --border: #e5e5e5;
+    --accent: #111111;
+    --loop-dim: rgba(0, 0, 0, 0.45);
+    --card-radius: 12px;
+    --card-padding: 20px;
+    --gap: 12px;
+    --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a1a;
+      --fg: #f0f0f0;
+      --border: #333333;
+      --accent: #f0f0f0;
+      --loop-dim: rgba(240, 240, 240, 0.45);
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--sans);
+    margin: 0 auto;
+    max-width: 960px;
+    padding: 48px 24px;
+    line-height: 1.5;
+  }
+
+  .demo-card {
+    position: relative;
+    background: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: var(--card-padding);
+    max-width: 360px;
+    min-width: 280px;
+    font-family: var(--sans);
+    outline: none;
+  }
+  .demo-card:focus-visible { outline: none; }
+  .demo-card__header {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--fg);
+    margin-bottom: 4px;
+    padding-right: 72px;
+  }
+  .demo-card__subhead {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--loop-dim);
+    margin-bottom: var(--gap);
+  }
+  .demo-card__stage {
+    background: var(--bg);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .demo-card__loop-indicator {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--loop-dim);
+    letter-spacing: 0.02em;
+    user-select: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .demo-card__loop-indicator { display: none; }
+    [class*="__motion-target"] {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+
+  /* ── Report layout ── */
+  .report-hero h1 { font-size: 1.75rem; margin: 0 0 4px; }
+  .report-hero__date { font-family: var(--mono); color: var(--loop-dim); font-size: 0.875rem; margin: 0 0 16px; }
+  .report-hero__counts { font-size: 1rem; margin: 0 0 8px; }
+  .report-hero__counts a { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--border); }
+  .report-hero__counts a:hover { border-bottom-style: solid; }
+  .report-hero__primary { font-family: var(--mono); color: var(--loop-dim); font-size: 0.875rem; margin: 0; }
+  .report-assessment { margin: 32px 0; font-size: 1.05rem; line-height: 1.6; }
+  .perspective-section { margin: 48px 0; padding-top: 24px; border-top: 1px solid var(--border); }
+  .perspective-section h2 { font-size: 1.25rem; margin: 0 0 16px; }
+  .perspective-section h3 { font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--loop-dim); margin: 24px 0 8px; }
+  .perspective-section ul { margin: 0; padding-inline-start: 1.2rem; }
+  .perspective-section li { margin-bottom: 6px; }
+  .perspective-section__quote {
+    margin-top: 24px; padding: 12px 16px;
+    background: var(--bg); border-left: 3px solid var(--accent);
+    font-size: 0.95rem;
+  }
+  .perspective-section__empty { font-style: italic; color: var(--loop-dim); padding: 12px 0; }
+  .finding-row {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 24px;
+    align-items: start;
+    margin: 24px 0;
+  }
+  .finding-row__prose h4 { margin: 4px 0 8px; font-size: 1.05rem; }
+  .finding-row__prose p { margin: 0 0 10px; }
+  .finding-row__severity { font-family: var(--mono); font-size: 0.75rem; margin: 0; color: var(--loop-dim); }
+  .finding-row__location { font-size: 0.8rem; margin: 0; }
+  code { font-family: var(--mono); font-size: 0.85em; background: rgba(128,128,128,0.12); padding: 1px 5px; border-radius: 4px; }
+  .recommendations { margin: 48px 0; }
+  .recommendations h2 { font-size: 1.15rem; }
+  .table-scroll { overflow-x: auto; }
+  .recommendations table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 560px; }
+  .recommendations th, .recommendations td {
+    text-align: left; padding: 8px 12px;
+    border-bottom: 1px solid var(--border); vertical-align: top;
+  }
+  .reference-summary { margin: 48px 0; padding-top: 24px; border-top: 1px solid var(--border); }
+
+  @media (max-width: 768px) {
+    .finding-row { grid-template-columns: 1fr; }
+    .demo-card { max-width: 100%; }
+  }
+
+  /* ── Finding 1: selective enter ── */
+  @keyframes motion-1-enter {
+    0%   { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+    66%  { opacity: 1; transform: translateY(0);    filter: blur(0); }
+    100% { opacity: 1; transform: translateY(0);    filter: blur(0); }
+  }
+  .demo-card-1__motion-target {
+    animation: motion-1-enter 3s infinite;
+    display: inline-block;
+    padding: 10px 18px;
+    border-radius: 6px;
+    background: var(--accent);
+    color: var(--bg);
+    font-size: 0.85rem;
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+
+  /* ── Finding 2: transform-only drift ── */
+  @keyframes motion-2-drift {
+    0%   { transform: translate(0, 0) scale(1); }
+    66%  { transform: translate(14px, 10px) scale(1.06); }
+    100% { transform: translate(14px, 10px) scale(1.06); }
+  }
+  .demo-card-2__motion-target {
+    animation: motion-2-drift 3s infinite;
+    width: 64px;
+    height: 64px;
+    border-radius: 42% 58% 65% 35% / 38% 42% 58% 62%;
+    background: radial-gradient(circle at 30% 30%, rgba(139, 94, 60, 0.55), rgba(139, 94, 60, 0) 70%);
+    outline: 1px dashed var(--border);
+    transform: translate(14px, 10px) scale(1.06);
+  }
+
+  /* ── Finding 3: quickTo settle ── */
+  @keyframes motion-3-settle {
+    0%   { transform: translateX(-22px) rotate(-7deg); }
+    66%  { transform: translateX(0) rotate(0deg); }
+    100% { transform: translateX(0) rotate(0deg); }
+  }
+  .demo-card-3__motion-target {
+    animation: motion-3-settle 3s infinite;
+    width: 96px;
+    height: 60px;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    background: rgba(128,128,128,0.1);
+    transform: translateX(0) rotate(0deg);
+  }
+
+  /* ── Finding 4: scaleX underline ── */
+  @keyframes motion-4-underline {
+    0%   { transform: scaleX(0); }
+    66%  { transform: scaleX(1); }
+    100% { transform: scaleX(1); }
+  }
+  .demo-card-4__motion-target {
+    width: 180px;
+    height: 2px;
+    background: var(--accent);
+    transform-origin: left center;
+    transform: scaleX(1);
+    animation: motion-4-underline 3s infinite;
+  }
+
+  /* ── Finding 5: single scroll authority ── */
+  @keyframes motion-5-scrollto {
+    0%   { transform: translateY(-34px); }
+    66%  { transform: translateY(0); }
+    100% { transform: translateY(0); }
+  }
+  .demo-card-5__motion-target {
+    animation: motion-5-scrollto 3s infinite;
+    width: 150px;
+    height: 26px;
+    border-radius: 4px;
+    background: var(--accent);
+    opacity: 0.85;
+    transform: translateY(0);
+  }
+
+  /* ── Finding 6: enter on arrival, no exit block ── */
+  @keyframes motion-6-arrive {
+    0%   { opacity: 0; transform: translateY(12px); }
+    66%  { opacity: 1; transform: translateY(0); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .demo-card-6__motion-target {
+    animation: motion-6-arrive 3s infinite;
+    width: 190px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-family: var(--mono);
+    color: var(--loop-dim);
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── Finding 7: header shrink via transform ── */
+  @keyframes motion-7-shrink {
+    0%   { transform: scaleY(1); }
+    66%  { transform: scaleY(0.68); }
+    100% { transform: scaleY(0.68); }
+  }
+  .demo-card-7__motion-target {
+    animation: motion-7-shrink 3s infinite;
+    width: 200px;
+    height: 54px;
+    border-radius: 6px;
+    background: var(--accent);
+    opacity: 0.85;
+    transform-origin: top center;
+    transform: scaleY(0.68);
+  }
+</style>
+</head>
+<body>
+
+<header class="report-hero">
+  <h1>the-coffee-workshop motion audit</h1>
+  <p class="report-hero__date">2026-07-29</p>
+  <p class="report-hero__counts">
+    <a href="#critical-findings">🔴 Critical: 2</a> ·
+    <a href="#important-findings">🟡 Important: 5</a> ·
+    <a href="#opportunity-findings">🟢 Opportunities: 4</a>
+  </p>
+  <p class="report-hero__primary">Primary: Jakub Krehel — Production Polish</p>
+</header>
+
+<section class="report-assessment">
+  <p>
+    The accessibility foundation here is genuinely strong — stronger than most themes.
+    A global <code>prefers-reduced-motion</code> reset sits unlayered at the top of the
+    stylesheet, and <code>animations.js</code> independently gates every GSAP timeline
+    behind the same query with a live <code>change</code> listener. That is belt and
+    braces, and it is correct. The slop check is also mostly clean: no pulsing
+    indicators, no bouncy springs on utility actions, and hover-scale appears exactly
+    once in the whole codebase — well under the threshold that marks a generated UI.
+    What is wrong is not taste, it is <em>cost</em>. Two systems animate the sticky
+    header's <code>height</code> on scroll, and one of them desynchronises the
+    <code>--tcw-header-h</code> variable that the bean-roast stage sizes itself from.
+    Every internal link is intercepted and delayed 350 ms before the browser is even
+    told to navigate. And the ambient background blobs animate <code>border-radius</code>
+    underneath a 52 px blur, forever. None of these read as "nice animation" to a
+    visitor — they read as a site that stutters. That is the opposite of what this
+    motion is for.
+  </p>
+</section>
+
+<!-- ══════════════ JAKUB — PRIMARY ══════════════ -->
+<section class="perspective-section" id="perspective-jakub">
+  <h2>Jakub Krehel — Production Polish</h2>
+
+  <div class="perspective-section__working-well">
+    <h3>What's Working Well</h3>
+    <ul>
+      <li>✓ Cart drawer uses a custom <code>cubic-bezier(0.22, 1, 0.36, 1)</code> with a delayed <code>visibility</code> step, so the panel is genuinely unpainted when closed rather than just transparent — that comment explains the white-flash bug it fixed — <code>snippets/cart-drawer.liquid:8–21</code></li>
+      <li>✓ Exit motion exists and is subtler than enter: page exit is 0.35 s / <code>y: -20</code> against a 0.65 s / <code>y: 28</code> enter — <code>assets/animations.js:171–204</code></li>
+      <li>✓ Lenis is disabled on coarse pointers, so phones keep native momentum scrolling — <code>assets/animations.js:102</code></li>
+      <li>✓ <code>ScrollTrigger.refresh()</code> is debounced to 200 ms, with a comment naming the mobile URL-bar resize storm it prevents — <code>assets/animations.js:895–903</code></li>
+      <li>✓ bfcache restore path resets <code>#main-content</code> visibility, so back-navigation can't land on a page the exit animation left hidden — <code>assets/animations.js:206–212</code></li>
+      <li>✓ No spring overshoot anywhere on utility actions; all easing is <code>power2/3/4</code>, never bare <code>ease</code>, inside the GSAP layer</li>
+    </ul>
+  </div>
+
+  <div class="perspective-section__issues" id="jakub-issues">
+    <h3>Issues to Address</h3>
+
+    <div class="finding-row" id="finding-1">
+      <div class="finding-row__prose">
+        <p class="finding-row__severity">🟡 Important</p>
+        <h4>One 1000 ms reveal applied uniformly to 25 elements, including legal and account copy</h4>
+        <p>
+          Every <code>[data-reveal]</code> gets the same <code>y: 56</code>,
+          <code>scale: 0.96</code>, <code>duration: 1</code>, <code>power3.out</code>.
+          It is used 25 times across 13 templates — including three blocks on the
+          policy pages and five in the customer order template. This trips two
+          anti-checklist categories at once: uniform-fade-in (threshold is 4 distinct
+          components; this is 13) and motion-on-mount-for-static-content.
+        </p>
+        <p>
+          A refund policy should not slide up and scale in. And 1000 ms is double the
+          top of the production band even by the permissive reading — the visitor
+          waits a full second for text they are trying to read.
+        </p>
+        <p class="finding-row__location"><code>assets/animations.js:492–515</code></p>
+      </div>
+      <article class="demo-card" tabindex="-1">
+        <div class="demo-card__loop-indicator">↻ looping</div>
+        <div class="demo-card__header">Selective enter: opacity + translateY + blur</div>
+        <div class="demo-card__subhead">280ms · cubic-bezier(0.22, 1, 0.36, 1)</div>
+        <div class="demo-card__stage">
+          <div class="demo-card-1__motion-target">Reveal</div>
+        </div>
+      </article>
+    </div>
+
+    <div class="finding-row" id="finding-2">
+      <div class="finding-row__prose">
+        <p class="finding-row__severity">🟡 Important</p>
+        <h4>Ambient blobs animate <code>border-radius</code> under a 52 px blur, infinitely</h4>
+        <p>
+          <code>.about-liquid-blob</code> runs an 18 s and a 22 s
+          <code>infinite alternate</code> animation whose keyframes change
+          <code>border-radius</code> as well as <code>transform</code>. Border-radius is
+          not a compositable property, so each frame repaints the element — and because
+          the element carries <code>filter: blur(52px)</code> at up to 380 px square,
+          each repaint re-runs the blur. That is continuous GPU work on every page
+          carrying an About or glass section, for as long as the page is open.
+        </p>
+        <p>
+          <code>will-change: transform, border-radius</code> makes it worse, not better:
+          the border-radius hint does nothing useful and the declaration pins a
+          permanent compositor layer. Drop <code>border-radius</code> from both the
+          keyframes and the hint — the drift and scale alone read identically.
+        </p>
+        <p class="finding-row__location"><code>assets/application.css:729–760</code>, duplicated at <code>976–994</code></p>
+      </div>
+      <article class="demo-card" tabindex="-1">
+        <div class="demo-card__loop-indicator">↻ looping</div>
+        <div class="demo-card__header">Drift with transform only — no repaint</div>
+        <div class="demo-card__subhead">18s · ease-in-out · compositor-only</div>
+        <div class="demo-card__stage">
+          <div class="demo-card-2__motion-target"></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="finding-row" id="finding-3">
+      <div class="finding-row__prose">
+        <p class="finding-row__severity">🟡 Important</p>
+        <h4>Unthrottled <code>mousemove</code> creating two overwriting tweens per event</h4>
+        <p>
+          The hero 3D tilt fires <code>gsap.to(visual, …)</code> and
+          <code>gsap.to(orbs, …, stagger: 0.04)</code> on <em>every</em> pointer move,
+          each with <code>overwrite: true</code>. Overwrite forces GSAP to scan and kill
+          existing tweens on those targets before creating new ones — so a 120 Hz mouse
+          means roughly 240 tween constructions and 240 overwrite scans per second. The
+          magnetic buttons repeat the pattern per element.
+        </p>
+        <p>
+          <code>gsap.quickTo()</code> exists precisely for this: it builds one reusable
+          tween and just retargets its value, which removes the allocation and the
+          overwrite scan entirely while producing the same settle.
+        </p>
+        <p class="finding-row__location"><code>assets/animations.js:361–383</code> and <code>385–427</code></p>
+      </div>
+      <article class="demo-card" tabindex="-1">
+        <div class="demo-card__loop-indicator">↻ looping</div>
+        <div class="demo-card__header">gsap.quickTo() — one reusable tween</div>
+        <div class="demo-card__subhead">0.6s · power2.out · no overwrite scan</div>
+        <div class="demo-card__stage">
+          <div class="demo-card-3__motion-target"></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="finding-row" id="finding-4">
+      <div class="finding-row__prose">
+        <p class="finding-row__severity">🟡 Important</p>
+        <h4>Underline reveal animates <code>width</code></h4>
+        <p>
+          <code>.about-value-card::before</code> transitions <code>width</code> from
+          <code>0</code> to <code>100%</code> over 450 ms on hover, focus-within, and
+          scroll-in. Width is a layout property — every frame triggers layout, then
+          paint, then composite, instead of composite alone.
+        </p>
+        <p>
+          The easing curve is already the right one. Swap the animated property to
+          <code>transform: scaleX()</code> with
+          <code>transform-origin: inline-start</code> (which keeps the RTL mirroring you
+          get from the existing <code>inset-inline-start</code>) and the same visual runs
+          on the compositor.
+        </p>
+        <p class="finding-row__location"><code>assets/application.css:895–910</code></p>
+      </div>
+      <article class="demo-card" tabindex="-1">
+        <div class="demo-card__loop-indicator">↻ looping</div>
+        <div class="demo-card__header">Underline via transform: scaleX()</div>
+        <div class="demo-card__subhead">450ms · cubic-bezier(0.22, 1, 0.36, 1)</div>
+        <div class="demo-card__stage">
+          <div class="demo-card-4__motion-target"></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="finding-row" id="finding-5">
+      <div class="finding-row__prose">
+        <p class="finding-row__severity">🟡 Important</p>
+        <h4>Two scroll authorities: CSS <code>scroll-behavior: smooth</code> and Lenis are both active</h4>
+        <p>
+          <code>html { scroll-behavior: smooth }</code> is set globally, while Lenis runs
+          its own RAF-driven smooth scroll on fine-pointer devices. Lenis's own guidance
+          is to remove the CSS property, because both intercept programmatic scrolling
+          and fight over the same anchor jump.
+        </p>
+        <p>
+          This is reachable in the theme today: the skip-link and the footer's in-page
+          links are exactly the anchor-jump case, and
+          <code>scroll-padding-top</code> is tuned against the header on the assumption
+          of a single authority. Let Lenis own scrolling when it is active and keep the
+          CSS property for the coarse-pointer path where Lenis bails out.
+        </p>
+        <p class="finding-row__location"><code>assets/application.css:518</code> vs <code>assets/animations.js:94–121</code></p>
+      </div>
+      <article class="demo-card" tabindex="-1">
+        <div class="demo-card__loop-indicator">↻ looping</div>
+        <div class="demo-card__header">Single scroll authority — one curve</div>
+        <div class="demo-card__subhead">lerp 0.1 · no competing handler</div>
+        <div class="demo-card__stage">
+          <div class="demo-card-5__motion-target"></div>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <div class="perspective-section__opportunities">
+    <h3>Opportunities</h3>
+    <ul>
+      <li>💡 The reveal recipe uses <code>y + scale + autoAlpha</code> but no blur. Adding a small <code>filter: blur(4px) → 0</code> to the few reveals you keep gives the materialising feel that reads as more physical than fade alone — <code>assets/animations.js:500–507</code></li>
+      <li>💡 <code>.product-card__title</code> reveals its underline by animating <code>background-size</code>. It is cheap enough to leave, but the same <code>scaleX</code> treatment as finding 4 would make the two underline reveals on the site consistent — <code>snippets/product-card.liquid:11–18</code></li>
+    </ul>
+  </div>
+
+  <p class="perspective-section__quote"><strong>Through Jakub's lens:</strong> The taste is right and the exit/enter asymmetry shows real care — but polish that costs a repaint every frame stops being polish. Every finding here keeps the visual and moves the work onto the compositor.</p>
+</section>
+
+<!-- ══════════════ EMIL — SECONDARY ══════════════ -->
+<section class="perspective-section" id="perspective-emil">
+  <h2>Emil Kowalski — Restraint &amp; Speed</h2>
+
+  <div class="perspective-section__working-well">
+    <h3>What's Working Well</h3>
+    <ul>
+      <li>✓ The header scroll listener is <code>requestAnimationFrame</code>-throttled and registered <code>{ passive: true }</code> — textbook — <code>sections/header.liquid:142–149</code></li>
+      <li>✓ <code>shouldPageTransition()</code> correctly excludes modified clicks, <code>_blank</code>, downloads, forms, the cart drawer, checkout and logout — the exclusion list is well considered — <code>assets/animations.js:213–229</code></li>
+      <li>✓ Hover-scale appears exactly once in the entire codebase (<code>nav-menu.liquid:62</code>), far below the ≥3 threshold that flags hover-scale-on-everything</li>
+      <li>✓ No pulsing, glowing or breathing indicators anywhere — this is the single most common slop tell and it is completely absent</li>
+      <li>✓ The bean-roast scrub is a rare, once-per-visit showpiece, which is exactly where expressive scroll motion earns its place</li>
+    </ul>
+  </div>
+
+  <div class="perspective-section__issues" id="emil-issues">
+    <h3>Issues to Address</h3>
+
+    <div class="finding-row" id="finding-6">
+      <div class="finding-row__prose">
+        <p class="finding-row__severity">🔴 Critical</p>
+        <h4>Every internal navigation is blocked for 350 ms before the request starts</h4>
+        <p>
+          <code>initPageExit()</code> intercepts clicks on all same-origin links, calls
+          <code>preventDefault()</code>, plays a 350 ms fade-out timeline, and only sets
+          <code>window.location.href</code> in the timeline's <code>onComplete</code>.
+          The browser is not told where to go until the animation has finished.
+        </p>
+        <p>
+          Navigation is the highest-frequency action on a store — every product card,
+          every collection pill, every nav item. This adds 350 ms to all of them, before
+          any network work begins, and the delay is pure cost: nothing is fetched during
+          it. On a slow connection the visitor then stares at a filled overlay with no
+          progress signal. Emil's frequency gate is unambiguous here.
+        </p>
+        <p>
+          Start the navigation immediately and animate the <em>arrival</em> instead —
+          <code>initPageEnter()</code> already does exactly that, and already handles the
+          <code>sessionStorage</code> handoff.
+        </p>
+        <p class="finding-row__location"><code>assets/animations.js:180–205</code></p>
+      </div>
+      <article class="demo-card" tabindex="-1">
+        <div class="demo-card__loop-indicator">↻ looping</div>
+        <div class="demo-card__header">Navigate now, animate the arrival</div>
+        <div class="demo-card__subhead">0ms block · 300ms enter on the new page</div>
+        <div class="demo-card__stage">
+          <div class="demo-card-6__motion-target">next page paints</div>
+        </div>
+      </article>
+    </div>
+
+    <div class="finding-row" id="finding-7">
+      <div class="finding-row__prose">
+        <p class="finding-row__severity">🔴 Critical</p>
+        <h4>Two competing header-shrink systems, both animating <code>height</code> on the sticky header</h4>
+        <p>
+          There are two independent implementations running at once.
+          <code>header.liquid</code>'s inline script toggles <code>is-compact</code> past
+          <code>y &gt; 40</code>; <code>animations.js</code> creates a ScrollTrigger that
+          toggles <code>is-scrolled</code> at <code>top -60</code>. Both style
+          <code>.tcw-header__inner</code>'s <code>height</code>, to different values
+          (3.5rem vs 4rem), with equal specificity — so the winner is decided purely by
+          source order, and <code>is-scrolled</code> is dead weight that still costs a
+          ScrollTrigger on every page.
+        </p>
+        <p>
+          The live one animates <code>height</code> with
+          <code>transition: height 0.3s ease</code> on a <code>position: sticky</code>
+          element. Height is a layout property, so for 300 ms at the very moment the
+          visitor starts scrolling, the entire page below the header re-lays-out every
+          frame. This is a strong candidate for the scroll stutter reported earlier.
+          (The easing is also bare <code>ease</code>, the one curve to avoid.)
+        </p>
+        <p>
+          There is a second-order bug. The script sets <code>--tcw-header-h</code>
+          <em>instantly</em> to the compact value while the header itself animates over
+          300 ms, so every consumer of that variable jumps ahead of the header. One of
+          those consumers is the bean-roast stage:
+          <code>--br-stage-h: calc(100dvh - var(--br-header))</code>. Its CSS box changes
+          height mid-scroll, but <code>size()</code> only listens for
+          <code>resize</code> and <code>visualViewport</code> events — not for a custom
+          property change — so the canvas backing store is never re-computed and the
+          painted frame is left stretched against its box.
+        </p>
+        <p class="finding-row__location"><code>sections/header.liquid:17–24, 136–149</code> · <code>assets/animations.js:231–241</code> · <code>assets/application.css:1384–1396</code></p>
+      </div>
+      <article class="demo-card" tabindex="-1">
+        <div class="demo-card__loop-indicator">↻ looping</div>
+        <div class="demo-card__header">Shrink via transform — no reflow</div>
+        <div class="demo-card__subhead">220ms · cubic-bezier(0.4, 0, 0.2, 1)</div>
+        <div class="demo-card__stage">
+          <div class="demo-card-7__motion-target"></div>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <div class="perspective-section__opportunities">
+    <h3>Opportunities</h3>
+    <ul>
+      <li>💡 Eleven distinct <code>stagger</code> sites live in <code>animations.js</code>. On the homepage alone the hero contributes three, plus split titles, the glass story's intro and body, and the product grid — comfortably past the ≥2-lists-per-view threshold for stagger-spam. Keeping stagger for the hero and the product grid, and dropping it elsewhere, would make the two that remain register as deliberate — <code>assets/animations.js:277, 282, 305, 316, 341, 480, 563, 583, 605, 702, 730</code></li>
+    </ul>
+  </div>
+
+  <p class="perspective-section__quote"><strong>Through Emil's lens:</strong> The restraint is real where it counts — no pulsing, no bounce, no hover-scale epidemic. But the two Critical findings both tax the highest-frequency interactions on the site, navigation and scrolling, and that is precisely where motion should cost nothing.</p>
+</section>
+
+<!-- ══════════════ JHEY — SELECTIVE ══════════════ -->
+<section class="perspective-section" id="perspective-jhey">
+  <h2>Jhey Tompkins — Experimentation &amp; Delight</h2>
+
+  <div class="perspective-section__working-well">
+    <h3>What's Working Well</h3>
+    <ul>
+      <li>✓ The 217-frame scroll-scrubbed roast is a genuinely ambitious showcase moment, and it is the right kind of place to spend motion budget on an e-commerce site</li>
+      <li>✓ The Arabic word-field background (<code>floatArabicBg</code>, per-word <code>--bg-rot</code> / <code>--bg-dur</code> custom properties driving staggered drift) is a nice piece of CSS-variable choreography that also respects RTL — <code>assets/application.css:1300–1320</code></li>
+      <li>✓ Split-text is implemented as word masks rather than per-character, which is the correct call for Arabic ligatures — a detail most implementations get wrong — <code>assets/animations.js:25–92</code></li>
+    </ul>
+  </div>
+
+  <div class="perspective-section__issues" id="jhey-issues">
+    <h3>Issues to Address</h3>
+    <p class="perspective-section__empty">No issues found at this severity level.</p>
+  </div>
+
+  <div class="perspective-section__opportunities">
+    <h3>Opportunities</h3>
+    <ul>
+      <li>💡 Native CSS scroll-driven animations (<code>animation-timeline: view()</code>) could replace several of the simpler ScrollTrigger reveals outright, moving them off the main thread and off the JS scroll path entirely. Baseline in Chrome and Safari 26; the existing <code>@supports</code> discipline in <code>coffee-bean-roast.liquid</code> shows the pattern for gating it cleanly — <code>assets/animations.js:492–515</code></li>
+      <li>💡 The roast scrub currently maps progress linearly to frame index. A <code>linear()</code> easing function could hold slightly longer around first crack — the moment the sequence exists to show — without changing a single frame asset — <code>sections/coffee-bean-roast.liquid</code></li>
+    </ul>
+  </div>
+
+  <p class="perspective-section__quote"><strong>Through Jhey's lens:</strong> The experimental instinct is already here — a scrubbed roast sequence and an RTL-aware word field are not safe choices. The opportunity is to let newer CSS carry what JavaScript is currently doing by hand.</p>
+</section>
+
+<!-- ══════════════ COMBINED RECOMMENDATIONS ══════════════ -->
+<section class="recommendations" id="critical-findings">
+  <h2>🔴 Critical (Must Fix)</h2>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>Issue</th><th>File</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Every internal navigation blocked 350 ms before the request starts</td>
+        <td><code>assets/animations.js:180–205</code></td>
+        <td>Set <code>window.location.href</code> immediately; drop the exit timeline and let <code>initPageEnter()</code> animate the arrival, which it already does.</td>
+      </tr>
+      <tr>
+        <td>Two header-shrink systems both animating <code>height</code> on a sticky element</td>
+        <td><code>sections/header.liquid:17–24</code> · <code>assets/animations.js:231–241</code> · <code>assets/application.css:1384–1396</code></td>
+        <td>Delete the <code>is-scrolled</code> ScrollTrigger and its CSS. Replace the <code>height</code>/<code>max-height</code> transitions with <code>transform</code>, or drop the transition and let the height snap. Transition <code>--tcw-header-h</code> in lockstep, and fire the bean roast's <code>size()</code> when it changes.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="recommendations" id="important-findings">
+  <h2>🟡 Important (Should Fix)</h2>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>Issue</th><th>File</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Identical 1000 ms reveal on 25 elements including policy and account copy</td>
+        <td><code>assets/animations.js:492–515</code></td>
+        <td>Cut duration to ~280 ms, and remove <code>data-reveal</code> from legal, account and body-copy templates entirely.</td>
+      </tr>
+      <tr>
+        <td>Ambient blobs animate <code>border-radius</code> under a 52 px blur, infinitely</td>
+        <td><code>assets/application.css:729–760</code>, <code>976–994</code></td>
+        <td>Remove <code>border-radius</code> from the keyframes and from <code>will-change</code>; keep the translate/scale drift.</td>
+      </tr>
+      <tr>
+        <td>Unthrottled <code>mousemove</code> creating two overwriting tweens per event</td>
+        <td><code>assets/animations.js:361–427</code></td>
+        <td>Replace <code>gsap.to(…, overwrite: true)</code> with <code>gsap.quickTo()</code> setters created once per element.</td>
+      </tr>
+      <tr>
+        <td>Underline reveal animates <code>width</code></td>
+        <td><code>assets/application.css:895–910</code></td>
+        <td><code>transform: scaleX()</code> with <code>transform-origin: inline-start</code>; keep the existing curve.</td>
+      </tr>
+      <tr>
+        <td>CSS <code>scroll-behavior: smooth</code> competes with Lenis</td>
+        <td><code>assets/application.css:518</code> · <code>assets/animations.js:94–121</code></td>
+        <td>Scope <code>scroll-behavior: smooth</code> to the coarse-pointer path where Lenis bails out, so only one authority is ever live.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="recommendations" id="opportunity-findings">
+  <h2>🟢 Opportunities (Could Enhance)</h2>
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>Enhancement</th><th>Where</th><th>Impact</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Consolidate 11 stagger sites down to the hero and the product grid</td>
+        <td><code>assets/animations.js</code> (11 call sites)</td>
+        <td>The two that remain read as deliberate moments rather than default polish.</td>
+      </tr>
+      <tr>
+        <td>Add blur to the reveals you keep</td>
+        <td><code>assets/animations.js:500–507</code></td>
+        <td>Materialising feel; more physical than fade alone.</td>
+      </tr>
+      <tr>
+        <td>Native <code>animation-timeline: view()</code> for simple reveals</td>
+        <td><code>assets/animations.js:492–515</code></td>
+        <td>Moves reveals off the main thread and off the JS scroll path.</td>
+      </tr>
+      <tr>
+        <td><code>linear()</code> easing to hold around first crack</td>
+        <td><code>sections/coffee-bean-roast.liquid</code></td>
+        <td>Emphasises the moment the sequence exists to show; no new assets.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="reference-summary">
+  <h2>Lens Reference Summary</h2>
+  <p><strong>Which lens was referenced most:</strong> Jakub Krehel — Production Polish</p>
+  <p><strong>Why:</strong> This is a shipped e-commerce storefront where visitors browse repeatedly, so motion has to survive the tenth viewing rather than impress on the first. Emil carried the two Critical findings because both sit on navigation and scrolling — the highest-frequency interactions on a store — and Jhey stayed selective, applied only to the roast showpiece.</p>
+  <p><strong>If you want to lean differently:</strong></p>
+  <ul>
+    <li><strong>To follow Emil more strictly:</strong> remove the page-transition overlay entirely rather than reworking it; cut the reveal duration to 180 ms; drop stagger from every list including the product grid; remove the hero 3D tilt and magnetic buttons, which are pointer-only delight on a high-traffic page.</li>
+    <li><strong>To follow Jakub more strictly:</strong> add the blur step to every enter you keep; give the drawer, modal and filter panel a shared easing token instead of three hand-written curves; audit optical alignment on the icon buttons in the header and cart drawer.</li>
+    <li><strong>To follow Jhey more strictly:</strong> push the roast scrub further with <code>linear()</code> pacing and a caption that animates on stage change; move the Arabic word field to scroll-driven timelines so it responds to the reader rather than looping on a timer.</li>
+  </ul>
+</section>
+
+</body>
+</html>
