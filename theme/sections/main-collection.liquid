@@ -264,14 +264,26 @@
 
     var toggle = document.querySelector('[data-filter-toggle]');
     var panel = document.querySelector('[data-filter-panel]');
+    var closeBtn = document.querySelector('[data-filter-close]');
     var hasAnyFilter = false;
 
     function setFilterOpen(open) {
       if (!toggle || !panel) return;
+      var wasOpen = toggle.getAttribute('aria-expanded') === 'true';
       toggle.setAttribute('aria-expanded', String(open));
       panel.hidden = !open;
       if (backdrop) backdrop.hidden = !open;
       document.documentElement.classList.toggle('plp-filter-open', open);
+      // Focus management: send focus into the panel on open, back to toggle on close.
+      if (open) {
+        // Wait a tick so the panel is visible before focusing (a11y + iOS).
+        setTimeout(function () {
+          var target = closeBtn || panel.querySelector('summary,button,a,[tabindex]');
+          if (target) { try { target.focus({ preventScroll: true }); } catch (e) { target.focus(); } }
+        }, 30);
+      } else if (wasOpen) {
+        try { toggle.focus({ preventScroll: true }); } catch (e) { toggle.focus(); }
+      }
     }
 
     groups.forEach(function (g) {
@@ -361,8 +373,22 @@
         setFilterOpen(!open);
       });
       if (backdrop) {
-        backdrop.addEventListener('click', function () { setFilterOpen(false); });
+        // Click for desktop/touch-mouse; touchend for iOS to avoid 300ms delay
+        // + edge cases where synthetic click doesn't fire on a first-tap
+        // dismissal of an overlay.
+        var closeFromBackdrop = function (e) { e.preventDefault(); setFilterOpen(false); };
+        backdrop.addEventListener('click', closeFromBackdrop);
+        backdrop.addEventListener('touchend', closeFromBackdrop, { passive: false });
       }
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function () { setFilterOpen(false); });
+      }
+      // Escape / Android back → close if open.
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+          setFilterOpen(false);
+        }
+      });
     }
     if (clearBtn) {
       clearBtn.addEventListener('click', function () {

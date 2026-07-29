@@ -2871,16 +2871,60 @@ html.lenis body {
     bottom: 0;
     z-index: 60;
     margin: 0;
-    max-height: min(72vh, 32rem);
-    overflow: auto;
+    max-height: min(80vh, 34rem);
+    /* iOS: momentum-scroll inside the fixed sheet; contain stops scroll
+       from chaining to <html> (which is locked) and freezing the page. */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    contain: layout paint style;
     border-top: none;
     border-radius: 1rem 1rem 0 0;
     padding: 0.75rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
     box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.18);
     grid-template-columns: 1fr;
+    /* Slide-up entrance (Jakub polish, 240ms, respects reduced-motion below). */
+    animation: plp-sheet-in 240ms cubic-bezier(0.22, 1, 0.36, 1);
   }
   .plp-filter-panel__grab,
   .plp-filter-panel__title { display: block; }
+  .plp-filter-backdrop:not([hidden]) {
+    animation: plp-backdrop-in 200ms ease-out;
+  }
+  @keyframes plp-sheet-in {
+    from { transform: translateY(24px); opacity: 0.6; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  @keyframes plp-backdrop-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  /* Mobile close button — the grab handle alone is not discoverable. */
+  .plp-filter-close {
+    position: absolute;
+    top: 0.5rem;
+    inset-inline-end: 0.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+    color: var(--color-ink, #1A1A1A);
+    cursor: pointer;
+    z-index: 1;
+  }
+  .plp-filter-close:hover,
+  .plp-filter-close:focus-visible { background: rgba(0,0,0,0.06); outline: none; }
+  .plp-filter-close svg { width: 1.05rem; height: 1.05rem; }
+}
+/* Hide the mobile close button on desktop (panel is inline there). */
+@media (min-width: 768px) { .plp-filter-close { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .plp-filter-panel:not([hidden]),
+  .plp-filter-backdrop:not([hidden]) { animation: none; }
 }
 .plp-filter-panel[hidden] { display: none; }
 /* Collapsible filter groups (native <details>/<summary> accordion) —

@@ -118,9 +118,12 @@
       </div>
 
       <div class="plp-filter-backdrop" data-filter-backdrop hidden></div>
-      <div class="plp-filter-panel" id="plp-filter-panel" data-filter-panel hidden>
+      <div class="plp-filter-panel" id="plp-filter-panel" data-filter-panel role="dialog" aria-modal="true" aria-labelledby="plp-filter-panel-title" hidden>
         <div class="plp-filter-panel__grab" aria-hidden="true"></div>
-        <p class="plp-filter-panel__title">{{ 'collections.filter' | t }}</p>
+        <p class="plp-filter-panel__title" id="plp-filter-panel-title">{{ 'collections.filter' | t }}</p>
+        <button type="button" class="plp-filter-close" data-filter-close aria-label="{{ 'accessibility.close' | t | default: 'Close' }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
         <details class="plp-filter-group" data-filter-group="region" hidden>
           <summary class="plp-filter-group-title">{{ 'products.region' | t }}<svg class="plp-filter-group-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg></summary>
           <div class="plp-filter-options" data-filter-options="region"></div>
