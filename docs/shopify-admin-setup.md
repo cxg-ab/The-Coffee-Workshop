@@ -9,14 +9,13 @@ Complete these steps in your Shopify Admin to connect the theme to your store.
 **Option A — Shopify CLI (recommended)**
 
 ```bash
-npm install
-npm run build
+shopify theme push --path theme
 shopify theme dev --path theme
 ```
 
 **Option B — Manual zip upload**
 
-1. Run `npm run build` locally.
+1. Edit `theme/assets/application.css` directly (no build step).
 2. Zip the **contents** of the `theme/` folder.
 3. Admin → **Online Store → Themes → Add theme → Upload zip**.
 

@@ -4,40 +4,33 @@ Custom Shopify Online Store 2.0 theme for **The Coffee Workshop Co.** — biling
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) 18+
 - A Shopify store on the **Basic** plan
 - [Shopify CLI](https://shopify.dev/docs/api/shopify-cli) (recommended)
 
-## Note: Google Drive workspace
+## CSS: no build step
 
-If `npm install` fails in Google Drive, run builds from a local folder (e.g. `C:\Projects\the-coffee-workshop`) or use:
+> **`theme/assets/application.css` is hand-maintained and is the single source
+> of truth. Edit it directly. Do not add a Tailwind/PostCSS build.**
 
-```bash
-npm run build
-```
+The theme originally compiled its CSS from `src/styles/application.css` via
+PostCSS. That source drifted far behind the committed output (402 lines vs
+3,200+), and most of the theme's CSS — the collection filter panel, origin
+cards, product page, customer accounts, cinematic hero — exists **only** in the
+compiled file. Running the old build would have silently deleted all of it, so
+the pipeline (`src/`, `postcss.config.js`, `tailwind.config.js`, `package.json`)
+was removed.
 
-The compiled `theme/assets/application.css` is committed so the theme works when uploaded without building locally.
+Tailwind utility classes already present in `application.css` continue to work;
+they are simply no longer regenerated. When you need a new utility, add the rule
+by hand.
 
-### 1. Install dependencies
-
-```bash
-npm install
-npm run build
-```
-
-For development with live CSS rebuild:
-
-```bash
-npm run watch
-```
-
-### 2. Install Shopify CLI (if not installed)
+### 1. Install Shopify CLI (if not installed)
 
 ```bash
 npm install -g @shopify/cli @shopify/theme
 ```
 
-### 3. Connect to your store
+### 2. Connect to your store
 
 From the project root:
 
@@ -47,7 +40,7 @@ shopify theme dev --path theme
 
 This uploads a dev theme and opens a preview URL. Log in when prompted.
 
-### 4. Manual upload (without CLI)
+### 3. Manual upload (without CLI)
 
 1. Zip the contents of the `theme/` folder (not the parent folder).
 2. In Shopify Admin → **Online Store → Themes → Add theme → Upload zip**.
@@ -55,9 +48,8 @@ This uploads a dev theme and opens a preview URL. Log in when prompted.
 ## Project structure
 
 ```
-├── src/styles/application.css   # Tailwind source
 ├── theme/                       # Shopify theme (deploy this)
-│   ├── assets/                  # Compiled CSS + JS
+│   ├── assets/                  # CSS + JS (hand-maintained)
 │   ├── config/
 │   ├── layout/
 │   ├── locales/                 # en.default.json, ar.json
@@ -80,16 +72,30 @@ See [docs/shopify-admin-setup.md](docs/shopify-admin-setup.md) for:
 ## Brand
 
 - **Guidelines:** [docs/brand-guidelines.md](docs/brand-guidelines.md)
-- **Cursor skill:** `.cursor/skills/coffee-workshop-brand/` (auto guides brand-consistent theme work)
+- **Metafields:** [docs/metafields-schema.md](docs/metafields-schema.md)
 - **Logo:** upload via Theme settings → Brand → Logo
+
+### Colour tokens
+
+All colours come from Theme settings via `snippets/css-variables.liquid`.
+Use the tokens — never a raw hex — in sections and snippets:
+
+| Token | Alias | Setting |
+|-------|-------|---------|
+| `--color-brand` / `-dark` / `-light` | — | Brand colours |
+| `--color-text` | `--color-ink` | Text |
+| `--color-text-muted` | `--color-muted` | Muted text |
+| `--color-border` | `--color-line` | Border |
+| `--color-bg` / `--color-surface` | — | Background / surface |
 
 ## Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run build` | Compile Tailwind → `theme/assets/application.css` |
-| `npm run watch` | Watch and rebuild CSS |
 | `shopify theme dev --path theme` | Live preview on dev theme |
+| `shopify theme push --path theme` | Push to a theme |
+
+There is no CSS build command — see **CSS: no build step** above.
 
 ## License
 

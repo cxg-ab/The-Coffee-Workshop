@@ -20,25 +20,12 @@ jobs:
         with:
           path: 'theme'
 
-  # 2. Tailwind & JS Build Verification
-  build-check:
-    name: Tailwind CSS & JS Build Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Build Assets
-        run: npm run build
+# NOTE: There is intentionally NO CSS build step.
+# theme/assets/application.css is hand-maintained and is the single source of
+# truth. The old Tailwind pipeline (src/styles/application.css + postcss) was
+# retired because the source had drifted far behind the compiled file —
+# running it would have wiped hand-written CSS (filter panel, origin cards,
+# PDP, customer accounts). Edit theme/assets/application.css directly.
 
 # NOTE: CodeQL security scanning lives in .github/workflows/codeql.yml
 # (a single, dedicated workflow) to avoid running CodeQL twice per push.
