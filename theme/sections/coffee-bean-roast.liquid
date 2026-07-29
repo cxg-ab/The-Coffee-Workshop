@@ -21,9 +21,19 @@
     --br-header: var(--tcw-header-h, 5rem);
     --br-safe-t: env(safe-area-inset-top, 0px);
     --br-safe-b: env(safe-area-inset-bottom, 0px);
-    --br-stage-h: calc(100svh - var(--br-header));
+    /* Stage height ladder. Custom properties parse permissively, so a plain
+       "last declaration wins" fallback does NOT work here — an unsupported
+       unit still overrides and only fails later, at computed-value time,
+       collapsing the sticky stage to height:auto. Each upgrade therefore
+       has to be gated behind @supports.
+       Base vh works everywhere (incl. iOS < 15.4); svh/dvh (iOS 15.4+)
+       additionally handle the iPhone URL bar showing/hiding. */
+    --br-stage-h: calc(100vh - var(--br-header));
     background: var(--br-canvas);
     isolation: isolate;
+  }
+  @supports (height: 100svh) {
+    #beanRoast-{{ sid }}{ --br-stage-h: calc(100svh - var(--br-header)); }
   }
   @supports (height: 100dvh) {
     #beanRoast-{{ sid }}{ --br-stage-h: calc(100dvh - var(--br-header)); }
