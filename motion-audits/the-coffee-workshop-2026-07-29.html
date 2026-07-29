@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>the-coffee-workshop motion audit — 2026-07-29</title>
+<title>the-coffee-workshop motion audit — 2026-07-29 17:00 UTC</title>
 <style>
   :root {
     --bg: #ffffff;
@@ -123,6 +123,17 @@
   .finding-row__prose h4 { margin: 4px 0 8px; font-size: 1.05rem; }
   .finding-row__prose p { margin: 0 0 10px; }
   .finding-row__severity { font-family: var(--mono); font-size: 0.75rem; margin: 0; color: var(--loop-dim); }
+  .badge-fixed {
+    display: inline-block; padding: 1px 7px; border-radius: 999px;
+    background: rgba(46, 160, 67, 0.14); color: #1a7f37;
+    font-weight: 600; letter-spacing: 0.02em;
+  }
+  @media (prefers-color-scheme: dark) { .badge-fixed { color: #3fb950; background: rgba(63, 185, 80, 0.16); } }
+  .resolved-note { color: var(--loop-dim); font-size: 0.85em; }
+  .remediation { margin: 32px 0; padding: 16px 20px; border: 1px solid var(--border); border-radius: var(--card-radius); }
+  .remediation h2 { font-size: 1.1rem; margin: 0 0 10px; }
+  .remediation ul { margin: 0; padding-inline-start: 1.2rem; }
+  .remediation li { margin-bottom: 6px; }
   .finding-row__location { font-size: 0.8rem; margin: 0; }
   code { font-family: var(--mono); font-size: 0.85em; background: rgba(128,128,128,0.12); padding: 1px 5px; border-radius: 4px; }
   .recommendations { margin: 48px 0; }
@@ -263,11 +274,11 @@
 
 <header class="report-hero">
   <h1>the-coffee-workshop motion audit</h1>
-  <p class="report-hero__date">2026-07-29</p>
+  <p class="report-hero__date">2026-07-29 · 17:00 UTC — re-stamped after remediation</p>
   <p class="report-hero__counts">
-    <a href="#critical-findings">🔴 Critical: 2</a> ·
-    <a href="#important-findings">🟡 Important: 5</a> ·
-    <a href="#opportunity-findings">🟢 Opportunities: 4</a>
+    <a href="#critical-findings">🔴 Critical: 0 <span class="resolved-note">(2 fixed)</span></a> ·
+    <a href="#important-findings">🟡 Important: 0 <span class="resolved-note">(5 fixed)</span></a> ·
+    <a href="#opportunity-findings">🟢 Opportunities: 4 <span class="resolved-note">(open)</span></a>
   </p>
   <p class="report-hero__primary">Primary: Jakub Krehel — Production Polish</p>
 </header>
@@ -290,6 +301,25 @@
     visitor — they read as a site that stutters. That is the opposite of what this
     motion is for.
   </p>
+  <p>
+    <strong>Status at re-stamp:</strong> all 7 Critical and Important findings
+    below have been fixed and deployed to the <em>TCW refactor staging</em>
+    theme. Each finding is kept in place with its demo card, because the demo
+    shows the motion that was actually implemented. The 4 Opportunities remain
+    open by choice — one of them (adding blur to the reveals) was deliberately
+    <em>not</em> taken, since with ~12 reveal sites still sharing one recipe a
+    uniform blur would have recreated the blur-everywhere pattern this same
+    audit flags.
+  </p>
+</section>
+
+<section class="remediation">
+  <h2>Remediation log</h2>
+  <ul>
+    <li><code>7be33a0</code> — both Critical findings: native navigation restored, dead <code>is-scrolled</code> header system removed, <code>height</code> no longer transitioned on the sticky header, <code>ResizeObserver</code> added to the bean-roast canvas.</li>
+    <li><code>9ea5de0</code> — all 5 Important findings: reveal 1s → 0.32s and stripped from legal/account templates, blob keyframes made transform-only, <code>gsap.quickTo()</code> for the pointer handlers, underline moved to <code>scaleX</code>, <code>scroll-behavior: smooth</code> scoped to coarse pointers.</li>
+    <li>Verified by checksum against theme 140605489248. <strong>Not</strong> verified in a browser — this session's egress blocks the storefront.</li>
+  </ul>
 </section>
 
 <!-- ══════════════ JAKUB — PRIMARY ══════════════ -->
@@ -313,7 +343,7 @@
 
     <div class="finding-row" id="finding-1">
       <div class="finding-row__prose">
-        <p class="finding-row__severity">🟡 Important</p>
+        <p class="finding-row__severity"><span class="badge-fixed">✅ Fixed</span> — was 🟡 Important</p>
         <h4>One 1000 ms reveal applied uniformly to 25 elements, including legal and account copy</h4>
         <p>
           Every <code>[data-reveal]</code> gets the same <code>y: 56</code>,
@@ -342,7 +372,7 @@
 
     <div class="finding-row" id="finding-2">
       <div class="finding-row__prose">
-        <p class="finding-row__severity">🟡 Important</p>
+        <p class="finding-row__severity"><span class="badge-fixed">✅ Fixed</span> — was 🟡 Important</p>
         <h4>Ambient blobs animate <code>border-radius</code> under a 52 px blur, infinitely</h4>
         <p>
           <code>.about-liquid-blob</code> runs an 18 s and a 22 s
@@ -373,7 +403,7 @@
 
     <div class="finding-row" id="finding-3">
       <div class="finding-row__prose">
-        <p class="finding-row__severity">🟡 Important</p>
+        <p class="finding-row__severity"><span class="badge-fixed">✅ Fixed</span> — was 🟡 Important</p>
         <h4>Unthrottled <code>mousemove</code> creating two overwriting tweens per event</h4>
         <p>
           The hero 3D tilt fires <code>gsap.to(visual, …)</code> and
@@ -402,7 +432,7 @@
 
     <div class="finding-row" id="finding-4">
       <div class="finding-row__prose">
-        <p class="finding-row__severity">🟡 Important</p>
+        <p class="finding-row__severity"><span class="badge-fixed">✅ Fixed</span> — was 🟡 Important</p>
         <h4>Underline reveal animates <code>width</code></h4>
         <p>
           <code>.about-value-card::before</code> transitions <code>width</code> from
@@ -431,7 +461,7 @@
 
     <div class="finding-row" id="finding-5">
       <div class="finding-row__prose">
-        <p class="finding-row__severity">🟡 Important</p>
+        <p class="finding-row__severity"><span class="badge-fixed">✅ Fixed</span> — was 🟡 Important</p>
         <h4>Two scroll authorities: CSS <code>scroll-behavior: smooth</code> and Lenis are both active</h4>
         <p>
           <code>html { scroll-behavior: smooth }</code> is set globally, while Lenis runs
@@ -490,7 +520,7 @@
 
     <div class="finding-row" id="finding-6">
       <div class="finding-row__prose">
-        <p class="finding-row__severity">🔴 Critical</p>
+        <p class="finding-row__severity"><span class="badge-fixed">✅ Fixed</span> — was 🔴 Critical</p>
         <h4>Every internal navigation is blocked for 350 ms before the request starts</h4>
         <p>
           <code>initPageExit()</code> intercepts clicks on all same-origin links, calls
@@ -524,7 +554,7 @@
 
     <div class="finding-row" id="finding-7">
       <div class="finding-row__prose">
-        <p class="finding-row__severity">🔴 Critical</p>
+        <p class="finding-row__severity"><span class="badge-fixed">✅ Fixed</span> — was 🔴 Critical</p>
         <h4>Two competing header-shrink systems, both animating <code>height</code> on the sticky header</h4>
         <p>
           There are two independent implementations running at once.
@@ -609,10 +639,10 @@
 
 <!-- ══════════════ COMBINED RECOMMENDATIONS ══════════════ -->
 <section class="recommendations" id="critical-findings">
-  <h2>🔴 Critical (Must Fix)</h2>
+  <h2>🔴 Critical — 2 of 2 fixed</h2>
   <div class="table-scroll">
   <table>
-    <thead><tr><th>Issue</th><th>File</th><th>Action</th></tr></thead>
+    <thead><tr><th>Issue</th><th>File</th><th>Action taken</th></tr></thead>
     <tbody>
       <tr>
         <td>Every internal navigation blocked 350 ms before the request starts</td>
@@ -630,10 +660,10 @@
 </section>
 
 <section class="recommendations" id="important-findings">
-  <h2>🟡 Important (Should Fix)</h2>
+  <h2>🟡 Important — 5 of 5 fixed</h2>
   <div class="table-scroll">
   <table>
-    <thead><tr><th>Issue</th><th>File</th><th>Action</th></tr></thead>
+    <thead><tr><th>Issue</th><th>File</th><th>Action taken</th></tr></thead>
     <tbody>
       <tr>
         <td>Identical 1000 ms reveal on 25 elements including policy and account copy</td>
@@ -666,7 +696,7 @@
 </section>
 
 <section class="recommendations" id="opportunity-findings">
-  <h2>🟢 Opportunities (Could Enhance)</h2>
+  <h2>🟢 Opportunities — 4 open</h2>
   <div class="table-scroll">
   <table>
     <thead><tr><th>Enhancement</th><th>Where</th><th>Impact</th></tr></thead>
