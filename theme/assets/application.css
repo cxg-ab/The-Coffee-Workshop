@@ -2743,9 +2743,9 @@ html.lenis body {
   background: rgba(28, 25, 23, 0.4);
 }
 .plp-filter-backdrop[hidden] { display: none; }
-/* Lock page scroll ONLY on mobile, where the panel is a fixed bottom-sheet.
-   On desktop the panel is inline content, so locking scroll froze the page. */
-@media (max-width: 767px) { html.plp-filter-open { overflow: hidden; } }
+/* NOTE: page scroll is deliberately never locked. The filter panel is in
+   normal flow on every breakpoint, so there is no modal to trap scroll —
+   and no way for the page to end up frozen. */
 
 .plp-filter-panel {
   display: grid;
@@ -2781,68 +2781,61 @@ html.lenis body {
   }
   .plp-filter-backdrop { display: none !important; }
 }
+/* ── Mobile filter: IN-FLOW panel, never a fixed overlay ──────────────
+   .shop-trust-bar sets backdrop-filter, which makes it the containing
+   block for position:fixed descendants. A fixed bottom sheet therefore
+   anchored to the ~50px bar instead of the viewport — invisible/clipped —
+   while page scroll was locked, so the page looked frozen. Keeping the
+   panel in normal flow removes that whole class of bug: no fixed
+   positioning, no scroll lock, no backdrop, nothing to trap the user.
+   ──────────────────────────────────────────────────────────────────── */
 @media (max-width: 767px) {
   .plp-filter-panel:not([hidden]) {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 60;
-    margin: 0;
-    max-height: min(80vh, 34rem);
-    /* iOS: momentum-scroll inside the fixed sheet; contain stops scroll
-       from chaining to <html> (which is locked) and freezing the page. */
+    grid-template-columns: 1fr;
+    gap: 0;
+    max-height: 60vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    contain: layout paint style;
-    border-top: none;
-    border-radius: 1rem 1rem 0 0;
-    padding: 0.75rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
-    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.18);
-    grid-template-columns: 1fr;
-    /* Slide-up entrance (Jakub polish, 240ms, respects reduced-motion below). */
-    animation: plp-sheet-in 240ms cubic-bezier(0.22, 1, 0.36, 1);
+    padding: 0.5rem 1rem 1rem;
+    animation: plp-panel-in 200ms cubic-bezier(0.22, 1, 0.36, 1);
   }
-  .plp-filter-panel__grab,
   .plp-filter-panel__title { display: block; }
-  .plp-filter-backdrop:not([hidden]) {
-    animation: plp-backdrop-in 200ms ease-out;
+  /* No sheet → no drag affordance, and no modal → no backdrop. */
+  .plp-filter-panel__grab { display: none; }
+  .plp-filter-backdrop { display: none !important; }
+  @keyframes plp-panel-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: none; }
   }
-  @keyframes plp-sheet-in {
-    from { transform: translateY(24px); opacity: 0.6; }
-    to   { transform: translateY(0);    opacity: 1; }
-  }
-  @keyframes plp-backdrop-in {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-  /* Mobile close button — the grab handle alone is not discoverable. */
-  .plp-filter-close {
-    position: absolute;
-    top: 0.5rem;
-    inset-inline-end: 0.5rem;
-    width: 2.5rem;
-    height: 2.5rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: 0;
-    border-radius: 999px;
-    color: var(--color-ink, #1A1A1A);
-    cursor: pointer;
-    z-index: 1;
-  }
-  .plp-filter-close:hover,
-  .plp-filter-close:focus-visible { background: rgba(0,0,0,0.06); outline: none; }
-  .plp-filter-close svg { width: 1.05rem; height: 1.05rem; }
+  /* Comfortable tap targets (44px min per WCAG 2.5.5). */
+  .plp-filter-group-title { padding: 0.95rem 0; font-size: 0.68rem; }
+  .plp-filter-options { gap: 0.5rem; padding-bottom: 1rem; }
+  .plp-filter-opt { min-height: 2.5rem; padding: 0.5rem 1rem; font-size: 0.75rem; }
+  .plp-filter-clear { min-height: 2.75rem; font-size: 0.72rem; }
 }
-/* Hide the mobile close button on desktop (panel is inline there). */
-@media (min-width: 768px) { .plp-filter-close { display: none; } }
+/* Done bar — closes the panel and reports the live result count. */
+.plp-filter-done {
+  display: none;
+  width: 100%;
+  min-height: 2.9rem;
+  margin-top: 0.5rem;
+  border: 0;
+  border-radius: 2px;
+  background: var(--color-ink, #1A1A1A);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.plp-filter-done:active { opacity: 0.85; }
+@media (max-width: 767px) { .plp-filter-done { display: block; } }
+/* The X button belonged to the sheet; the Done bar replaces it. */
+.plp-filter-close { display: none !important; }
 @media (prefers-reduced-motion: reduce) {
-  .plp-filter-panel:not([hidden]),
-  .plp-filter-backdrop:not([hidden]) { animation: none; }
+  .plp-filter-panel:not([hidden]) { animation: none; }
 }
 .plp-filter-panel[hidden] { display: none; }
 /* Collapsible filter groups (native <details>/<summary> accordion) —

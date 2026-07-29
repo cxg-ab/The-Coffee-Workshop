@@ -230,6 +230,8 @@
         if (filtering && visible === 0) { emptyEl.textContent = lNone; emptyEl.hidden = false; }
         else emptyEl.hidden = true;
       }
+      // Done bar reports what the user will get back — "Show 4 results".
+      if (doneBtn) doneBtn.textContent = doneTemplate + ' (' + visible + ')';
     }
 
     var allPill = document.querySelector('.shop-pill[data-cat="all"]');
@@ -265,6 +267,8 @@
     var toggle = document.querySelector('[data-filter-toggle]');
     var panel = document.querySelector('[data-filter-panel]');
     var closeBtn = document.querySelector('[data-filter-close]');
+    var doneBtn = document.querySelector('[data-filter-done]');
+    var doneTemplate = doneBtn ? doneBtn.textContent.trim() : '';
     var hasAnyFilter = false;
 
     function setFilterOpen(open) {
@@ -272,15 +276,16 @@
       var wasOpen = toggle.getAttribute('aria-expanded') === 'true';
       toggle.setAttribute('aria-expanded', String(open));
       panel.hidden = !open;
-      if (backdrop) backdrop.hidden = !open;
-      document.documentElement.classList.toggle('plp-filter-open', open);
-      // Focus management: send focus into the panel on open, back to toggle on close.
+      if (backdrop) backdrop.hidden = true; // non-modal: backdrop never shown
+      // Page scroll is never locked — the panel is in normal flow, so there is
+      // nothing to trap and no way to freeze the page.
       if (open) {
-        // Wait a tick so the panel is visible before focusing (a11y + iOS).
+        // Keep the panel in view after it expands, without yanking the page.
         setTimeout(function () {
-          var target = closeBtn || panel.querySelector('summary,button,a,[tabindex]');
-          if (target) { try { target.focus({ preventScroll: true }); } catch (e) { target.focus(); } }
-        }, 30);
+          if (panel.getBoundingClientRect().bottom > window.innerHeight) {
+            panel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          }
+        }, 60);
       } else if (wasOpen) {
         try { toggle.focus({ preventScroll: true }); } catch (e) { toggle.focus(); }
       }
@@ -382,6 +387,13 @@
       }
       if (closeBtn) {
         closeBtn.addEventListener('click', function () { setFilterOpen(false); });
+      }
+      if (doneBtn) {
+        doneBtn.addEventListener('click', function () {
+          setFilterOpen(false);
+          // Land the user on the results, not halfway up the page.
+          if (grid) grid.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        });
       }
       // Escape / Android back → close if open.
       document.addEventListener('keydown', function (e) {
