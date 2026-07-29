@@ -198,9 +198,27 @@
   {%- endif -%}
   ];
 
+  /* Phone-sized variants. The source frames are 1440x1440 — 8.3MB each once
+     decoded, which is the root of the iOS blank-canvas failure. At 720px a
+     frame decodes to ~2.1MB (4x less) and still comfortably out-resolves the
+     phone canvas (~594px at the capped dpr). Empty for the custom-URL source
+     (a third-party CDN has no known resize contract), and every use falls
+     back to the full-res URL on error, so a CDN that cannot resize this asset
+     degrades to today's behaviour rather than breaking. */
+  var framesSm = [
+  {%- if section.settings.frame_source == 'assets' -%}
+    {%- for i in (1..total_frames) -%}
+      {%- capture p -%}{%- if i < 10 -%}00{{ i }}{%- elsif i < 100 -%}0{{ i }}{%- else -%}{{ i }}{%- endif -%}{%- endcapture -%}
+      {%- capture fname -%}bean_{{ p }}.webp{%- endcapture -%}
+      "{{ fname | asset_img_url: '720x' }}"{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  {%- endif -%}
+  ];
+
   var cfg = {
     root: document.getElementById('beanRoast-{{ sid }}'),
     frames: frames,
+    framesSm: framesSm,
     captions: {{ section.settings.captions_json }},
     frameStop: {{ section.settings.frame_stop }}
   };
@@ -223,7 +241,8 @@
       var ready = false;
       var cur = -1;
       var pending = false;
-      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var reduceMq = window.matchMedia('(prefers-reduced-motion: reduce)');
+      var reduce = reduceMq.matches;
       var phoneMq = window.matchMedia('(max-width: 640px)');
       var tabletMq = window.matchMedia('(min-width: 641px) and (max-width: 1024px)');
       var stopIdx = Math.max(0, Math.min(N - 1, cfg.frameStop - 1));
@@ -285,12 +304,13 @@
         }
         return c;
       }
-      /* On smaller screens, only load/show every Nth frame. 217 full frames
-         (~47MB, up to 2400x2000 each) is far more than a phone/tablet can
-         decode without jank; stepping cuts the memory + network cost 2-3x
-         while keeping the roast visibly smooth. Desktop (step 1) is unchanged. */
+      /* On smaller screens, only load/show every Nth frame. All 217 frames
+         (1440x1440, ~47MB over the wire) is far more than a phone or tablet
+         can hold decoded; stepping cuts network and memory 2-4x while keeping
+         the roast visibly smooth — the subject barely moves between adjacent
+         frames, so the scrub still reads as continuous. */
       function frameStep(){
-        if(isPhone()) return 3;
+        if(isPhone()) return 4;
         if(isTablet()) return 2;
         return 2; /* desktop: every 2nd frame (~108 of 217) — halves the
                      lazy-loaded roast download (~47MB -> ~24MB) with a scrub
@@ -316,14 +336,36 @@
         if(ready && cur >= 0) paint(cur, true);
       }
 
+      /* Phones pull the 720px variant; everything else the full frame.
+         asset_img_url emits the `_720x` filename form, which the CDN resolves
+         for image assets. If it does not resolve for these .webp frames the
+         first failure flips smallOk, so exactly one frame pays a wasted
+         request instead of all 55 — and the section keeps working at full
+         resolution, which is today's behaviour. */
+      var smallOk = true;
+      function srcFor(i){
+        if(smallOk && isPhone() && cfg.framesSm && cfg.framesSm[i]) return cfg.framesSm[i];
+        return cfg.frames[i];
+      }
+
       function requestFrame(i){
         if(i < 0 || i >= N || imgs[i]) return;
         var im = new Image();
+        var retried = false;
         im.decoding = 'async';
-        im.onload = im.onerror = function(){
+        im.onload = function(){
           if(ready) paint(roastIndex(prog()), true);
         };
-        im.src = cfg.frames[i];
+        im.onerror = function(){
+          if(!retried && im.src !== cfg.frames[i]){
+            retried = true;
+            smallOk = false;
+            im.src = cfg.frames[i];
+            return;
+          }
+          if(ready) paint(roastIndex(prog()), true);
+        };
+        im.src = srcFor(i);
         imgs[i] = im;
       }
 
@@ -346,15 +388,14 @@
         return -1;
       }
 
-      /* iOS Safari caps decoded-image memory per tab. On a phone this sequence
-         retains ~73 frames at 1440x1440 — roughly 600MB once decoded, far past
-         that ceiling. When Safari purges a decoded bitmap the <img> still
-         reports complete/naturalWidth, but drawImage() silently paints
-         nothing: exactly the blank ("white") section reported on iPhone.
-         So bound what we hold on phones. Only fully-loaded frames are
-         released — releasing an in-flight one would strand preload()'s
-         `active` counter and stall the queue. Released frames come back from
-         the HTTP cache, and nearestLoaded() covers the gap meanwhile. */
+      /* Bound retained frames on phones so the purge above stops happening in
+         the first place. Unbounded, this held ~73 frames at 1440x1440: roughly
+         600MB decoded, far past iOS Safari's per-tab ceiling. With the 720px
+         variants, step 4 and this window it settles near 40MB.
+         Only fully-loaded frames are released — releasing an in-flight one
+         would strand preload()'s `active` counter and stall the queue.
+         Released frames come back from the HTTP cache, and nearestLoaded()
+         covers the gap meanwhile. */
       var KEEP = 36;
       var lastTrim = -1e9;
       function trim(center){
@@ -372,6 +413,46 @@
         }
       }
 
+      function draw(im){
+        var r = cv.getBoundingClientRect();
+        var cw = r.width;
+        var ch = r.height;
+        var iw = im.naturalWidth;
+        var ih = im.naturalHeight;
+        if(!iw || !ih || !cw || !ch) return;
+        var scale = Math.min(cw / iw, ch / ih);
+        var dw = iw * scale;
+        var dh = ih * scale;
+
+        ctx.clearRect(0, 0, cw, ch);
+        ctx.drawImage(im, (cw - dw) * 0.5, (ch - dh) * 0.5, dw, dh);
+      }
+
+      /* THE iOS FAILURE, and why the checks above cannot catch it.
+         Under memory pressure iOS Safari purges an image's decoded bitmap but
+         keeps the element: it still reports complete === true and
+         naturalWidth === 1440. usable() therefore says yes, clearRect() wipes
+         the canvas, and drawImage() then paints NOTHING — a blank section,
+         with cur already advanced so no later scroll event repaints it. There
+         is no synchronous way to detect this.
+         decode() is the escape hatch: it resolves immediately for a live
+         bitmap and forces a fresh decode for a purged one, so re-asserting it
+         after painting repairs the frame out of band. A rejection means the
+         frame is genuinely unusable, so drop it and let paint() re-fetch. */
+      var verifiedFor = -1;
+      function verify(idx, im){
+        if(!im.decode || verifiedFor === idx) return;
+        im.decode().then(function(){
+          if(cur !== idx || verifiedFor === idx) return;
+          verifiedFor = idx;
+          draw(im);
+        }, function(){
+          if(imgs[idx] !== im) return;
+          imgs[idx] = null;
+          if(cur === idx){ cur = -1; paint(idx, true); }
+        });
+      }
+
       function paint(idx, force){
         if(idx === cur && !force) return;
         if(!usable(idx)){
@@ -383,21 +464,9 @@
         }
         var im = imgs[idx];
         cur = idx;
-
-        var r = cv.getBoundingClientRect();
-        var cw = r.width;
-        var ch = r.height;
-        var iw = im.naturalWidth;
-        var ih = im.naturalHeight;
-        var scale = Math.min(cw / iw, ch / ih);
-        var dw = iw * scale;
-        var dh = ih * scale;
-        var dx = (cw - dw) * 0.5;
-        var dy = (ch - dh) * 0.5;
-
-        ctx.clearRect(0, 0, cw, ch);
-        ctx.drawImage(im, dx, dy, dw, dh);
+        draw(im);
         trim(idx);
+        verify(idx, im);
       }
 
       function render(){
@@ -425,13 +494,23 @@
         priority.forEach(function(i){
           if(want(i) && !seen[i]){ seen[i] = true; queue.push(i); }
         });
-        for(var i = 0; i < budget; i++){
-          if(want(i) && !seen[i]){ seen[i] = true; queue.push(i); }
+        /* Reduced motion pins progress at 1, so only the final roasted frame is
+           ever shown. Fetching the other ~54 would be pure waste — and on iOS
+           it is the same memory pressure that blanks the canvas. */
+        if(!reduce){
+          for(var i = 0; i < budget; i++){
+            if(want(i) && !seen[i]){ seen[i] = true; queue.push(i); }
+          }
+        } else {
+          queue = [stopIdx];
         }
         targetLoads = queue.length;
 
         var active = 0;
-        var threshold = readyThreshold();
+        /* Clamp to what is actually queued, or a short queue (reduced motion
+           queues a single frame) never reaches the threshold and the loader
+           never clears. */
+        var threshold = Math.min(readyThreshold(), targetLoads);
 
         function markDone(){
           done++;
@@ -449,13 +528,26 @@
           if(imgs[i] || i >= N) return;
           active++;
           var im = new Image();
+          var retried = false;
           im.decoding = 'async';
-          im.onload = im.onerror = function(){
+          function settle(){
             active--;
             markDone();
             pump();
+          }
+          im.onload = settle;
+          im.onerror = function(){
+            /* Retry at full res before counting this frame as done — bailing
+               early would strand `active` and stall the queue. */
+            if(!retried && im.src !== cfg.frames[i]){
+              retried = true;
+              smallOk = false;
+              im.src = cfg.frames[i];
+              return;
+            }
+            settle();
           };
-          im.src = cfg.frames[i];
+          im.src = srcFor(i);
           imgs[i] = im;
         }
 
@@ -479,12 +571,22 @@
         window.visualViewport.addEventListener('resize', size);
         window.visualViewport.addEventListener('scroll', onScroll, { passive: true });
       }
+      /* Reduced motion can be toggled mid-session (iOS Settings > Accessibility).
+         The CSS side is already live via the media query; keep the JS in step so
+         the stage doesn't stay pinned to a scrub position it no longer has. */
+      function onReduceChange(){
+        reduce = reduceMq.matches;
+        size();
+        render();
+      }
       if(phoneMq.addEventListener){
         phoneMq.addEventListener('change', size);
         tabletMq.addEventListener('change', size);
+        reduceMq.addEventListener('change', onReduceChange);
       } else if(phoneMq.addListener){
         phoneMq.addListener(size);
         tabletMq.addListener(size);
+        reduceMq.addListener(onReduceChange);
       }
       size();
     };
