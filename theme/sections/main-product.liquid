@@ -126,7 +126,7 @@
 
 <style>
   .pdp {
-    --pdp-ink: var(--color-ink, #1A1A1A);
+    --pdp-ink: var(--color-text, #1A1A1A);
     --pdp-muted: var(--color-text-muted, #6B6B6B);
     --pdp-line: var(--color-border, #E8E4DC);
     --pdp-canvas: var(--color-bg, #FAFAF8);
@@ -703,6 +703,12 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 2rem 1rem;
   }
+  @media (min-width: 768px) {
+    .pdp__related-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 2.25rem 1.25rem;
+    }
+  }
   @media (min-width: 1024px) {
     .pdp__related-grid {
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -778,6 +784,7 @@
                     type="button"
                     class="pdp__thumb{% if forloop.first %} is-active{% endif %}"
                     data-pdp-thumb
+                    aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
                     data-full="{{ media | image_url: width: 1600 }}"
                     data-zoom="{{ media | image_url: width: 2048 }}"
                     data-alt="{{ media.alt | default: product.title | escape }}"
@@ -1110,8 +1117,9 @@
 
   thumbs.forEach(function (btn) {
     btn.addEventListener('click', function () {
-      thumbs.forEach(function (t) { t.classList.remove('is-active'); });
+      thumbs.forEach(function (t) { t.classList.remove('is-active'); t.setAttribute('aria-pressed', 'false'); });
       btn.classList.add('is-active');
+      btn.setAttribute('aria-pressed', 'true');
       if (mainImg && btn.dataset.full) {
         mainImg.src = btn.dataset.full;
         if (btn.dataset.zoom) mainImg.dataset.zoom = btn.dataset.zoom;

@@ -37,6 +37,26 @@ These two tick-lists let the admin curate each product. **Leave blank to use the
 - **Barista Tools** (collection `accessories`, or Category = "Barista Tools") → **Name / Brand / Price**
 - **All other collections** → **Name / Origin / Tasting notes / Price / Roast**
 
+## Weight / size options (variants — not metafields)
+
+Choosable options like **weight or size are standard Shopify variants, not metafields.**
+Add them on the product page under **Variants → Add options like size** (e.g. an option
+named `Weight` with values `150g`, `250g`, `1kg`).
+
+- The PDP shows the option picker automatically whenever a product has a real admin
+  option — the label is your option name (e.g. "Weight"), and each value is a pill.
+- A product with a **single** value (e.g. only `150g`) shows one selected pill — it
+  displays the option but there's nothing to choose until you add more values.
+- Products with no option added just show price + Add to cart (no picker).
+
+## Grid loading & filters
+
+The collection grid loads the **whole collection in one page** (up to Shopify's 50-item
+limit) so the on-page filters (Origin, Process, Tasting notes, Price) and the
+"Showing X of Y" count are accurate across every product — not just the first page.
+If the catalog ever grows past ~50 products, switch to Shopify's server-side storefront
+filters rather than relying on this.
+
 ## Product URLs
 Grid cards link with `product.url | within: collection`, producing collection-scoped URLs such as
 `/collections/single-origin/products/bombe-basha-bekele`.
