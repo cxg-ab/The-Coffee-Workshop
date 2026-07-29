@@ -8,5 +8,14 @@
     --color-text: {{ settings.color_text | default: '#1C1917' }};
     --color-text-muted: {{ settings.color_text_muted | default: '#6B6B6B' }};
     --color-border: {{ settings.color_border | default: '#E8E4DC' }};
+
+    /* Aliases. Sections/snippets reference --color-ink / --color-line /
+       --color-muted (62 usages). They were never defined, so every one of
+       them silently fell back to a hardcoded hex and ignored the merchant's
+       Theme Settings. Mapping them to the real tokens makes those settings
+       take effect. Values resolve identically to the previous fallbacks. */
+    --color-ink: var(--color-text);
+    --color-line: var(--color-border);
+    --color-muted: var(--color-text-muted);
   }
 </style>

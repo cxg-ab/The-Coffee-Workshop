@@ -749,14 +749,6 @@ video {
   background: radial-gradient(circle at 60% 40%, rgba(201, 169, 98, 0.22), rgba(201, 169, 98, 0) 70%);
   animation: about-liquid-drift-b 22s ease-in-out infinite alternate;
 }
-.about-liquid-blob--3 {
-  top: 38%;
-  right: 28%;
-  width: min(28vw, 220px);
-  height: min(28vw, 220px);
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 72%);
-  animation: about-liquid-drift-c 16s ease-in-out infinite alternate;
-}
 @keyframes about-liquid-drift-a {
   0% { transform: translate(0, 0) scale(1); border-radius: 42% 58% 65% 35% / 38% 42% 58% 62%; }
   100% { transform: translate(4%, 6%) scale(1.06); border-radius: 58% 42% 38% 62% / 52% 38% 62% 48%; }
@@ -879,13 +871,6 @@ html[dir='rtl'] .about-story-rule {
     margin-top: 1.75rem;
   }
 }
-.about-story-glow {
-  pointer-events: none;
-  position: absolute;
-  border-radius: 9999px;
-  background: radial-gradient(circle, rgba(139, 94, 60, 0.14) 0%, rgba(139, 94, 60, 0) 70%);
-  filter: blur(48px);
-}
 .about-value-card {
   position: relative;
   transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
@@ -972,22 +957,6 @@ html[dir='rtl'] .about-story-rule {
     padding-bottom: 3.5rem;
   }
 }
-.tcw-glass-section--light {
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-bg) 92%, var(--color-brand-light)) 0%,
-    color-mix(in srgb, var(--color-border) 55%, var(--color-bg)) 100%
-  );
-}
-.tcw-glass-section--dark {
-  color: #ffffff;
-  background: linear-gradient(
-    165deg,
-    #1c1917 0%,
-    color-mix(in srgb, #2a2624 75%, #1c1917) 48%,
-    #1c1917 100%
-  );
-}
 
 .tcw-liquid-bg,
 .about-liquid-bg {
@@ -1022,26 +991,6 @@ html[dir='rtl'] .about-story-rule {
   background: radial-gradient(circle at 60% 40%, rgba(201, 169, 98, 0.22), rgba(201, 169, 98, 0) 70%);
   animation: about-liquid-drift-b 22s ease-in-out infinite alternate;
 }
-.tcw-liquid-blob--3,
-.about-liquid-blob--3 {
-  top: 38%;
-  right: 28%;
-  width: min(28vw, 220px);
-  height: min(28vw, 220px);
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 72%);
-  animation: about-liquid-drift-c 16s ease-in-out infinite alternate;
-}
-.tcw-liquid-blob--dark-a {
-  background: radial-gradient(circle at 30% 30%, rgba(197, 160, 89, 0.35), rgba(197, 160, 89, 0) 68%);
-  opacity: 0.65;
-}
-.tcw-liquid-blob--dark-b {
-  background: radial-gradient(circle at 60% 40%, rgba(139, 94, 60, 0.32), rgba(139, 94, 60, 0) 70%);
-}
-.tcw-liquid-blob--dark-c {
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 72%);
-  opacity: 0.4;
-}
 
 .tcw-glass-panel,
 .about-glass-panel {
@@ -1061,13 +1010,6 @@ html[dir='rtl'] .about-story-rule {
     border-radius: 1.5rem;
   }
 }
-.tcw-glass-panel--dark {
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(20px) saturate(1.25);
-  -webkit-backdrop-filter: blur(20px) saturate(1.25);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
 
 .tcw-glass-rule,
 .about-story-rule {
@@ -1076,9 +1018,6 @@ html[dir='rtl'] .about-story-rule {
   width: 2.5rem;
   background-color: var(--color-brand);
   transform-origin: left center;
-}
-.tcw-glass-rule--on-dark {
-  background-color: #c5a059;
 }
 html[dir='rtl'] .tcw-glass-rule,
 html[dir='rtl'] .about-story-rule {
@@ -1114,17 +1053,6 @@ html[dir='rtl'] .about-story-rule {
   .about-glass-title {
     font-size: 1.65rem;
   }
-}
-
-.tcw-glass-card--dark {
-  padding: 1rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(16px) saturate(1.15);
-  -webkit-backdrop-filter: blur(16px) saturate(1.15);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s ease, box-shadow 0.3s ease;
 }
 @media (min-width: 1024px) {
   .tcw-glass-card--dark {
@@ -1406,9 +1334,6 @@ html[dir='rtl'] .about-story-rule {
   min-height: 100vh;
   min-height: 100dvh;
 }
-.hero-video-bg {
-  display: none;
-}
 .hero-clip {
   position: relative;
   display: flex;
@@ -1437,7 +1362,6 @@ html[dir='rtl'] .about-story-rule {
   letter-spacing: 0;
   text-transform: none;
 }
-.hero-lead { margin-top: 1rem; max-width: 32rem; font-size: 1rem; }
 @media (min-width: 1024px) { .hero-lead { margin-top: 1.25rem; font-size: 1.125rem; } }
 .hero-cta { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: 0.75rem; }
 @media (min-width: 1024px) { .hero-cta { margin-top: 2rem; gap: 1rem; } }
@@ -2198,12 +2122,6 @@ html.lenis body {
 .ease-in-out {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
-.ease-luxury {
-  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-}
-.marquee-track {
-    animation: marquee 40s linear infinite;
-  }
 @keyframes marquee {
     0% {
       transform: translateX(0);
@@ -3290,16 +3208,12 @@ a.visit-modern__value:hover {
   aspect-ratio: 4 / 5;
   isolation: isolate;
 }
-.tcw-product-media--square { aspect-ratio: 1 / 1; }
 /* Crop-to-fill framing: force a consistent 4:5 portrait box and cover-fit the
    image so every product photo fills the frame edge-to-edge (matching the
    branded placeholder). Used on the Products grid cards and the PDP main image
    so tiles are uniform instead of floating inside padding. */
 .tcw-product-media--crop { aspect-ratio: 4 / 5; padding: 0; }
 .tcw-product-media--crop .tcw-product-media__img { object-fit: cover; }
-.tcw-product-media--padded {
-  padding: clamp(0.65rem, 2.5vw, 2.25rem);
-}
 .tcw-product-media--thumb {
   width: 5rem;
   height: 5rem;
