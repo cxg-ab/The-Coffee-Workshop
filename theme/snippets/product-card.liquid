@@ -93,12 +93,62 @@
 </style>
 
 {%- liquid
+  # Collection-scoped URL when rendered inside a collection (e.g.
+  # /collections/single-origin/products/handle); falls back to /products/handle
+  # on search / related where no collection is in scope.
   assign product_url = card_product.url
+  if collection
+    assign product_url = card_product.url | within: collection
+  endif
+
   assign featured_image = card_product.featured_media.preview_image
   assign is_limited = card_product.metafields.coffee.is_limited.value
   assign region = card_product.metafields.coffee.region.value
   assign flavor_notes = card_product.metafields.coffee.flavor_notes.value
   assign roast_level = card_product.metafields.coffee.roast_level.value
+  assign brand = card_product.metafields.custom.brand.value
+  assign categories = card_product.metafields.custom.categories.value
+  assign grid_fields = card_product.metafields.custom.grid_fields.value
+
+  # Barista Tools / accessory items render Name / Brand / Price instead of the
+  # coffee layout. Detected by the collection being viewed OR the product's own
+  # Category metafield, so tools look right everywhere they appear.
+  assign is_tool = false
+  if collection.handle == 'accessories'
+    assign is_tool = true
+  endif
+  if categories and categories contains 'Barista Tools'
+    assign is_tool = true
+  endif
+
+  # Which fields this card shows. Admin's custom.grid_fields wins; blank = the
+  # category default (tools = Brand; coffee = Origin + Notes + Roast).
+  assign show_origin = false
+  assign show_brand = false
+  assign show_notes = false
+  assign show_roast = false
+  if grid_fields == blank
+    if is_tool
+      assign show_brand = true
+    else
+      assign show_origin = true
+      assign show_notes = true
+      assign show_roast = true
+    endif
+  else
+    if grid_fields contains 'Origin'
+      assign show_origin = true
+    endif
+    if grid_fields contains 'Brand'
+      assign show_brand = true
+    endif
+    if grid_fields contains 'Tasting notes'
+      assign show_notes = true
+    endif
+    if grid_fields contains 'Roast level'
+      assign show_roast = true
+    endif
+  endif
 
   # Roast scale: 4 options only — Light=1 dot, Medium-Light=2, Medium=3,
   # Dark=full (5). Matches the metafield's "choices" validation list.
@@ -160,7 +210,9 @@
     </a>
 
     <div class="product-card__region-slot">
-      {%- if region != blank -%}
+      {%- if show_brand and brand != blank -%}
+        <p class="product-card__region product-card__brand"><span>{{ brand }}</span></p>
+      {%- elsif show_origin and region != blank -%}
         <p class="product-card__region">
           <svg class="product-card__region-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-7-6.4-7-11a7 7 0 1114 0c0 4.6-7 11-7 11z"/>
@@ -172,7 +224,7 @@
     </div>
 
     <div class="product-card__note-slot">
-      {%- if flavor_notes != blank -%}
+      {%- if show_notes and flavor_notes != blank -%}
         <p class="text-xs font-light leading-relaxed text-muted line-clamp-2">
           {{ flavor_notes | join: ' &bull; ' }}
         </p>
@@ -188,7 +240,7 @@
             {{ card_product.price | money }}
           {%- endif -%}
         </span>
-        {%- if roast_step > 0 -%}
+        {%- if show_roast and roast_step > 0 -%}
           <span class="hidden sm:inline-flex items-center" aria-label="{{ 'products.roast_level' | t }}: {{ roast_level }}">
             {%- for i in (1..5) -%}
               <span class="product-card__roast-dot{% if i <= roast_step %} is-filled{% endif %}"></span>

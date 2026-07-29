@@ -7,6 +7,10 @@
   assign process = product.metafields.coffee.process.value
   assign roast_level = product.metafields.coffee.roast_level.value
   assign flavor_notes = product.metafields.coffee.flavor_notes.value
+  assign brand = product.metafields.custom.brand.value
+  assign how_to_use = product.metafields.custom.how_to_use
+  assign custom_details = product.metafields.custom.pdp_details.value
+  assign remark_note = product.metafields.coffee.remark.value
 
   assign roast_step = 0
   case roast_level
@@ -20,16 +24,102 @@
       assign roast_step = 5
   endcase
 
-  assign has_specs = false
-  if region != blank or variety != blank or altitude != blank or process != blank or roast_level != blank or flavor_notes != blank
-    assign has_specs = true
+  # Per-product display control. Admin's custom.pdp_fields tick-list decides
+  # what appears here. BLANK = show everything that has a value (default). When
+  # set, only the ticked fields show — even if others are filled.
+  assign pdp_fields = product.metafields.custom.pdp_fields.value
+  assign show_origin = true
+  assign show_process = true
+  assign show_roast = true
+  assign show_notes = true
+  assign show_altitude = true
+  assign show_variety = true
+  assign show_brand_pdp = true
+  assign show_details_mf = true
+  assign show_how = true
+  if pdp_fields != blank
+    assign show_origin = false
+    assign show_process = false
+    assign show_roast = false
+    assign show_notes = false
+    assign show_altitude = false
+    assign show_variety = false
+    assign show_brand_pdp = false
+    assign show_details_mf = false
+    assign show_how = false
+    if pdp_fields contains 'Origin'
+      assign show_origin = true
+    endif
+    if pdp_fields contains 'Process'
+      assign show_process = true
+    endif
+    if pdp_fields contains 'Roast level'
+      assign show_roast = true
+    endif
+    if pdp_fields contains 'Tasting notes'
+      assign show_notes = true
+    endif
+    if pdp_fields contains 'Altitude'
+      assign show_altitude = true
+    endif
+    if pdp_fields contains 'Variety'
+      assign show_variety = true
+    endif
+    if pdp_fields contains 'Brand'
+      assign show_brand_pdp = true
+    endif
+    if pdp_fields contains 'Details'
+      assign show_details_mf = true
+    endif
+    if pdp_fields contains 'How to use'
+      assign show_how = true
+    endif
   endif
 
-  # Admin-authored custom rows for the Details list (one per line, "Label: Value")
-  assign custom_details = product.metafields.custom.pdp_details.value
-  assign remark_note = product.metafields.coffee.remark.value
+  # Resolve each row: shown only if enabled AND it has a value.
+  assign r_region = false
+  if show_origin and region != blank
+    assign r_region = true
+  endif
+  assign r_variety = false
+  if show_variety and variety != blank
+    assign r_variety = true
+  endif
+  assign r_altitude = false
+  if show_altitude and altitude != blank
+    assign r_altitude = true
+  endif
+  assign r_process = false
+  if show_process and process != blank
+    assign r_process = true
+  endif
+  assign r_roast = false
+  if show_roast and roast_level != blank
+    assign r_roast = true
+  endif
+  assign r_notes = false
+  if show_notes and flavor_notes != blank
+    assign r_notes = true
+  endif
+  assign r_brand = false
+  if show_brand_pdp and brand != blank
+    assign r_brand = true
+  endif
+  assign r_details = false
+  if show_details_mf and custom_details != blank
+    assign r_details = true
+  endif
+  assign r_how = false
+  if show_how and how_to_use != blank
+    assign r_how = true
+  endif
+
+  assign has_specs = false
+  if r_region or r_variety or r_altitude or r_process or r_roast or r_notes or r_brand
+    assign has_specs = true
+  endif
   assign has_details = has_specs
-  if custom_details != blank
+  if r_details
     assign has_details = true
   endif
 -%}
@@ -739,7 +829,7 @@
           </p>
         {%- endif -%}
 
-        {%- if region != blank -%}
+        {%- if r_region -%}
           <p class="pdp__origin">{{ region }}</p>
         {%- endif -%}
 
@@ -755,31 +845,37 @@
           <div class="pdp__panel">
             <p class="pdp__panel-label">{% if request.locale.iso_code == 'ar' %}التفاصيل{% else %}Details{% endif %}</p>
             <dl class="pdp__specs">
-              {%- if region != blank -%}
+              {%- if r_brand -%}
+                <div class="pdp__spec">
+                  <dt>{{ 'products.brand' | t | default: 'Brand' }}</dt>
+                  <dd>{{ brand }}</dd>
+                </div>
+              {%- endif -%}
+              {%- if r_region -%}
                 <div class="pdp__spec">
                   <dt>{{ 'products.region' | t | default: 'Region' }}</dt>
                   <dd>{{ region }}</dd>
                 </div>
               {%- endif -%}
-              {%- if variety != blank -%}
+              {%- if r_variety -%}
                 <div class="pdp__spec">
                   <dt>{{ 'products.variety' | t | default: 'Variety' }}</dt>
                   <dd>{{ variety }}</dd>
                 </div>
               {%- endif -%}
-              {%- if altitude != blank -%}
+              {%- if r_altitude -%}
                 <div class="pdp__spec">
                   <dt>{{ 'products.altitude' | t | default: 'Altitude' }}</dt>
                   <dd>{{ altitude }}</dd>
                 </div>
               {%- endif -%}
-              {%- if process != blank -%}
+              {%- if r_process -%}
                 <div class="pdp__spec">
                   <dt>{{ 'products.process' | t | default: 'Process' }}</dt>
                   <dd>{{ process }}</dd>
                 </div>
               {%- endif -%}
-              {%- if roast_level != blank -%}
+              {%- if r_roast -%}
                 <div class="pdp__spec">
                   <dt>{{ 'products.roast_level' | t | default: 'Roast' }}</dt>
                   <dd>
@@ -794,7 +890,7 @@
                   </dd>
                 </div>
               {%- endif -%}
-              {%- if flavor_notes != blank -%}
+              {%- if r_notes -%}
                 <div class="pdp__spec">
                   <dt>{{ 'products.flavor_notes' | t | default: 'Tasting notes' }}</dt>
                   <dd>
@@ -808,7 +904,7 @@
               {%- endif -%}
 
               {%- comment -%} Admin custom rows: one line per row, "Label: Value" (a line with no colon spans full width). {%- endcomment -%}
-              {%- if custom_details != blank -%}
+              {%- if r_details -%}
                 {%- assign detail_lines = custom_details | newline_to_br | split: '<br />' -%}
                 {%- assign note_block = '' -%}
                 {%- for line in detail_lines -%}
@@ -843,6 +939,13 @@
                 {%- endif -%}
               {%- endif -%}
             </dl>
+          </div>
+        {%- endif -%}
+
+        {%- if r_how -%}
+          <div class="pdp__panel">
+            <p class="pdp__panel-label">{% if request.locale.iso_code == 'ar' %}طريقة الاستخدام{% else %}How to use{% endif %}</p>
+            <div class="pdp__how prose-brand">{{ how_to_use }}</div>
           </div>
         {%- endif -%}
 

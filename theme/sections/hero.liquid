@@ -1,28 +1,78 @@
 {%- comment -%}
-  Hero — TCW landing.
+  Hero — TCW landing (Cinematic Bold redesign).
   Structure (top → bottom on mobile; two-col from lg): eyebrow · rule · heading
   · subheading · CTA row · trust badges · visual.
 
-  Motion strategy (Jakub polish primary, Emil restraint for buttons/badges,
-  Jhey allowed for heading word-mask — one deliberate moment only):
-  - existing GSAP timeline in animations.js runs eyebrow/rule/headingLines/
-    visual; we add the subheading + CTAs into that same rhythm via
-    [data-reveal] so they inherit the same stagger and reduced-motion guard.
-  - No infinite pulses. No blur-everywhere. No hover-scale on repeated items.
+  Motion strategy — Cinematic Bold (Jakub polish primary, Jhey for the single
+  showcase moment, Emil restraint on repeated interactions):
+  - Layered depth: a bronze aura layer parallaxes behind the circular visual.
+  - Signature moment: a one-time bronze light-sweep passes across the hero on
+    entrance (never loops — fires once, then never again).
+  - Heading "materializes": word masks rise while a blur resolves to sharp.
+  - Magnetic primary CTA on fine-pointer devices only.
+  - All motion runs through the theme's GSAP timeline in animations.js, which is
+    gated by prefers-reduced-motion and the Animations theme setting. This markup
+    degrades to a clean, fully-visible static hero with no JS / reduced motion.
 {%- endcomment -%}
 
 {%- assign heading_scale = section.settings.heading_scale | default: 100 -%}
 {%- assign sub_scale = section.settings.subheading_scale | default: 100 -%}
 <section
-  class="hero-section relative overflow-hidden bg-white text-[#1C1917]"
+  class="hero-section hero-section--cinematic relative overflow-hidden bg-white text-[#1C1917]"
   data-hero-section
   style="--hero-heading-scale: {{ heading_scale | divided_by: 100.0 }}; --hero-sub-scale: {{ sub_scale | divided_by: 100.0 }};"
 >
   <div class="hero-clip" data-hero-clip>
     {% render 'hero-arabic-bg' %}
 
-    <div class="site-container relative z-10 grid items-center gap-4 py-4 lg:grid-cols-2 lg:gap-8 lg:py-6">
-    <div class="hero-copy relative z-20 max-w-xl" data-hero-copy>
+    {%- comment -%} Depth layer — bronze aura, parallaxes on scroll. Decorative. {%- endcomment -%}
+    <div class="hero-bg-layer" data-hero-bg-layer aria-hidden="true"></div>
+
+    {%- comment -%} Signature moment — one-time light sweep, driven by JS, hidden by default. {%- endcomment -%}
+    <div class="hero-sweep" data-hero-sweep aria-hidden="true"></div>
+
+    {%- comment -%}
+      Coffee-bean floor — beans of varied size resting along the bottom edge.
+      Roast stage is set by height off the floor: dark-roasted only at the very
+      edge, semi-brown mid, raw green higher up. They settle on load, sway, and
+      fall away on scroll (animations.js). Decorative, JS-gated.
+    {%- endcomment -%}
+    <div class="hero-floor" data-hero-floor aria-hidden="true">
+      <svg width="0" height="0" focusable="false" style="position:absolute" aria-hidden="true">
+        <defs>
+          {%- comment -%} Colour-independent sheen: white highlight top-left → dark rim. Works over any roast colour. {%- endcomment -%}
+          <radialGradient id="tcw-bean-sheen" cx="38%" cy="30%" r="72%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.38"></stop>
+            <stop offset="42%" stop-color="#ffffff" stop-opacity="0.06"></stop>
+            <stop offset="100%" stop-color="#000000" stop-opacity="0.30"></stop>
+          </radialGradient>
+        </defs>
+        <symbol id="tcw-bean" viewBox="0 0 44 30">
+          <ellipse cx="22" cy="15" rx="20.5" ry="14" fill="currentColor"></ellipse>
+          <ellipse cx="22" cy="15" rx="20.5" ry="14" fill="url(#tcw-bean-sheen)"></ellipse>
+          <path d="M11 8 C 20 13, 24 17, 33 22" fill="none" stroke="#000000" stroke-opacity="0.40" stroke-width="2.4" stroke-linecap="round"></path>
+          <path d="M11.8 9.2 C 20.6 14.2, 24.6 18.2, 33.6 23" fill="none" stroke="#ffffff" stroke-opacity="0.20" stroke-width="1" stroke-linecap="round"></path>
+        </symbol>
+      </svg>
+      {%- for i in (1..16) -%}
+        {%- assign bx = i | times: 37 | modulo: 94 | plus: 3 -%}
+        {%- assign bb = i | times: 53 | modulo: 150 -%}
+        {%- assign bs = i | times: 29 | modulo: 22 | plus: 22 -%}
+        {%- if bb <= 34 -%}
+          {%- assign bc = '#35241A' -%}
+        {%- elsif bb <= 90 -%}
+          {%- assign bc = '#9C6B44' -%}
+        {%- else -%}
+          {%- assign bc = '#93A05A' -%}
+        {%- endif -%}
+        <span class="bean-drop" data-bean-drop style="left: {{ bx }}%; bottom: {{ bb }}px;">
+          <svg class="bean" viewBox="0 0 44 30" style="width: {{ bs }}px; color: {{ bc }};"><use href="#tcw-bean"></use></svg>
+        </span>
+      {%- endfor -%}
+    </div>
+
+    <div class="site-container relative z-10 grid items-center gap-6 py-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10 lg:py-12">
+    <div class="hero-copy relative z-20 max-w-2xl" data-hero-copy>
       {%- if settings.brand_tagline != blank -%}
         <p class="hero-tagline mb-3" data-hero-tagline>{{ settings.brand_tagline }}</p>
       {%- endif -%}
@@ -54,13 +104,35 @@
       </h1>
 
       {%- if section.settings.subheading != blank -%}
-        <p class="hero-subheading" data-reveal data-reveal-delay="0.15">
+        <p class="hero-subheading" data-hero-stagger>
           {{ section.settings.subheading | escape | newline_to_br }}
         </p>
       {%- endif -%}
 
+      {%- if section.settings.cta_label != blank -%}
+        <div class="hero-cta-row" data-hero-stagger>
+          <a
+            href="{{ section.settings.cta_link | default: routes.all_products_collection_url }}"
+            class="hero-cta hero-cta--primary"
+            data-magnetic="0.4"
+          >
+            <span class="hero-cta__label">{{ section.settings.cta_label }}</span>
+            <span class="hero-cta__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/>
+              </svg>
+            </span>
+          </a>
+          {%- if section.settings.cta_secondary_label != blank -%}
+            <a href="{{ section.settings.cta_secondary_link }}" class="hero-cta hero-cta--ghost">
+              {{ section.settings.cta_secondary_label }}
+            </a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
       {%- if section.blocks.size > 0 -%}
-        <ul class="hero-badges" data-reveal data-reveal-delay="0.35" role="list">
+        <ul class="hero-badges" data-hero-stagger role="list">
           {%- for block in section.blocks -%}
             {%- if block.type == 'badge' and block.settings.label != blank -%}
               <li class="hero-badge" {{ block.shopify_attributes }}>
@@ -71,13 +143,14 @@
           {%- endfor -%}
         </ul>
       {%- endif -%}
-
     </div>
 
-    <div class="hero-3d-stage relative z-10 flex min-h-[140px] w-full shrink-0 items-center justify-center sm:min-h-[180px]" data-hero-3d>
-      <div class="hero-orb absolute h-40 w-40 rounded-full bg-brand/25 blur-3xl" data-hero-orb></div>
-      <div class="hero-orb absolute h-28 w-28 rounded-full bg-brand-light/35 blur-2xl" data-hero-orb></div>
-      <div class="hero-orb absolute h-20 w-20 rounded-full bg-brand/15 blur-xl" data-hero-orb></div>
+    <div class="hero-3d-stage relative z-10 flex min-h-[240px] w-full shrink-0 items-center justify-center sm:min-h-[320px] lg:min-h-[440px]" data-hero-3d>
+      <div class="hero-orb absolute h-56 w-56 rounded-full bg-brand/25 blur-3xl" data-hero-orb></div>
+      <div class="hero-orb absolute h-40 w-40 rounded-full bg-brand-light/35 blur-2xl" data-hero-orb></div>
+      <div class="hero-orb absolute h-28 w-28 rounded-full bg-brand/15 blur-xl" data-hero-orb></div>
+
+      <div class="hero-medallion" data-hero-medallion aria-hidden="true"></div>
 
       <div
         class="hero-visual relative z-10 flex items-center justify-center rounded-full border border-line bg-surface shadow-brand"
@@ -86,7 +159,7 @@
         {%- if section.settings.hero_image != blank -%}
           {{
             section.settings.hero_image
-            | image_url: width: 800
+            | image_url: width: 900
             | image_tag:
               class: 'h-full w-full rounded-full object-cover',
               loading: 'eager',
@@ -96,9 +169,9 @@
         {%- elsif settings.logo != blank -%}
           {{
             settings.logo
-            | image_url: width: 400
+            | image_url: width: 500
             | image_tag:
-              class: 'h-auto max-h-48 w-auto px-8',
+              class: 'h-auto max-h-56 w-auto px-10',
               loading: 'eager',
               fetchpriority: 'high',
               alt: shop.name
@@ -115,27 +188,114 @@
 </section>
 
 <style>
-  /* Admin-adjustable font size. Scales are multipliers (0.5–1.5) applied
-     on top of the responsive clamp(), so responsive behaviour is kept. */
-  .hero-section .hero-heading {
-    font-size: calc(clamp(1.6rem, 3.2vw, 2.25rem) * var(--hero-heading-scale, 1));
+  /* ── Cinematic type scale. Bigger, tighter, more commanding than the base.
+     Admin heading_scale multiplier + responsive clamp are both preserved. ── */
+  .hero-section--cinematic .hero-heading {
+    font-size: calc(clamp(2.5rem, 6vw, 4.75rem) * var(--hero-heading-scale, 1));
+    line-height: 0.98;
+    letter-spacing: -0.015em;
   }
-  /* Subheading: sits under the heading, brand-muted, comfortable measure. */
+  .hero-section--cinematic .hero-heading__ar {
+    font-size: 0.82em;
+    color: var(--color-brand, #8B5E3C);
+  }
+
+  /* Subheading */
   .hero-subheading {
-    margin: 1.25rem 0 0;
-    max-width: 46ch;
-    font-size: calc(clamp(0.95rem, 1.05vw, 1.05rem) * var(--hero-sub-scale, 1));
+    margin: 1.5rem 0 0;
+    max-width: 48ch;
+    font-size: calc(clamp(0.95rem, 1.1vw, 1.1rem) * var(--hero-sub-scale, 1));
     line-height: 1.7;
     color: var(--color-text-muted, #6B6B6B);
     font-weight: 300;
   }
 
-  /* Trust badges — small, muted, single row on desktop; wrap on mobile.
-     No pulse dots (anti-slop): the dot is a static gold marker, not
-     an infinite scale/opacity loop. */
+  /* ── Depth aura — parallaxes behind the visual. Purely decorative. ── */
+  .hero-bg-layer {
+    position: absolute;
+    inset: -12%;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(46% 42% at 72% 38%, rgba(201, 169, 98, 0.18), transparent 70%),
+      radial-gradient(38% 40% at 24% 78%, rgba(139, 94, 60, 0.10), transparent 72%);
+    will-change: transform;
+  }
+
+  /* ── Signature moment: a single bronze light sweep on entrance. JS drives it;
+     hidden by default so no-JS / reduced-motion never sees a flash. Fires once. ── */
+  .hero-sweep {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(
+      104deg,
+      transparent 34%,
+      rgba(201, 169, 98, 0.22) 47%,
+      rgba(255, 255, 255, 0.55) 50%,
+      rgba(201, 169, 98, 0.22) 53%,
+      transparent 66%
+    );
+    mix-blend-mode: screen;
+    will-change: transform, opacity;
+  }
+
+  /* ── Primary CTA — bronze, tactile. Magnetic pull handled in JS (fine pointer
+     only). Uses deep bronze (#8B5E3C, 5.6:1 on white) for AA contrast. ── */
+  .hero-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    margin: 2rem 0 0;
+  }
+  .hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.9rem 1.6rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+    will-change: transform;
+  }
+  .hero-cta--primary {
+    background: #8B5E3C;
+    color: #fff;
+    box-shadow: 0 10px 30px -12px rgba(139, 94, 60, 0.65);
+  }
+  .hero-cta--primary:hover {
+    background: #6B4428;
+    box-shadow: 0 16px 40px -12px rgba(139, 94, 60, 0.75);
+  }
+  .hero-cta--primary:active { transform: scale(0.97); }
+  .hero-cta__icon {
+    display: inline-flex;
+    width: 1.05rem;
+    height: 1.05rem;
+    transition: transform 0.3s ease;
+  }
+  .hero-cta--primary:hover .hero-cta__icon { transform: translateX(3px); }
+  .hero-cta--ghost {
+    color: var(--color-text, #1A1A1A);
+    border: 1px solid var(--color-border, #E8E4DC);
+  }
+  .hero-cta--ghost:hover { border-color: #8B5E3C; color: #8B5E3C; }
+
+  /* RTL: nudge the CTA arrow to point the reading direction. */
+  [dir="rtl"] .hero-cta__icon { transform: scaleX(-1); }
+  [dir="rtl"] .hero-cta--primary:hover .hero-cta__icon { transform: scaleX(-1) translateX(3px); }
+
+  /* Trust badges — static gold marker, never a pulse loop. */
   .hero-badges {
     display: flex; flex-wrap: wrap; gap: 0.6rem 1.1rem;
-    margin: 1.5rem 0 0; padding: 0; list-style: none;
+    margin: 2rem 0 0; padding: 0; list-style: none;
   }
   .hero-badge {
     display: inline-flex; align-items: center; gap: 0.5rem;
@@ -148,9 +308,60 @@
     flex-shrink: 0;
   }
 
-  /* Motion — the existing hero GSAP timeline handles eyebrow/rule/heading/
-     visual entries. New children use [data-reveal] which already respects
-     prefers-reduced-motion via the theme's global reveal handler. */
+  /* ── Medallion ring behind the visual — adds cinematic depth. Static. ── */
+  .hero-medallion {
+    position: absolute;
+    z-index: 5;
+    width: min(88%, 26rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    pointer-events: none;
+    background:
+      conic-gradient(from 210deg, rgba(201, 169, 98, 0.0), rgba(201, 169, 98, 0.35), rgba(201, 169, 98, 0.0) 55%);
+    -webkit-mask: radial-gradient(closest-side, transparent 78%, #000 79%, #000 100%);
+    mask: radial-gradient(closest-side, transparent 78%, #000 79%, #000 100%);
+    opacity: 0.9;
+  }
+
+  /* ── Coffee-bean floor — beans of varied size and roast (raw green → semi →
+     dark, darkest only at the very edge) rest along the hero floor. They settle
+     on load, sway gently, and fall away on scroll (all in animations.js).
+     Behind the copy (z-index 7 < copy z-20) so text stays fully readable.
+     Static & visible with no JS / reduced motion. ── */
+  .hero-floor {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 46%;
+    z-index: 7;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .hero-floor .bean-drop {
+    position: absolute;
+    will-change: transform, opacity;
+  }
+  .hero-floor .bean {
+    display: block;
+    height: auto;
+    will-change: transform;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.18));
+  }
+  @media (max-width: 1023px) {
+    .hero-floor { height: 38%; }
+  }
+
+  /* ── Reduced motion: kill the sweep entirely; everything else is static and
+     already visible. The theme.liquid reduced-motion rule keeps hero-copy shown. ── */
+  @media (prefers-reduced-motion: reduce) {
+    .hero-sweep { display: none; }
+    .hero-cta, .hero-cta__icon { transition: none; }
+  }
+
+  @media (max-width: 1023px) {
+    .hero-medallion { width: min(80%, 20rem); }
+  }
 </style>
 
 {% schema %}
@@ -182,6 +393,32 @@
       "label": "Subheading",
       "info": "One or two lines of supporting copy. Line breaks are respected.",
       "default": "The Coffee Workshop celebrates the art of fine coffee — sourcing the world's most remarkable beans and roasting them with precision and passion in Ras Al Khaimah to deliver a truly refined experience in every cup and every bean."
+    },
+    {
+      "type": "header",
+      "content": "Call to action"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Primary button label",
+      "info": "Leave blank to hide the button.",
+      "default": "Shop the beans"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "Primary button link"
+    },
+    {
+      "type": "text",
+      "id": "cta_secondary_label",
+      "label": "Secondary link label"
+    },
+    {
+      "type": "url",
+      "id": "cta_secondary_link",
+      "label": "Secondary link"
     },
     {
       "type": "header",

@@ -135,8 +135,8 @@
     if (typeof gsap === 'undefined') return;
 
     gsap.set(
-      '[data-hero-visual], [data-hero-orb], [data-hero-copy] [data-hero-eyebrow], [data-hero-copy] [data-hero-heading], [data-reveal], .product-card, [data-footer-reveal], [data-origin-media], [data-origin-media] img, [data-origin-copy] > *',
-      { clearProps: 'opacity,visibility,transform,clipPath' }
+      '[data-hero-visual], [data-hero-orb], [data-hero-copy] [data-hero-eyebrow], [data-hero-copy] [data-hero-heading], [data-hero-stagger], [data-hero-bg-layer], [data-hero-sweep], [data-hero-floor] .bean, [data-bean-drop], [data-reveal], .product-card, [data-footer-reveal], [data-origin-media], [data-origin-media] img, [data-origin-copy] > *',
+      { clearProps: 'opacity,visibility,transform,clipPath,filter' }
     );
   }
 
@@ -316,6 +316,98 @@
         stagger: { each: 0.45, from: 'random' },
       });
     }
+
+    /* ─── Cinematic Bold additions ───
+       Appended with ABSOLUTE positions so they don't perturb the relative
+       (-=) chain that builds the eyebrow → heading → visual sequence above. */
+
+    /* Heading "materializes": soft-blur resolves to sharp while the word masks
+       rise. Runs only when word masks exist (skips the plain fallback). */
+    if (heading && heroWords.length) {
+      tl.fromTo(
+        heading,
+        { filter: 'blur(12px)' },
+        { filter: 'blur(0px)', duration: 0.9, ease: 'power2.out' },
+        0.35
+      );
+    }
+
+    /* Cascade the secondary copy (subheading · CTA · badges) into the entrance
+       rhythm instead of popping in with the copy container. */
+    const staggerItems = copy?.querySelectorAll('[data-hero-stagger]');
+    if (staggerItems && staggerItems.length) {
+      tl.from(
+        staggerItems,
+        { y: 26, autoAlpha: 0, duration: 0.7, stagger: 0.12, ease: 'power3.out' },
+        0.7
+      );
+    }
+
+    /* Signature moment — ONE bronze light sweep across the hero on entrance.
+       Never loops (anti-slop): it fires once as part of the entrance timeline. */
+    const sweep = section.querySelector('[data-hero-sweep]');
+    if (sweep) {
+      tl.fromTo(
+        sweep,
+        { xPercent: -120, opacity: 0 },
+        { xPercent: 120, opacity: 0.9, duration: 1.0, ease: 'power2.inOut' },
+        0.15
+      );
+      tl.to(sweep, { opacity: 0, duration: 0.35, ease: 'power1.out' }, 1.05);
+    }
+
+    /* Coffee-bean floor — beans rest along the hero floor. They settle down onto
+       it on load, then sway gently as loose objects on a surface. The scroll-
+       driven fall lives in initHeroParallax. Gated by enabled() → static &
+       visible under reduced motion. */
+    const floor = section.querySelector('[data-hero-floor]');
+    if (floor) {
+      const floorBeans = gsap.utils.toArray(floor.querySelectorAll('.bean'));
+      if (floorBeans.length) {
+        tl.from(
+          floorBeans,
+          { y: -22, autoAlpha: 0, duration: 0.7, stagger: { each: 0.04, from: 'random' }, ease: 'power2.out' },
+          0.5
+        );
+        /* Idle sway — small, slow left-right nudge (transform-only, tiny
+           amplitude) so beans read as loose objects resting on a floor. */
+        floorBeans.forEach((bean, i) => {
+          gsap.to(bean, {
+            x: i % 2 ? 5 : -5,
+            duration: 2.6 + (i % 3) * 0.6,
+            ease: 'sine.inOut',
+            repeat: -1,
+            yoyo: true,
+            delay: i * 0.05,
+          });
+        });
+      }
+    }
+  }
+
+  /* ─── Magnetic CTA (fine-pointer only) ─── */
+  function initHeroMagnetic() {
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+
+    document.querySelectorAll('[data-magnetic]').forEach((el) => {
+      if (el.dataset.magneticBound === '1') return;
+      el.dataset.magneticBound = '1';
+
+      const strength = parseFloat(el.dataset.magnetic) || 0.35;
+
+      const onMove = (event) => {
+        const r = el.getBoundingClientRect();
+        const mx = event.clientX - (r.left + r.width / 2);
+        const my = event.clientY - (r.top + r.height / 2);
+        gsap.to(el, { x: mx * strength, y: my * strength, duration: 0.4, ease: 'power2.out', overwrite: true });
+      };
+      const onLeave = () => {
+        gsap.to(el, { x: 0, y: 0, duration: 0.5, ease: 'power3.out', overwrite: true });
+      };
+
+      el.addEventListener('mousemove', onMove);
+      el.addEventListener('mouseleave', onLeave);
+    });
   }
 
   function initHero3DMouse() {
@@ -387,6 +479,35 @@
       ease: 'none',
       scrollTrigger: { trigger: section, start: 'top top', end: 'bottom top', scrub: true },
     });
+
+    const bgLayer = section.querySelector('[data-hero-bg-layer]');
+    if (bgLayer) {
+      gsap.to(bgLayer, {
+        y: isMobile ? -20 : -56,
+        scale: 1.08,
+        ease: 'none',
+        scrollTrigger: { trigger: section, start: 'top top', end: 'bottom top', scrub: true },
+      });
+    }
+
+    /* Scroll makes the beans fall off the floor — gravity + tumble + fade, tied
+       to the hero scrolling out. Function-based per-bean values vary the fall
+       distance and spin so it reads as loose beans dropping, not one block.
+       The drop lives on the wrapper; the idle sway lives on the inner .bean, so
+       the two never fight for the same transform. */
+    const floor = section.querySelector('[data-hero-floor]');
+    if (floor) {
+      const drops = gsap.utils.toArray(floor.querySelectorAll('[data-bean-drop]'));
+      if (drops.length) {
+        gsap.to(drops, {
+          y: (i) => 200 + (i % 4) * 45,
+          rotation: (i) => (i % 2 ? 1 : -1) * (160 + (i % 3) * 70),
+          autoAlpha: 0,
+          ease: 'power1.in',
+          scrollTrigger: { trigger: section, start: 'center top', end: 'bottom top', scrub: true },
+        });
+      }
+    }
   }
 
   /* ─── Split-text titles (any section) ─── */
@@ -753,6 +874,7 @@
     initHeaderScroll();
     initHeroEntrance();
     initHero3DMouse();
+    initHeroMagnetic();
     initHeroParallax();
     initSplitTitles();
     initScrollReveals();
