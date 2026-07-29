@@ -87,7 +87,7 @@
                   | image_tag: class: 'tcw-product-media__img', loading: 'lazy', alt: item.product.title
                 }}
               {%- else -%}
-                <img src="{{ 'product-placeholder.webp' | asset_url }}" class="tcw-product-media__img" style="object-fit:cover" loading="lazy" alt="{{ item.product.title | escape }}">
+                <img src="{{ 'product-placeholder.webp' | asset_url }}" class="tcw-product-media__img" style="object-fit:cover" loading="lazy" width="880" height="1100" alt="{{ item.product.title | escape }}">
               {%- endif -%}
             </a>
             <div class="min-w-0 flex-1">

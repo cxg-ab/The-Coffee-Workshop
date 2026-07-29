@@ -14,10 +14,23 @@
     <link rel="canonical" href="{{ canonical_url }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400..900&family=Montserrat:wght@300..700&family=Noto+Kufi+Arabic:wght@700;800;900&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    >
+
+    {%- comment -%}
+      PERF — first paint.
+      1. Noto Sans Arabic is only ever used by `[dir='rtl'] body`, so it is
+         requested on Arabic pages only. English visitors no longer download
+         four unused Arabic weights. (Noto Kufi Arabic stays on every locale —
+         the decorative hero word field uses it.)
+      2. The stylesheet is loaded non-render-blocking: preload + media="print"
+         flipped to "all" on load. Combined with display=swap (already set),
+         text paints immediately in the fallback face and swaps in when the
+         webfont arrives, instead of the request blocking first paint.
+         <noscript> keeps it working with JS disabled.
+    {%- endcomment -%}
+    {%- capture google_fonts_href -%}https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400..900&family=Montserrat:wght@300..700&family=Noto+Kufi+Arabic:wght@700;800;900{% if request.locale.iso_code == 'ar' %}&family=Noto+Sans+Arabic:wght@400;500;600;700{% endif %}&display=swap{%- endcapture -%}
+    <link rel="preload" as="style" href="{{ google_fonts_href }}">
+    <link rel="stylesheet" href="{{ google_fonts_href }}" media="print" onload="this.media='all';this.onload=null;">
+    <noscript><link rel="stylesheet" href="{{ google_fonts_href }}"></noscript>
 
     {%- if settings.favicon != blank -%}
       <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">

@@ -120,6 +120,11 @@
         data-hero-visual
       >
         {%- if section.settings.hero_image != blank -%}
+          {%- comment -%}
+            LCP element. widths/sizes added so phones fetch a ~300-450px file
+            instead of the full 900px one — previously every device downloaded
+            the same 900px image regardless of the circle's rendered size.
+          {%- endcomment -%}
           {{
             section.settings.hero_image
             | image_url: width: 900
@@ -127,6 +132,8 @@
               class: 'h-full w-full rounded-full object-cover',
               loading: 'eager',
               fetchpriority: 'high',
+              widths: '300, 450, 600, 900',
+              sizes: '(max-width: 640px) 60vw, (max-width: 1024px) 40vw, 440px',
               alt: section.settings.heading
           }}
         {%- elsif settings.logo != blank -%}
@@ -137,6 +144,8 @@
               class: 'h-auto max-h-56 w-auto px-10',
               loading: 'eager',
               fetchpriority: 'high',
+              widths: '200, 300, 500',
+              sizes: '(max-width: 640px) 45vw, 280px',
               alt: shop.name
           }}
         {%- else -%}
