@@ -137,6 +137,9 @@
       '[data-hero-visual], [data-hero-orb], [data-hero-copy] [data-hero-eyebrow], [data-hero-copy] [data-hero-heading], [data-hero-stagger], [data-hero-sweep], [data-reveal], .product-card, [data-footer-reveal], [data-origin-media], [data-origin-media] img, [data-origin-copy] > *',
       { clearProps: 'opacity,visibility,transform,clipPath,filter' }
     );
+    document
+      .querySelectorAll('.reveal-native')
+      .forEach((el) => el.classList.remove('reveal-native'));
   }
 
   function killAll() {
@@ -441,7 +444,6 @@
       gsap.to(words, {
         yPercent: 0,
         duration: 0.9,
-        stagger: 0.055,
         ease: 'power4.out',
         scrollTrigger: {
           trigger: el,
@@ -452,19 +454,44 @@
     });
   }
 
-  /* ─── Scroll reveals ─── */
+  /* ─── Scroll reveals ───
+     Stagger deliberately lives in exactly two places now: the hero entrance
+     and the product grid. It previously appeared at 11 sites, so on the
+     homepage alone the hero, the split titles, the glass story's intro and
+     body, and the product grid all staggered — which stops reading as a
+     deliberate choice and starts reading as a default. Split titles, the
+     glass story and the origin story now animate as single units. */
+  /* Scroll-driven animations run on the compositor, so where the browser
+     supports them the reveal is handed to CSS and no ScrollTrigger is created
+     at all — that is one fewer JS scroll subscriber per revealed element.
+     The CSS keyframes only animate *towards* the element's default visible
+     state, so an unresolved timeline can never leave content hidden. */
+  const NATIVE_SCROLL_TIMELINE =
+    typeof CSS !== 'undefined' &&
+    typeof CSS.supports === 'function' &&
+    CSS.supports('animation-timeline', 'view()');
+
   function initScrollReveals() {
     gsap.utils.toArray('[data-reveal]').forEach((el) => {
       if (el.closest('[data-hero-section]') || el.closest('[data-about-section]')) return;
 
+      if (NATIVE_SCROLL_TIMELINE) {
+        el.classList.add('reveal-native');
+        return;
+      }
+
       const y = parseFloat(el.dataset.revealY || 24);
       const scale = parseFloat(el.dataset.revealScale || 0.96);
       const delay = parseFloat(el.dataset.revealDelay || 0);
+      /* Opt-in only (data-reveal-blur). Blur on every reveal would just be
+         the next uniform effect applied to a dozen unrelated components. */
+      const blur = el.hasAttribute('data-reveal-blur');
 
       gsap.from(el, {
         y,
         scale,
         autoAlpha: 0,
+        filter: blur ? 'blur(6px)' : undefined,
         /* Was 1s with y:56 — a full second before copy the visitor is trying
            to read settles, applied identically to every [data-reveal] on the
            site. Shorter travel over a third of the time reads as polish
@@ -528,7 +555,6 @@
             y: 0,
             autoAlpha: 1,
             duration: 0.9,
-            stagger: 0.13,
             ease: 'power3.out',
             overwrite: true,
           });
@@ -548,7 +574,6 @@
             y: 0,
             autoAlpha: 1,
             duration: 0.85,
-            stagger: 0.15,
             ease: 'power3.out',
             overwrite: true,
           });
@@ -570,7 +595,6 @@
             scale: 1,
             duration: 0.85,
             ease: 'power3.out',
-            stagger: { each: 0.12, from: 'start' },
             overwrite: true,
             onComplete: () => {
               batch.forEach((card) => card.classList.add('is-visible'));
@@ -667,7 +691,6 @@
               y: 0,
               autoAlpha: 1,
               duration: 0.8,
-              stagger: 0.1,
               ease: 'power3.out',
               overwrite: true,
             });

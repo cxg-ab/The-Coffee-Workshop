@@ -323,9 +323,29 @@
                      lazy-loaded roast download (~47MB -> ~24MB) with a scrub
                      still smooth enough at this length. */
       }
+      /* Pacing. Scroll progress maps to frame progress through these control
+         points rather than 1:1 — the JS equivalent of a CSS linear() easing.
+         Between 35% and 70% of the scroll (35% of the distance) the sequence
+         advances only 40%->62% of its frames (22%), so it dwells through
+         first crack — the moment the whole sequence exists to show — and
+         moves briskly through the flat stretches either side. Same frames,
+         same scroll length, better emphasis. */
+      var PACE = [[0, 0], [0.35, 0.40], [0.50, 0.50], [0.70, 0.62], [1, 1]];
+      function paced(p){
+        for(var i = 1; i < PACE.length; i++){
+          if(p <= PACE[i][0]){
+            var a = PACE[i - 1], b = PACE[i];
+            var span = b[0] - a[0];
+            var t = span <= 0 ? 0 : (p - a[0]) / span;
+            return a[1] + (b[1] - a[1]) * t;
+          }
+        }
+        return 1;
+      }
+
       function roastIndex(p){
         if(stopIdx <= 0) return 0;
-        var idx = Math.min(stopIdx, Math.floor(p * (stopIdx + 1)));
+        var idx = Math.min(stopIdx, Math.floor(paced(p) * (stopIdx + 1)));
         var step = frameStep();
         if(step > 1){
           idx = Math.round(idx / step) * step;

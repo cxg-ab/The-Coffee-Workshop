@@ -2808,12 +2808,24 @@ html.lenis body {
   .plp-filter-panel:not([hidden]) {
     grid-template-columns: 1fr;
     gap: 0;
+    /* The last remnant of bottom-sheet behaviour: a 60vh box that scrolls
+       internally with `overscroll-behavior: contain` reads exactly like the
+       old sheet — you swipe inside it and the page underneath refuses to
+       move. Dropping `contain` lets the scroll chain to the page once the
+       panel reaches its end, so it can never trap the finger. vh is also
+       wrong on iOS (it ignores the URL bar); the svh/dvh ladder fixes the
+       panel jumping as the bar slides. */
     max-height: 60vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
     padding: 0.5rem 1rem 1rem;
     animation: plp-panel-in 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @supports (max-height: 60svh) {
+    .plp-filter-panel:not([hidden]) { max-height: 60svh; }
+  }
+  @supports (max-height: 60dvh) {
+    .plp-filter-panel:not([hidden]) { max-height: 60dvh; }
   }
   .plp-filter-panel__title { display: block; }
   /* No sheet → no drag affordance, and no modal → no backdrop. */
@@ -3254,6 +3266,41 @@ a.visit-modern__value:hover {
   .tcw-product-media--lift:hover .tcw-product-media__img,
   .group:hover .tcw-product-media--lift .tcw-product-media__img {
     transform: none;
+  }
+}
+
+/* ── Native scroll-driven reveals ───────────────────────────────────────
+   When the browser supports scroll-driven animations, animations.js tags
+   [data-reveal] with .reveal-native and skips creating a ScrollTrigger for
+   it — moving these reveals off the main thread and out of the JS scroll
+   path entirely.
+
+   Safety: the element's DEFAULT state is fully visible. The keyframes only
+   animate *towards* that state, so if the timeline never resolves the
+   content is still readable. A reveal that can hide content permanently is
+   not worth the performance win.
+   ──────────────────────────────────────────────────────────────────────── */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal-native {
+      animation: reveal-native-in linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 55%;
+    }
+    /* Opt-in blur, via data-reveal-blur. Not applied to every reveal on
+       purpose: with ~12 reveal sites left, a blanket blur would just be the
+       next uniform effect. */
+    .reveal-native[data-reveal-blur] {
+      animation-name: reveal-native-in-blur;
+    }
+  }
+  @keyframes reveal-native-in {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes reveal-native-in-blur {
+    from { opacity: 0; transform: translateY(24px); filter: blur(6px); }
+    to   { opacity: 1; transform: none; filter: blur(0); }
   }
 }
 
