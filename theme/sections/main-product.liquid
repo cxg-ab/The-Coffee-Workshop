@@ -12,11 +12,13 @@
   assign custom_details = product.metafields.custom.pdp_details.value
   assign remark_note = product.metafields.coffee.remark.value
 
-  # Weight comes from the product's own variant option (admin names it
-  # "Weight" with values like "150g"), not from a metafield. Until now it only
-  # existed as a radio in the option picker, so a single-weight product read as
-  # "no weight shown". Surface it as a stated spec as well. Names are stripped
-  # because some products carry a trailing space ("Weight ").
+  # Weight is a variant OPTION ("Weight" -> "150g"), not a metafield, and it is
+  # deliberately NOT a Details row: it belongs with Add to Cart, where it is
+  # something the customer chooses rather than a spec they read. Some beans
+  # carry several weights. This lookup exists only to label that picker
+  # correctly — `options_with_values.first` is the wrong source, because on a
+  # product with more than one option the first is not necessarily the weight,
+  # and several products are saved as "Weight " with a trailing space.
   assign weight_option = nil
   for opt in product.options_with_values
     assign opt_name = opt.name | strip | downcase
@@ -142,16 +144,8 @@
     assign r_how = true
   endif
 
-  # Weight is deliberately NOT gated by custom.pdp_fields: that tick-list has no
-  # "Weight" choice, so any product with the list already set would silently
-  # hide it. It shows whenever the product actually has a Weight option.
-  assign r_weight = false
-  if weight_option
-    assign r_weight = true
-  endif
-
   assign has_specs = false
-  if r_weight or r_region or r_variety or r_altitude or r_process or r_roast or r_notes or r_brand
+  if r_region or r_variety or r_altitude or r_process or r_roast or r_notes or r_brand
     assign has_specs = true
   endif
   assign has_details = has_specs
@@ -924,16 +918,6 @@
           <div class="pdp__panel">
             <dl class="pdp__specs">
             
-              {%- if r_weight -%}
-                <div class="pdp__spec">
-                  <dt>{% if request.locale.iso_code == 'ar' %}الوزن{% else %}Weight{% endif %}</dt>
-                  <dd>
-                    {%- for v in weight_option.values -%}
-                      {%- unless forloop.first %} / {% endunless -%}{{ v }}
-                    {%- endfor -%}
-                  </dd>
-                </div>
-              {%- endif -%}
               {%- if r_region -%}
                 <div class="pdp__spec">
                   <dt>{{ 'products.region' | t | default: 'Region' }}</dt>
@@ -1045,7 +1029,20 @@
           {%- endcomment -%}
           {%- unless product.has_only_default_variant -%}
             <div class="pdp__panel">
-              <p class="pdp__panel-label">{{ product.options_with_values.first.name | default: 'Options' }}</p>
+              {%- comment -%}
+                Each radio is a whole variant, so its label is variant.title. On a
+                single-option product that title IS the weight ("150g"), so the
+                panel can honestly be headed "Weight" — taken from the matched
+                option, stripped, because several products are saved as "Weight ".
+                With two or more options the title is combined ("150g / Ground"),
+                and heading that "Weight" would be a lie about what is being
+                chosen — so it falls back to the neutral label.
+              {%- endcomment -%}
+              {%- if weight_option and product.options_with_values.size == 1 -%}
+                <p class="pdp__panel-label">{{ weight_option.name | strip }}</p>
+              {%- else -%}
+                <p class="pdp__panel-label">{% if request.locale.iso_code == 'ar' %}الخيارات{% else %}Options{% endif %}</p>
+              {%- endif -%}
               <div class="pdp__variants" data-variant-picker>
                 {%- for variant in product.variants -%}
                   <label class="pdp-variant{% if variant == current_variant %} is-selected{% endif %}{% unless variant.available %} is-disabled{% endunless %}">
