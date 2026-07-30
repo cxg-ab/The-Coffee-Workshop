@@ -198,19 +198,26 @@
   {%- endif -%}
   ];
 
-  /* Phone-sized variants. The source frames are 1440x1440 — 8.3MB each once
-     decoded, which is the root of the iOS blank-canvas failure. At 720px a
-     frame decodes to ~2.1MB (4x less) and still comfortably out-resolves the
-     phone canvas (~594px at the capped dpr). Empty for the custom-URL source
-     (a third-party CDN has no known resize contract), and every use falls
-     back to the full-res URL on error, so a CDN that cannot resize this asset
-     degrades to today's behaviour rather than breaking. */
+  /* Phone-sized variants — real 720x720 assets (bean_sm_001..N.webp), NOT a
+     CDN resize. The source frames are 1440x1440, ~8.3MB each once decoded,
+     which is the root of the iOS blank-canvas failure; at 720px a frame
+     decodes to ~2.1MB (4x less) and still out-resolves the phone canvas
+     (~594px at the capped dpr).
+
+     These were generated as separate assets on purpose. The previous attempt
+     used `asset_img_url: '720x'`, which asks Shopify's image service to
+     produce a `_720x` variant of the .webp — and instead of failing, it
+     returned Shopify's grey "No image" placeholder with a 200. That defeated
+     the onerror fallback below (nothing errored), so every phone frame
+     painted the placeholder: scrubbing worked, no bean. Plain asset_url on a
+     file that really exists cannot fail that way, and a genuinely missing
+     asset now 404s, which the fallback does catch. */
   var framesSm = [
   {%- if section.settings.frame_source == 'assets' -%}
     {%- for i in (1..total_frames) -%}
       {%- capture p -%}{%- if i < 10 -%}00{{ i }}{%- elsif i < 100 -%}0{{ i }}{%- else -%}{{ i }}{%- endif -%}{%- endcapture -%}
-      {%- capture fname -%}bean_{{ p }}.webp{%- endcapture -%}
-      "{{ fname | asset_img_url: '720x' }}"{% unless forloop.last %},{% endunless %}
+      {%- capture fname_sm -%}bean_sm_{{ p }}.webp{%- endcapture -%}
+      "{{ fname_sm | asset_url }}"{% unless forloop.last %},{% endunless %}
     {%- endfor -%}
   {%- endif -%}
   ];
@@ -342,12 +349,10 @@
         if(ready && cur >= 0) paint(cur, true);
       }
 
-      /* Phones pull the 720px variant; everything else the full frame.
-         asset_img_url emits the `_720x` filename form, which the CDN resolves
-         for image assets. If it does not resolve for these .webp frames the
-         first failure flips smallOk, so exactly one frame pays a wasted
-         request instead of all 55 — and the section keeps working at full
-         resolution, which is today's behaviour. */
+      /* Phones pull the 720px variant; everything else the full frame. If a
+         bean_sm_* asset is genuinely missing it 404s, and the first failure
+         flips smallOk so exactly one frame pays a wasted request instead of
+         all 55 — the section then runs at full resolution. */
       var smallOk = true;
       function srcFor(i){
         if(smallOk && isPhone() && cfg.framesSm && cfg.framesSm[i]) return cfg.framesSm[i];
@@ -640,15 +645,15 @@
       "type": "number",
       "id": "frame_count",
       "label": "Total frames (max)",
-      "default": 217,
-      "info": "All exported frames in theme assets (bean_001 to bean_N). Set to 0 until new frames are uploaded."
+      "default": 202,
+      "info": "Frames loaded from theme assets (bean_001 to bean_N, each with a bean_sm_N phone variant). 217 exist, but the bean fades out after 202."
     },
     {
       "type": "number",
       "id": "frame_stop",
       "label": "Stop frames at",
-      "default": 217,
-      "info": "Last frame to show during scroll (1–N)."
+      "default": 202,
+      "info": "Last frame shown during scroll (1–N). Keep at 202: the exported bean fades from frame 203 and frames 211–217 are fully transparent, so a higher value ends the scroll on an empty stage."
     },
     { "type": "header", "content": "Bean display" },
     {
