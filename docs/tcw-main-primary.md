@@ -24,7 +24,7 @@ Old GitHub: `cxg-ab/The-Coffee-Workshop`
 # === TCW Main V1.1 — pull Shopify → new GitHub repo ===
 $STORE   = "7medyz-sn.myshopify.com"
 $THEME_ID = "PASTE_TCW_MAIN_THEME_ID_HERE"   # from Admin URL
-$ROOT    = "C:\Users\User\tcw-main"
+$ROOT    = "R:\tcw-main"
 $REPO    = "cxg-ab/TCW-Main"
 
 # 1) Fresh folder + pull TCW Main from Shopify

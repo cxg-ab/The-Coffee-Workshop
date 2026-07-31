@@ -4,7 +4,7 @@
 $ErrorActionPreference = "Stop"
 $STORE    = "7medyz-sn.myshopify.com"
 $THEME_ID = "PASTE_TCW_MAIN_THEME_ID_HERE"
-$ROOT     = "C:\Users\User\tcw-main"
+$ROOT     = "R:\tcw-main"
 $REPO     = "cxg-ab/TCW-Main"
 
 if ($THEME_ID -eq "PASTE_TCW_MAIN_THEME_ID_HERE") {
