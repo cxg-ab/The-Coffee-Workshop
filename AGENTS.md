@@ -21,15 +21,31 @@ is hand-maintained and is the single source of truth) and the store's Admin setu
   offenses (a handful of errors + warnings) that are unrelated to environment setup — a
   clean run is not expected. Only worry about *new* offenses your changes introduce.
 
-### Running the storefront (live preview) — needs auth
-- `shopify theme dev --path theme --store 7medyz-sn.myshopify.com` uploads a dev theme and
-  serves a live preview, but it requires **Shopify authentication** to the store. It is NOT
-  provisioned in the cloud VM by default; the command prints a device-code login URL and waits.
-- To run it non-interactively, set a Theme Access token as `SHOPIFY_CLI_THEME_TOKEN` (created
-  via the *Theme Access* app in Shopify Admin) and pass `--store 7medyz-sn.myshopify.com`.
-  Otherwise an interactive `shopify auth login` / device-code login is required.
+### Running the storefront (live preview) — needs auth + store password
 - Store: `7medyz-sn.myshopify.com`. There is no offline/local render for a Shopify theme —
-  the store connection is required to see rendered output.
+  a store connection is required to see rendered output.
+- Two credentials are needed to run `theme dev` non-interactively:
+  1. A **Theme Access token** (`shptka_…`, from the *Theme Access* app in Admin) as
+     `SHOPIFY_CLI_THEME_TOKEN` (or `--password`). Without it the CLI prompts a device-code login.
+  2. The **storefront password** (the store is in password/"Coming Soon" mode) as
+     `SHOPIFY_FLAG_STORE_PASSWORD` (or `--store-password`). Without it `theme dev` prompts
+     "Enter your store password" and fails when run non-interactively (e.g. piped to a log).
+- Working invocation:
+  `SHOPIFY_CLI_THEME_TOKEN=shptka_… SHOPIFY_FLAG_STORE_PASSWORD=… shopify theme dev --path theme --store 7medyz-sn.myshopify.com`
+  It serves `http://127.0.0.1:9292` and a hosted preview `https://7medyz-sn.myshopify.com/?preview_theme_id=<id>`.
+- Gotcha: if you restart `theme dev` in a fresh shell, `SHOPIFY_CLI_THEME_TOKEN` may resolve to
+  a secret set at the environment level — make sure that secret actually holds a `shptka_…`
+  value (a wrong value yields `GraphQL 401: Invalid API key or access token`).
+
+### Known bug: local cart AJAX returns 401 (use the hosted preview for cart/checkout)
+- On the **local** `http://127.0.0.1:9292` server, cart AJAX routes (`/cart/add.js`, `/cart.js`,
+  `/cart/change`, `products.json`) return **401 "access token … invalid"**. This is a known
+  Shopify CLI bug (the dev proxy forwards the Bearer token to the cart/checkout proxy) — see
+  Shopify/cli issues #1078 and #7568 — not a theme defect. Page rendering (GET) works fine.
+- Workaround for testing cart/checkout: use the **Shopify-hosted preview URL**
+  `https://7medyz-sn.myshopify.com/?preview_theme_id=<id>` (enter the storefront password once).
+  Add-to-cart works there. (Alternatively, downgrading the CLI to `@shopify/cli@3.88.1` restores
+  local cart for some, but the hosted preview is the reliable path.)
 
 ### Other useful commands
 - `shopify theme push --path theme` / `shopify theme pull --path theme` (both need auth).
