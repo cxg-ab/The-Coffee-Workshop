@@ -36,39 +36,21 @@
     {%- endcomment -%}
     <div class="site-container relative z-10 grid items-center gap-6 py-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10 lg:py-12">
     <div class="hero-copy relative z-20 max-w-2xl" data-hero-copy>
-      {%- liquid
-        assign hero_tagline = settings.brand_tagline | default: 'Specialty Coffee' | strip
-        if hero_tagline == blank
-          assign hero_tagline = 'Specialty Coffee'
-        endif
+      {%- if settings.brand_tagline != blank -%}
+        <p class="hero-tagline mb-3" data-hero-tagline>{{ settings.brand_tagline }}</p>
+      {%- endif -%}
 
-        assign hero_eyebrow = section.settings.eyebrow | default: 'Est. 2018 · Ras Al Khaimah, UAE' | strip
-        if hero_eyebrow == blank
-          assign hero_eyebrow = 'Est. 2018 · Ras Al Khaimah, UAE'
-        endif
-
-        assign hero_heading = section.settings.heading | default: 'FINE COFFEE &<br>HAND SELECTED BEANS' | strip
-        if hero_heading == blank
-          assign hero_heading = 'FINE COFFEE &<br>HAND SELECTED BEANS'
-        endif
-
-        assign hero_subheading = section.settings.subheading | default: "The Coffee Workshop celebrates the art of fine coffee — sourcing the world's most remarkable beans and roasting them with precision and passion in Ras Al Khaimah to deliver a truly refined experience in every cup and every bean." | strip
-        if hero_subheading == blank
-          assign hero_subheading = "The Coffee Workshop celebrates the art of fine coffee — sourcing the world's most remarkable beans and roasting them with precision and passion in Ras Al Khaimah to deliver a truly refined experience in every cup and every bean."
-        endif
-      -%}
-
-      <p class="hero-tagline mb-3" data-hero-tagline>{{ hero_tagline }}</p>
-
-      <p class="section-eyebrow hero-eyebrow mb-4" data-hero-eyebrow>
-        {{ hero_eyebrow }}
-      </p>
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="section-eyebrow hero-eyebrow mb-4" data-hero-eyebrow>
+          {{ section.settings.eyebrow }}
+        </p>
+      {%- endif -%}
 
       <div class="hero-brand-rule" aria-hidden="true"></div>
 
       <h1 class="hero-heading" data-hero-heading>
         {%- capture arabic_word_with_style -%}<br><span class="hero-heading__ar" lang="ar" dir="rtl">ماستر</span><br>{%- endcapture -%}
-        {%- assign processed_heading = hero_heading
+        {%- assign processed_heading = section.settings.heading
           | replace: 'MASTER', 'ماستر'
           | replace: 'Master', 'ماستر'
           | replace: 'ماستر', arabic_word_with_style
@@ -84,9 +66,11 @@
         {%- endfor -%}
       </h1>
 
-      <p class="hero-subheading" data-hero-stagger>
-        {{ hero_subheading | escape | newline_to_br }}
-      </p>
+      {%- if section.settings.subheading != blank -%}
+        <p class="hero-subheading" data-hero-stagger>
+          {{ section.settings.subheading | escape | newline_to_br }}
+        </p>
+      {%- endif -%}
 
       {%- if section.settings.cta_label != blank -%}
         <div class="hero-cta-row" data-hero-stagger>
@@ -294,9 +278,11 @@
   }
 
   /* ── Mobile flicker guards ───────────────────────────────────────────
-     Mouse tilt on the circle is disabled (initHero3DMouse is a no-op).
-     Keep flat compositing on touch / small screens; settled class does the
-     same after the one-shot entrance on desktop.
+     transform-style: preserve-3d on .hero-visual exists only for the desktop
+     mouse tilt (initHero3DMouse bails below 768px). On a touch device it buys
+     nothing and costs plenty: a 3D rendering context on a border-radius:50%
+     box holding an image has to be re-rasterised whenever it moves, which is
+     what makes the circle shimmer during scroll.
 
      The one-time entrance sweep is a full-hero mix-blend-mode: screen layer
      pinned above the circle (z-index 30) with a permanent will-change. Even
@@ -304,11 +290,6 @@
      life of the page. It is a decorative flourish, so it simply doesn't run
      on touch.
      ──────────────────────────────────────────────────────────────────── */
-  .hero-visual.hero-visual--settled {
-    will-change: auto;
-    pointer-events: none;
-    transform-style: flat;
-  }
   @media (hover: none), (max-width: 767px) {
     .hero-visual {
       transform-style: flat;
@@ -339,7 +320,7 @@
       "id": "heading",
       "label": "Heading",
       "info": "Use <br> to force a line break (e.g. 'FINE COFFEE &<br>HAND-SELECTED BEANS').",
-      "default": "FINE COFFEE &<br>HAND SELECTED BEANS"
+      "default": "FINE COFFEE &<br>HAND-SELECTED BEANS"
     },
     {
       "type": "textarea",
