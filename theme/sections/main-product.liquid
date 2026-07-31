@@ -19,14 +19,25 @@
   # correctly — `options_with_values.first` is the wrong source, because on a
   # product with more than one option the first is not necessarily the weight,
   # and several products are saved as "Weight " with a trailing space.
+  # Same resolution as product-card.liquid: exact name wins, contains-match is
+  # the fallback so "Weight (g)" / "Net Weight" still resolve.
   assign weight_option = nil
+  assign weight_loose = nil
   for opt in product.options_with_values
     assign opt_name = opt.name | strip | downcase
     if opt_name == 'weight' or opt_name == 'الوزن'
       assign weight_option = opt
       break
     endif
+    unless weight_loose
+      if opt_name contains 'weight' or opt_name contains 'الوزن'
+        assign weight_loose = opt
+      endif
+    endunless
   endfor
+  unless weight_option
+    assign weight_option = weight_loose
+  endunless
 
   # Barista Tools / accessories detection — mirrors product-card.liquid.
   # Renders a scannable, tool-appropriate description block instead of prose.
