@@ -3,6 +3,10 @@
   Self-contained: markup + styles + script. application.css / .js untouched.
 
   v4: smaller page title; product image enlarged inside the thumb box.
+
+  Line updates MUST use the line-item key (item.key), not the 1-based line
+  index. Concurrent qty/remove clicks otherwise hit the wrong row after an
+  earlier change shifts indexes — same pattern as the cart drawer.
 {%- endcomment -%}
 
 <style>
@@ -186,7 +190,7 @@
 
       <ul class="cart-lines" data-cart-lines>
         {%- for item in cart.items -%}
-          <li class="cart-line" data-cart-line="{{ forloop.index }}">
+          <li class="cart-line" data-cart-line-key="{{ item.key | escape }}">
             <a href="{{ item.url }}" class="tcw-product-media tcw-product-media--thumb cart-line__media">
               {%- if item.image -%}
                 {{ item.image | image_url: width: 300 | image_tag: class: 'tcw-product-media__img', loading: 'lazy', alt: item.product.title }}
@@ -256,11 +260,12 @@
     return 'AED ' + (Number(cents) / 100).toFixed(2);
   }
 
-  function changeLine(line, quantity) {
+  /* Identify lines by key, not 1-based index — indexes shift after removals. */
+  function changeLine(key, quantity) {
     return fetch('/cart/change.js', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-      body: JSON.stringify({ line: line, quantity: quantity })
+      body: JSON.stringify({ id: key, quantity: quantity })
     }).then(function (r) {
       if (!r.ok) throw new Error('cart_change_failed');
       return r.json();
@@ -276,11 +281,13 @@
 
     if (!cart.item_count) { window.location.reload(); return; }
 
-    var lines = Array.prototype.slice.call(page.querySelectorAll('[data-cart-line]'));
-    lines.forEach(function (li, i) {
-      var item = cart.items[i];
+    var byKey = {};
+    cart.items.forEach(function (item) { byKey[item.key] = item; });
+
+    var lines = Array.prototype.slice.call(page.querySelectorAll('[data-cart-line-key]'));
+    lines.forEach(function (li) {
+      var item = byKey[li.getAttribute('data-cart-line-key')];
       if (!item) { li.remove(); return; }
-      li.setAttribute('data-cart-line', String(i + 1));
       var price = li.querySelector('[data-line-price]');
       var input = li.querySelector('[data-qty-input]');
       if (price) price.textContent = money(item.final_line_price);
@@ -295,10 +302,10 @@
   }
 
   function apply(li, quantity) {
-    var line = Number(li.getAttribute('data-cart-line'));
-    if (!line) return;
+    var key = li && li.getAttribute('data-cart-line-key');
+    if (!key) return;
     setBusy(li, true);
-    changeLine(line, Math.max(0, quantity))
+    changeLine(key, Math.max(0, quantity))
       .then(function (cart) {
         if (quantity <= 0) li.remove();
         render(cart);
@@ -308,7 +315,7 @@
   }
 
   page.addEventListener('click', function (event) {
-    var li = event.target.closest('[data-cart-line]');
+    var li = event.target.closest('[data-cart-line-key]');
     if (!li) return;
     var input = li.querySelector('[data-qty-input]');
     var current = Number(input && input.value) || 0;
@@ -320,7 +327,7 @@
   page.addEventListener('change', function (event) {
     var input = event.target.closest('[data-qty-input]');
     if (!input) return;
-    apply(input.closest('[data-cart-line]'), Number(input.value) || 0);
+    apply(input.closest('[data-cart-line-key]'), Number(input.value) || 0);
   });
 })();
 </script>
