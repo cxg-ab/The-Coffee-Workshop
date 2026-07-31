@@ -278,11 +278,9 @@
   }
 
   /* ── Mobile flicker guards ───────────────────────────────────────────
-     transform-style: preserve-3d on .hero-visual exists only for the desktop
-     mouse tilt (initHero3DMouse bails below 768px). On a touch device it buys
-     nothing and costs plenty: a 3D rendering context on a border-radius:50%
-     box holding an image has to be re-rasterised whenever it moves, which is
-     what makes the circle shimmer during scroll.
+     Mouse tilt on the circle is disabled (initHero3DMouse is a no-op).
+     Keep flat compositing on touch / small screens; settled class does the
+     same after the one-shot entrance on desktop.
 
      The one-time entrance sweep is a full-hero mix-blend-mode: screen layer
      pinned above the circle (z-index 30) with a permanent will-change. Even
@@ -290,6 +288,11 @@
      life of the page. It is a decorative flourish, so it simply doesn't run
      on touch.
      ──────────────────────────────────────────────────────────────────── */
+  .hero-visual.hero-visual--settled {
+    will-change: auto;
+    pointer-events: none;
+    transform-style: flat;
+  }
   @media (hover: none), (max-width: 767px) {
     .hero-visual {
       transform-style: flat;

@@ -1,6 +1,6 @@
 # 004 — Tighten homepage hero entrance (blur, duration, dead orb code)
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 18f64bd
 - **Severity**: MEDIUM
 - **Category**: Easing & duration / Performance / Cohesion

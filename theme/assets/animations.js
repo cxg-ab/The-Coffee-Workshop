@@ -140,6 +140,9 @@
     document
       .querySelectorAll('.reveal-native')
       .forEach((el) => el.classList.remove('reveal-native'));
+    document
+      .querySelectorAll('.hero-visual--settled')
+      .forEach((el) => el.classList.remove('hero-visual--settled'));
   }
 
   function killAll() {
@@ -172,10 +175,13 @@
     const main = document.querySelector('#main-content');
     if (!main) return;
 
+    /* Homepage hero owns first paint — do not double-animate the whole main. */
+    if (document.querySelector('[data-hero-section]')) return;
+
     gsap.from(main, {
       autoAlpha: 0,
-      y: 16,
-      duration: 0.65,
+      y: 12,
+      duration: 0.45,
       ease: 'power3.out',
       delay: 0.05,
     });
@@ -226,61 +232,37 @@
       gsap.set(heroWords, { yPercent: 115 });
       tl.to(
         heroWords,
-        { yPercent: 0, duration: 0.9, stagger: 0.07, ease: 'power4.out' },
+        { yPercent: 0, duration: 0.75, stagger: 0.05, ease: 'power4.out' },
         '-=0.35'
       );
     } else if (headingLines.length) {
       gsap.set(headingLines, { yPercent: 110 });
-      tl.to(headingLines, { yPercent: 0, duration: 0.85, stagger: 0.1, ease: 'power3.out' }, '-=0.35');
+      tl.to(headingLines, { yPercent: 0, duration: 0.75, stagger: 0.08, ease: 'power3.out' }, '-=0.35');
     } else if (heading) {
-      tl.from(heading, { y: 48, autoAlpha: 0, duration: 0.95 }, eyebrow || tagline ? '-=0.4' : 0);
+      tl.from(heading, { y: 40, autoAlpha: 0, duration: 0.75 }, eyebrow || tagline ? '-=0.4' : 0);
     }
 
     const visual = section.querySelector('[data-hero-visual]');
-    const orbs = section.querySelectorAll('[data-hero-orb]');
 
+    /* Opacity + scale only. No rotationY residue for later writers to fight.
+       Mouse tilt is disabled (initHero3DMouse is a no-op). */
     if (visual) {
       gsap.set(visual, { autoAlpha: 1, visibility: 'visible', opacity: 1 });
       tl.fromTo(
         visual,
-        { scale: 0.88, opacity: 0, rotationY: -10 },
-        { scale: 1, opacity: 1, rotationY: 0, duration: 1.1, ease: 'power2.out', immediateRender: false },
+        { scale: 0.95, opacity: 0 },
+        {
+          scale: 1,
+          opacity: 1,
+          duration: 0.85,
+          ease: 'power2.out',
+          immediateRender: false,
+          onComplete: () => {
+            visual.classList.add('hero-visual--settled');
+            gsap.set(visual, { clearProps: 'rotationX,rotationY' });
+          },
+        },
         '-=0.65'
-      );
-    }
-
-    if (orbs.length) {
-      gsap.set(orbs, { autoAlpha: 1, visibility: 'visible', opacity: 1 });
-      tl.fromTo(
-        orbs,
-        { scale: 0.7, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 1.2, stagger: 0.15, ease: 'power2.out', immediateRender: false },
-        '-=0.9'
-      );
-
-      gsap.to(orbs, {
-        y: '+=20',
-        x: '+=6',
-        duration: 3.8,
-        ease: 'sine.inOut',
-        repeat: -1,
-        yoyo: true,
-        stagger: { each: 0.45, from: 'random' },
-      });
-    }
-
-    /* ─── Cinematic Bold additions ───
-       Appended with ABSOLUTE positions so they don't perturb the relative
-       (-=) chain that builds the eyebrow → heading → visual sequence above. */
-
-    /* Heading "materializes": soft-blur resolves to sharp while the word masks
-       rise. Runs only when word masks exist (skips the plain fallback). */
-    if (heading && heroWords.length) {
-      tl.fromTo(
-        heading,
-        { filter: 'blur(12px)' },
-        { filter: 'blur(0px)', duration: 0.9, ease: 'power2.out' },
-        0.35
       );
     }
 
@@ -290,7 +272,7 @@
     if (staggerItems && staggerItems.length) {
       tl.from(
         staggerItems,
-        { y: 26, autoAlpha: 0, duration: 0.7, stagger: 0.12, ease: 'power3.out' },
+        { y: 26, autoAlpha: 0, duration: 0.55, stagger: 0.08, ease: 'power3.out' },
         0.7
       );
     }
@@ -302,10 +284,10 @@
       tl.fromTo(
         sweep,
         { xPercent: -120, opacity: 0 },
-        { xPercent: 120, opacity: 0.9, duration: 1.0, ease: 'power2.inOut' },
+        { xPercent: 120, opacity: 0.9, duration: 0.8, ease: 'power2.inOut' },
         0.15
       );
-      tl.to(sweep, { opacity: 0, duration: 0.35, ease: 'power1.out' }, 1.05);
+      tl.to(sweep, { opacity: 0, duration: 0.3, ease: 'power1.out' }, 0.85);
     }
   }
 
@@ -341,56 +323,11 @@
     });
   }
 
+  /* Disabled: pointer tilt competed with entrance + parallax on the same
+     [data-hero-visual] node (hover flash / shake). Keep as a no-op so nothing
+     re-hooks it; parallax owns y only after settle. */
   function initHero3DMouse() {
-    const section = document.querySelector('[data-hero-section]');
-    const stage = section?.querySelector('[data-hero-3d]');
-    const visual = section?.querySelector('[data-hero-visual]');
-    const orbs = section?.querySelectorAll('[data-hero-orb]');
-    if (!section || !stage || !visual) return;
-
-    if (window.matchMedia('(max-width: 767px)').matches) return;
-
-    /* One reusable tween per animated property. This handler runs on every
-       pointer move — at 120Hz the old version constructed two tweens and ran
-       two overwrite scans per event, roughly 240 of each per second. */
-    const vRotY = gsap.quickTo(visual, 'rotationY', { duration: 0.6, ease: 'power2.out' });
-    const vRotX = gsap.quickTo(visual, 'rotationX', { duration: 0.6, ease: 'power2.out' });
-    const vX = gsap.quickTo(visual, 'x', { duration: 0.6, ease: 'power2.out' });
-    const vY = gsap.quickTo(visual, 'y', { duration: 0.6, ease: 'power2.out' });
-
-    const hasOrbs = orbs && orbs.length;
-    /* Stagger is dropped: quickTo has no stagger, and a 40ms offset on a
-       pointer-follow effect is imperceptible anyway. */
-    const oX = hasOrbs ? gsap.quickTo(orbs, 'x', { duration: 0.75, ease: 'power2.out' }) : null;
-    const oY = hasOrbs ? gsap.quickTo(orbs, 'y', { duration: 0.75, ease: 'power2.out' }) : null;
-
-    const reset = () => {
-      vRotY(0);
-      vRotX(0);
-      vX(0);
-      vY(0);
-      if (oX) { oX(0); oY(0); }
-    };
-
-    heroMouseHandler = (event) => {
-      const rect = stage.getBoundingClientRect();
-      const px = (event.clientX - rect.left) / rect.width - 0.5;
-      const py = (event.clientY - rect.top) / rect.height - 0.5;
-
-      vRotY(px * 18);
-      vRotX(-py * 14);
-      vX(px * 14);
-      vY(py * 10);
-
-      if (oX) {
-        oX(px * -28);
-        oY(py * -18);
-      }
-    };
-
-    heroMouseHandler.leave = reset;
-    section.addEventListener('mousemove', heroMouseHandler);
-    section.addEventListener('mouseleave', reset);
+    return;
   }
 
   function initHeroParallax() {
@@ -776,16 +713,10 @@
     });
   }
 
-  /* ─── Button micro-interactions ─── */
+  /* Button hover scale removed — press feedback is CSS :active (see
+     .btn-primary / .hero-cta). Hover grow was tens/day and ungated on touch. */
   function initButtonMotion() {
-    document.querySelectorAll('.btn-primary, .btn-outline').forEach((btn) => {
-      btn.addEventListener('mouseenter', () => {
-        gsap.to(btn, { scale: 1.03, duration: 0.3, ease: 'power2.out' });
-      });
-      btn.addEventListener('mouseleave', () => {
-        gsap.to(btn, { scale: 1, duration: 0.3, ease: 'power2.out' });
-      });
-    });
+    return;
   }
 
   /* ─── Parallax sections ─── */
@@ -814,7 +745,6 @@
     initPageEnter();
     initBfcacheRestore();
     initHeroEntrance();
-    initHero3DMouse();
     initHeroMagnetic();
     initHeroParallax();
     initSplitTitles();
@@ -825,13 +755,10 @@
     initProductGallery();
     initFooterReveal();
     initFaqAccordion();
-    initButtonMotion();
     initParallaxSections();
 
     const visual = document.querySelector('[data-hero-visual]');
-    const orbs = document.querySelectorAll('[data-hero-orb]');
     if (visual) gsap.set(visual, { autoAlpha: 1, opacity: 1, visibility: 'visible' });
-    if (orbs.length) gsap.set(orbs, { autoAlpha: 1, opacity: 1, visibility: 'visible' });
 
     document.body.classList.add('animations-ready');
     ScrollTrigger.refresh();

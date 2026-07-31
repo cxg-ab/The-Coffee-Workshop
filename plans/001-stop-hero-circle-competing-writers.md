@@ -1,6 +1,6 @@
 # 001 — Stop competing writers on the hero circle
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 18f64bd
 - **Severity**: HIGH
 - **Category**: Purpose & frequency / Performance / Interruptibility

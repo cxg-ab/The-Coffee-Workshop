@@ -1,6 +1,6 @@
 # 002 — Gate or delete button hover scale; kill `transition: all`
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 18f64bd
 - **Severity**: HIGH
 - **Category**: Purpose & frequency / Accessibility / Performance

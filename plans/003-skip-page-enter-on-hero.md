@@ -1,6 +1,6 @@
 # 003 — Skip `#main-content` page-enter when the homepage hero is present
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 18f64bd
 - **Severity**: MEDIUM
 - **Category**: Purpose & frequency / Cohesion
