@@ -113,8 +113,13 @@
       /* Hero entrance: pre-hide the copy so the buttons/heading don't flash
          (visible → hidden → fade-in) before the GSAP timeline runs. Only when
          JS + animations are on and motion is allowed; the timeline reveals it,
-         and a JS failsafe reveals it if the animation never runs. */
+         animations-ready / reduced-motion keep it visible, and a JS failsafe
+         clears stuck child transforms if the entrance is interrupted. */
       html.js body[data-animations="true"] [data-hero-copy] { visibility: hidden; }
+      html.js body.animations-ready [data-hero-copy],
+      html.js body[data-animations="true"].animations-ready [data-hero-copy] {
+        visibility: visible;
+      }
       @media (prefers-reduced-motion: reduce) {
         html.js body[data-animations="true"] [data-hero-copy] { visibility: visible; }
       }

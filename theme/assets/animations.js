@@ -130,13 +130,27 @@
     }
   }
 
+  /* Force hero copy readable — undoes stuck autoAlpha / yPercent masks if a
+     timeline is killed mid-entrance (editor reload, globalTimeline.clear). */
+  function revealHeroCopy() {
+    document.querySelectorAll('[data-hero-copy]').forEach((el) => {
+      el.style.visibility = 'visible';
+    });
+    if (typeof gsap === 'undefined') return;
+    gsap.set(
+      '[data-hero-copy], [data-hero-copy] [data-hero-tagline], [data-hero-copy] [data-hero-eyebrow], [data-hero-copy] [data-hero-heading], [data-hero-copy] .hero-brand-rule, [data-hero-copy] [data-hero-stagger], [data-hero-copy] .hero-heading__inner, [data-hero-copy] .tcw-word__inner, [data-hero-copy] .tcw-word',
+      { clearProps: 'opacity,visibility,transform,clipPath,filter' }
+    );
+  }
+
   function resetMotionTargets() {
     if (typeof gsap === 'undefined') return;
 
     gsap.set(
-      '[data-hero-visual], [data-hero-copy] [data-hero-eyebrow], [data-hero-copy] [data-hero-heading], [data-hero-stagger], [data-hero-sweep], [data-reveal], .product-card, [data-footer-reveal], [data-origin-media], [data-origin-media] img, [data-origin-copy] > *',
+      '[data-hero-visual], [data-hero-copy], [data-hero-copy] [data-hero-tagline], [data-hero-copy] [data-hero-eyebrow], [data-hero-copy] [data-hero-heading], [data-hero-copy] .hero-brand-rule, [data-hero-stagger], [data-hero-sweep], [data-hero-copy] .hero-heading__inner, [data-hero-copy] .tcw-word__inner, [data-reveal], .product-card, [data-footer-reveal], [data-origin-media], [data-origin-media] img, [data-origin-copy] > *',
       { clearProps: 'opacity,visibility,transform,clipPath,filter' }
     );
+    revealHeroCopy();
     document
       .querySelectorAll('.reveal-native')
       .forEach((el) => el.classList.remove('reveal-native'));
@@ -203,13 +217,19 @@
     if (!section) return;
 
     const copy = section.querySelector('[data-hero-copy]');
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    const tl = gsap.timeline({
+      defaults: { ease: 'power3.out' },
+      onComplete: revealHeroCopy,
+      onInterrupt: revealHeroCopy,
+    });
 
-    /* The hero copy is pre-hidden in CSS to avoid a flash (buttons/heading
-       briefly showing before the .from() tweens hide them). Reveal it at t=0 —
-       by then the .from tweens below have already set the children to their
-       hidden start state, so it animates in cleanly with no flash. */
-    if (copy) tl.set(copy, { visibility: 'visible' }, 0);
+    /* Lift the CSS pre-hide immediately (inline), then again on the timeline.
+       Children animate from hidden start states; if anything kills the timeline
+       mid-flight, revealHeroCopy / failsafe restores readable text. */
+    if (copy) {
+      copy.style.visibility = 'visible';
+      tl.set(copy, { visibility: 'visible' }, 0);
+    }
 
     const eyebrow = copy?.querySelector('[data-hero-eyebrow]');
     const tagline = copy?.querySelector('[data-hero-tagline]');
@@ -221,22 +241,26 @@
     if (eyebrow) tl.from(eyebrow, { y: 28, autoAlpha: 0, duration: 0.7 }, tagline ? '-=0.35' : 0);
     if (rule) tl.from(rule, { scaleX: 0, transformOrigin: 'left center', duration: 0.55 }, '-=0.45');
 
-    /* SplitText-style word masks per heading line (falls back to line masks) */
+    /* SplitText-style word masks per heading line (falls back to line masks).
+       Initial yPercent lives ON the timeline so timeline.clear() does not leave
+       words parked below overflow:hidden with no tween to bring them back. */
     let heroWords = [];
-    headingLines.forEach((line) => {
-      heroWords = heroWords.concat(splitWords(line));
-    });
+    if (headingLines && headingLines.length) {
+      headingLines.forEach((line) => {
+        heroWords = heroWords.concat(splitWords(line));
+      });
+    }
 
     if (heroWords.length) {
-      gsap.set(headingLines, { yPercent: 0 });
-      gsap.set(heroWords, { yPercent: 115 });
+      tl.set(headingLines, { yPercent: 0 }, 0);
+      tl.set(heroWords, { yPercent: 115 }, 0);
       tl.to(
         heroWords,
         { yPercent: 0, duration: 0.75, stagger: 0.05, ease: 'power4.out' },
         '-=0.35'
       );
-    } else if (headingLines.length) {
-      gsap.set(headingLines, { yPercent: 110 });
+    } else if (headingLines && headingLines.length) {
+      tl.set(headingLines, { yPercent: 110 }, 0);
       tl.to(headingLines, { yPercent: 0, duration: 0.75, stagger: 0.08, ease: 'power3.out' }, '-=0.35');
     } else if (heading) {
       tl.from(heading, { y: 40, autoAlpha: 0, duration: 0.75 }, eyebrow || tagline ? '-=0.4' : 0);
@@ -788,16 +812,10 @@
     onReady();
   }
 
-  /* Failsafe: the hero copy is pre-hidden in CSS to avoid an entrance-flash.
-     If the entrance animation never runs (e.g. GSAP fails to load), reveal it
-     anyway so it can't get stuck invisible. */
-  window.setTimeout(function () {
-    if (!document.body.classList.contains('animations-ready')) {
-      document.querySelectorAll('[data-hero-copy]').forEach(function (el) {
-        el.style.visibility = 'visible';
-      });
-    }
-  }, 1200);
+  /* Failsafe: hero copy is pre-hidden in CSS. Always clear stuck opacity /
+     yPercent masks after a beat — whether GSAP failed, the timeline was
+     interrupted, or word masks never finished rising. */
+  window.setTimeout(revealHeroCopy, 1200);
 
   document.addEventListener('shopify:section:load', () => {
     requestAnimationFrame(onReady);
