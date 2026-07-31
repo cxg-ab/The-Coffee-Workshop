@@ -277,18 +277,15 @@
     .hero-cta, .hero-cta__icon { transition: none; }
   }
 
-  /* ── Mobile flicker guards ───────────────────────────────────────────
-     transform-style: preserve-3d on .hero-visual exists only for the desktop
-     mouse tilt (initHero3DMouse bails below 768px). On a touch device it buys
-     nothing and costs plenty: a 3D rendering context on a border-radius:50%
-     box holding an image has to be re-rasterised whenever it moves, which is
-     what makes the circle shimmer during scroll.
+  /* ── Circle settle (mouse tilt disabled — no competing transform writers) ── */
+  .hero-visual.hero-visual--settled {
+    will-change: auto;
+    pointer-events: none;
+    transform-style: flat;
+  }
 
-     The one-time entrance sweep is a full-hero mix-blend-mode: screen layer
-     pinned above the circle (z-index 30) with a permanent will-change. Even
-     at opacity 0 that keeps a blended composited layer over the logo for the
-     life of the page. It is a decorative flourish, so it simply doesn't run
-     on touch.
+  /* ── Mobile flicker guards ───────────────────────────────────────────
+     Flat compositing on touch / small screens. Sweep is desktop-only flourish.
      ──────────────────────────────────────────────────────────────────── */
   @media (hover: none), (max-width: 767px) {
     .hero-visual {

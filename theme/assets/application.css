@@ -1297,6 +1297,11 @@ html[dir='rtl'] .about-story-rule {
   --tw-shadow-colored: 0 30px 80px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
+.hero-visual.hero-visual--settled {
+  will-change: auto;
+  pointer-events: none;
+  transform-style: flat;
+}
 @media (min-width: 640px) {
   .hero-visual {
     width: 16rem;

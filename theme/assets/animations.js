@@ -140,6 +140,9 @@
     document
       .querySelectorAll('.reveal-native')
       .forEach((el) => el.classList.remove('reveal-native'));
+    document
+      .querySelectorAll('.hero-visual--settled')
+      .forEach((el) => el.classList.remove('hero-visual--settled'));
   }
 
   function killAll() {
@@ -239,12 +242,25 @@
     const visual = section.querySelector('[data-hero-visual]');
     const orbs = section.querySelectorAll('[data-hero-orb]');
 
+    /* Circle: opacity + scale only. No rotationY — that left a 3D residue that
+       fought mouse tilt + parallax (hover/scroll flash). Emil: delete competing
+       writers on the same node. */
     if (visual) {
       gsap.set(visual, { autoAlpha: 1, visibility: 'visible', opacity: 1 });
       tl.fromTo(
         visual,
-        { scale: 0.88, opacity: 0, rotationY: -10 },
-        { scale: 1, opacity: 1, rotationY: 0, duration: 1.1, ease: 'power2.out', immediateRender: false },
+        { scale: 0.95, opacity: 0 },
+        {
+          scale: 1,
+          opacity: 1,
+          duration: 0.9,
+          ease: 'power2.out',
+          immediateRender: false,
+          onComplete: () => {
+            visual.classList.add('hero-visual--settled');
+            gsap.set(visual, { clearProps: 'rotationX,rotationY' });
+          },
+        },
         '-=0.65'
       );
     }
@@ -341,56 +357,11 @@
     });
   }
 
+  /* Disabled (gsap-performance + Emil): mouse tilt wrote rotationX/Y + x/y on
+     the same [data-hero-visual] as entrance + scroll parallax → circle flash.
+     Parallax keeps y only; magnetic CTAs are unchanged. */
   function initHero3DMouse() {
-    const section = document.querySelector('[data-hero-section]');
-    const stage = section?.querySelector('[data-hero-3d]');
-    const visual = section?.querySelector('[data-hero-visual]');
-    const orbs = section?.querySelectorAll('[data-hero-orb]');
-    if (!section || !stage || !visual) return;
-
-    if (window.matchMedia('(max-width: 767px)').matches) return;
-
-    /* One reusable tween per animated property. This handler runs on every
-       pointer move — at 120Hz the old version constructed two tweens and ran
-       two overwrite scans per event, roughly 240 of each per second. */
-    const vRotY = gsap.quickTo(visual, 'rotationY', { duration: 0.6, ease: 'power2.out' });
-    const vRotX = gsap.quickTo(visual, 'rotationX', { duration: 0.6, ease: 'power2.out' });
-    const vX = gsap.quickTo(visual, 'x', { duration: 0.6, ease: 'power2.out' });
-    const vY = gsap.quickTo(visual, 'y', { duration: 0.6, ease: 'power2.out' });
-
-    const hasOrbs = orbs && orbs.length;
-    /* Stagger is dropped: quickTo has no stagger, and a 40ms offset on a
-       pointer-follow effect is imperceptible anyway. */
-    const oX = hasOrbs ? gsap.quickTo(orbs, 'x', { duration: 0.75, ease: 'power2.out' }) : null;
-    const oY = hasOrbs ? gsap.quickTo(orbs, 'y', { duration: 0.75, ease: 'power2.out' }) : null;
-
-    const reset = () => {
-      vRotY(0);
-      vRotX(0);
-      vX(0);
-      vY(0);
-      if (oX) { oX(0); oY(0); }
-    };
-
-    heroMouseHandler = (event) => {
-      const rect = stage.getBoundingClientRect();
-      const px = (event.clientX - rect.left) / rect.width - 0.5;
-      const py = (event.clientY - rect.top) / rect.height - 0.5;
-
-      vRotY(px * 18);
-      vRotX(-py * 14);
-      vX(px * 14);
-      vY(py * 10);
-
-      if (oX) {
-        oX(px * -28);
-        oY(py * -18);
-      }
-    };
-
-    heroMouseHandler.leave = reset;
-    section.addEventListener('mousemove', heroMouseHandler);
-    section.addEventListener('mouseleave', reset);
+    return;
   }
 
   function initHeroParallax() {
@@ -814,7 +785,6 @@
     initPageEnter();
     initBfcacheRestore();
     initHeroEntrance();
-    initHero3DMouse();
     initHeroMagnetic();
     initHeroParallax();
     initSplitTitles();
