@@ -109,14 +109,14 @@
     </div>
 
     <div class="hero-3d-stage relative z-10 flex min-h-[240px] w-full shrink-0 items-center justify-center sm:min-h-[320px] lg:min-h-[440px]" data-hero-3d>
-      <div class="hero-orb absolute h-56 w-56 rounded-full bg-brand/25 blur-3xl" data-hero-orb></div>
-      <div class="hero-orb absolute h-40 w-40 rounded-full bg-brand-light/35 blur-2xl" data-hero-orb></div>
-      <div class="hero-orb absolute h-28 w-28 rounded-full bg-brand/15 blur-xl" data-hero-orb></div>
-
-      <div class="hero-medallion" data-hero-medallion aria-hidden="true"></div>
-
+      {%- comment -%}
+        The decorative medallion ring and the three blurred orbs were removed
+        from this stage. Nothing else may live here: .hero-3d-stage is a
+        centring flex row, so any extra child takes width and pushes the
+        circle off-centre.
+      {%- endcomment -%}
       <div
-        class="hero-visual relative z-10 flex items-center justify-center rounded-full border border-line bg-surface shadow-brand"
+        class="hero-visual relative z-10 flex items-center justify-center"
         data-hero-visual
       >
         {%- if section.settings.hero_image != blank -%}
@@ -129,7 +129,7 @@
             section.settings.hero_image
             | image_url: width: 900
             | image_tag:
-              class: 'h-full w-full rounded-full object-cover',
+              class: 'h-full w-full object-cover',
               loading: 'eager',
               fetchpriority: 'high',
               widths: '300, 450, 600, 900',
@@ -268,20 +268,7 @@
     flex-shrink: 0;
   }
 
-  /* ── Medallion ring behind the visual — adds cinematic depth. Static. ── */
-  .hero-medallion {
-    position: absolute;
-    z-index: 5;
-    width: min(88%, 26rem);
-    aspect-ratio: 1;
-    border-radius: 50%;
-    pointer-events: none;
-    background:
-      conic-gradient(from 210deg, rgba(201, 169, 98, 0.0), rgba(201, 169, 98, 0.35), rgba(201, 169, 98, 0.0) 55%);
-    -webkit-mask: radial-gradient(closest-side, transparent 78%, #000 79%, #000 100%);
-    mask: radial-gradient(closest-side, transparent 78%, #000 79%, #000 100%);
-    opacity: 0.9;
-  }
+  
 
   /* ── Reduced motion: kill the sweep entirely; everything else is static and
      already visible. The theme.liquid reduced-motion rule keeps hero-copy shown. ── */
@@ -290,8 +277,25 @@
     .hero-cta, .hero-cta__icon { transition: none; }
   }
 
-  @media (max-width: 1023px) {
-    .hero-medallion { width: min(80%, 20rem); }
+  /* ── Mobile flicker guards ───────────────────────────────────────────
+     transform-style: preserve-3d on .hero-visual exists only for the desktop
+     mouse tilt (initHero3DMouse bails below 768px). On a touch device it buys
+     nothing and costs plenty: a 3D rendering context on a border-radius:50%
+     box holding an image has to be re-rasterised whenever it moves, which is
+     what makes the circle shimmer during scroll.
+
+     The one-time entrance sweep is a full-hero mix-blend-mode: screen layer
+     pinned above the circle (z-index 30) with a permanent will-change. Even
+     at opacity 0 that keeps a blended composited layer over the logo for the
+     life of the page. It is a decorative flourish, so it simply doesn't run
+     on touch.
+     ──────────────────────────────────────────────────────────────────── */
+  @media (hover: none), (max-width: 767px) {
+    .hero-visual {
+      transform-style: flat;
+      will-change: auto;
+    }
+    .hero-sweep { display: none; }
   }
 </style>
 

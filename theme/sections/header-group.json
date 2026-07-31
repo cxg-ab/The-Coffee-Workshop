@@ -20,6 +20,9 @@
     },
     "header": {
       "type": "header",
+      "custom_css": [
+        "/* Reduce spacing between header icons */.tcw-header__inner > .flex.items-center.gap-2 {gap: 0.25rem;}"
+      ],
       "settings": {
         "menu": "main-menu",
         "shop_link": ""

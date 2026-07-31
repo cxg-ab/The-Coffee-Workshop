@@ -134,7 +134,7 @@
     if (typeof gsap === 'undefined') return;
 
     gsap.set(
-      '[data-hero-visual], [data-hero-orb], [data-hero-copy] [data-hero-eyebrow], [data-hero-copy] [data-hero-heading], [data-hero-stagger], [data-hero-sweep], [data-reveal], .product-card, [data-footer-reveal], [data-origin-media], [data-origin-media] img, [data-origin-copy] > *',
+      '[data-hero-visual], [data-hero-copy] [data-hero-eyebrow], [data-hero-copy] [data-hero-heading], [data-hero-stagger], [data-hero-sweep], [data-reveal], .product-card, [data-footer-reveal], [data-origin-media], [data-origin-media] img, [data-origin-copy] > *',
       { clearProps: 'opacity,visibility,transform,clipPath,filter' }
     );
     document
@@ -399,16 +399,13 @@
 
     const isMobile = window.matchMedia('(max-width: 767px)').matches;
 
+    /* Vertical parallax only. This used to also scrub `rotationY` (2deg mobile,
+       4deg desktop) — a 3D rotation applied to a border-radius:50% box holding
+       an image, re-rasterised on every scroll frame. That is what made the
+       circle flash while scrolling past it, and a 2deg tilt tied to scroll
+       reads as nothing at all, so it is pure cost. */
     gsap.to(section.querySelector('[data-hero-visual]'), {
       y: isMobile ? -24 : -48,
-      rotationY: isMobile ? 2 : 4,
-      ease: 'none',
-      scrollTrigger: { trigger: section, start: 'top top', end: 'bottom top', scrub: true },
-    });
-
-    gsap.to(section.querySelectorAll('[data-hero-orb]'), {
-      y: isMobile ? -36 : -72,
-      scale: 1.06,
       ease: 'none',
       scrollTrigger: { trigger: section, start: 'top top', end: 'bottom top', scrub: true },
     });
