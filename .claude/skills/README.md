@@ -16,6 +16,20 @@ Registry: https://skills.sh · CLI: https://github.com/vercel-labs/skills
 
 ---
 
+## DESIGN.md brand library (VoltAgent)
+
+**Source:** [VoltAgent/awesome-design-md](https://github.com/VoltAgent/awesome-design-md) (MIT · 74 brands)
+
+Not a `SKILL.md` package — curated **DESIGN.md** files (Google Stitch format). Installed at **`design-md/<brand>/DESIGN.md`**.
+
+```bash
+cp design-md/starbucks/DESIGN.md ./DESIGN.md   # activate one brand for agents
+```
+
+See `design-md/README.md`. Keep TCW bronze / `#FAFAF8` identity; use these as references.
+
+---
+
 ## Animation quality (GSAP + motion craft)
 
 ### greensock/gsap-skills (official, MIT · ~12.7k★)

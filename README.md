@@ -6,6 +6,7 @@ Primary theme for **The Coffee Workshop** (`7medyz-sn.myshopify.com`).
 - **Schema version:** 1.1.0  
 - **Canonical GitHub (after migration):** `cxg-ab/TCW-Main`  
 - **Migration / primary workflow:** [docs/tcw-main-primary.md](docs/tcw-main-primary.md)
+- **DESIGN.md brand library:** [design-md/](design-md/) ([VoltAgent/awesome-design-md](https://github.com/VoltAgent/awesome-design-md))
 
 ## Prerequisites
 
@@ -35,4 +36,4 @@ shopify theme push --path theme --store=7medyz-sn.myshopify.com --theme=<TCW_MAI
 - No coffee subscriptions  
 - Don’t break roast scroll scrub  
 - Product images: contain on `#FAFAF8` (`.tcw-product-media`)  
-- Prefer push path `C:\Users\User\tcw-main` (or `tcw-luxury-push` until migrated)
+- Prefer push path `R:\tcw-main`
