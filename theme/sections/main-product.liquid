@@ -155,8 +155,10 @@
     assign r_how = true
   endif
 
+  # Brand is rendered above the title, not as a Details row — do not let
+  # r_brand alone open an empty specs panel.
   assign has_specs = false
-  if r_region or r_variety or r_altitude or r_process or r_roast or r_notes or r_brand
+  if r_region or r_variety or r_altitude or r_process or r_roast or r_notes
     assign has_specs = true
   endif
   assign has_details = has_specs
@@ -867,11 +869,10 @@
 
       <div class="pdp__info">
         <p class="pdp__eyebrow">{{ settings.brand_tagline | default: 'Specialty Coffee' }}</p>
-        {%- if product.metafields.custom.brand.value != blank -%}
-  <p class="pdp__brand">{{ product.metafields.custom.brand.value | first }}</p>
-{%- endif -%}
-<h1 class="pdp__title">{{ product.title | remove: '[PLACEHOLDER] ' }}</h1>
-        {{ product.selected_or_first_available_variant.metafields.custom.brand }}
+        {%- if r_brand -%}
+          <p class="pdp__brand">{{ brand | escape }}</p>
+        {%- endif -%}
+        <h1 class="pdp__title">{{ product.title | remove: '[PLACEHOLDER] ' }}</h1>
 
         <div class="pdp__meta-row">
           <p class="pdp__price" data-product-price>{{ current_variant.price | money }}</p>
