@@ -312,8 +312,24 @@
       </div>
 
       {%- if card_product.available -%}
+        {%- comment -%}
+          Quick-add sits next to "From {{ price_min }}". Always add the cheapest
+          *available* variant so the cart line matches the advertised from-price
+          instead of admin variant order (selected_or_first_available).
+        {%- endcomment -%}
+        {%- assign quick_variant = nil -%}
+        {%- for v in card_product.variants -%}
+          {%- if v.available -%}
+            {%- if quick_variant == nil or v.price < quick_variant.price -%}
+              {%- assign quick_variant = v -%}
+            {%- endif -%}
+          {%- endif -%}
+        {%- endfor -%}
+        {%- if quick_variant == nil -%}
+          {%- assign quick_variant = card_product.selected_or_first_available_variant -%}
+        {%- endif -%}
         <form method="post" action="{{ routes.cart_add_url }}" class="lg:hidden" data-ajax-cart>
-          <input type="hidden" name="id" value="{{ card_product.selected_or_first_available_variant.id }}">
+          <input type="hidden" name="id" value="{{ quick_variant.id }}">
           <button
             type="submit"
             name="add"

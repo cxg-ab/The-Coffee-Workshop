@@ -89,7 +89,12 @@
           {%- if known_cats contains th -%}{%- assign p_cats = p_cats | append: ' ' | append: th -%}{%- endif -%}
         {%- endfor -%}
         {%- if known_cats contains collection.handle and p_cats == '' -%}{%- assign p_cats = collection.handle -%}{%- endif -%}
-        <div class="plp-item" data-cats="{{ p_cats | strip }}" data-region="{{ p_region | escape }}" data-process="{{ p_process | escape }}" data-notes="{{ p_notes | escape }}" data-price="{{ product.price }}">
+        {%- comment -%}
+          Price filter must use the product's full price range. `product.price` is
+          only the selected/first-available variant, which disagrees with the card's
+          "From {{ price_min }}" for multi-weight beans and mis-buckets them.
+        {%- endcomment -%}
+        <div class="plp-item" data-cats="{{ p_cats | strip }}" data-region="{{ p_region | escape }}" data-process="{{ p_process | escape }}" data-notes="{{ p_notes | escape }}" data-price-min="{{ product.price_min }}" data-price-max="{{ product.price_max }}">
           {% render 'product-card', card_product: product %}
         </div>
       {%- endfor -%}
@@ -190,10 +195,13 @@
         if (!hit) return false;
       }
       if (selectedPrice.length) {
-        var price = parseInt(item.getAttribute('data-price'), 10);
+        var pMin = parseInt(item.getAttribute('data-price-min'), 10);
+        var pMax = parseInt(item.getAttribute('data-price-max'), 10);
+        if (isNaN(pMin) || isNaN(pMax)) return false;
+        // Overlap: product spans any price in the selected bucket(s).
         var inRange = selectedPrice.some(function (idx) {
           var b = priceBuckets[idx];
-          return b && price >= b.min && price <= b.max;
+          return b && pMin <= b.max && pMax >= b.min;
         });
         if (!inRange) return false;
       }
@@ -332,11 +340,17 @@
       var groupEl = document.querySelector('[data-filter-group="price"]');
       var optsEl = document.querySelector('[data-filter-options="price"]');
       if (!groupEl || !optsEl) return;
-      var prices = items.map(function (it) { return parseInt(it.getAttribute('data-price'), 10); })
-        .filter(function (n) { return !isNaN(n) && n > 0; });
-      if (prices.length < 2) return;
-      var min = Math.min.apply(null, prices);
-      var max = Math.max.apply(null, prices);
+      var mins = [];
+      var maxs = [];
+      items.forEach(function (it) {
+        var loP = parseInt(it.getAttribute('data-price-min'), 10);
+        var hiP = parseInt(it.getAttribute('data-price-max'), 10);
+        if (!isNaN(loP) && loP > 0) mins.push(loP);
+        if (!isNaN(hiP) && hiP > 0) maxs.push(hiP);
+      });
+      if (mins.length < 2) return;
+      var min = Math.min.apply(null, mins);
+      var max = Math.max.apply(null, maxs);
       if (max <= min) return;
       var cur = root.getAttribute('data-currency') || '';
       var lo = min / 100, hi = max / 100;
@@ -351,7 +365,11 @@
         { label: cur + ' ' + t2 + '+', min: t2 * 100, max: Infinity }
       ];
       defs.forEach(function (d) {
-        var count = prices.filter(function (p) { return p >= d.min && p <= d.max; }).length;
+        var count = items.filter(function (it) {
+          var loP = parseInt(it.getAttribute('data-price-min'), 10);
+          var hiP = parseInt(it.getAttribute('data-price-max'), 10);
+          return !isNaN(loP) && !isNaN(hiP) && loP <= d.max && hiP >= d.min;
+        }).length;
         if (count === 0) return;
         var idx = priceBuckets.length;
         priceBuckets.push(d);
